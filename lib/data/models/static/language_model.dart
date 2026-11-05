@@ -1,6 +1,9 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 
 part 'language_model.g.dart';
@@ -46,11 +49,7 @@ abstract class LanguageEntity extends Object
     with SelectableEntity
     implements Built<LanguageEntity, LanguageEntityBuilder> {
   factory LanguageEntity() {
-    return _$LanguageEntity._(
-      id: '',
-      name: '',
-      locale: '',
-    );
+    return _$LanguageEntity._(id: '', name: '', locale: '');
   }
   LanguageEntity._();
 
@@ -62,7 +61,7 @@ abstract class LanguageEntity extends Object
   String get locale;
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     if (filter == null || filter.isEmpty) {
       return true;
     }
@@ -79,7 +78,7 @@ abstract class LanguageEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     if (filter == null || filter.isEmpty) {
       return null;
     }
@@ -97,7 +96,7 @@ abstract class LanguageEntity extends Object
   String get listDisplayName => name;
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   static Serializer<LanguageEntity> get serializer =>
       _$languageEntitySerializer;

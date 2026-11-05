@@ -1,9 +1,12 @@
-import 'dart:async';
+// Dart imports:
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/.env.dart';
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/mock/mock_login.dart';
@@ -11,21 +14,20 @@ import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/web_client.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
+import 'package:invoiceninja_flutter/utils/platforms.dart';
 import 'package:invoiceninja_flutter/utils/serialization.dart';
 
 class AuthRepository {
-  const AuthRepository({
-    this.webClient = const WebClient(),
-  });
+  const AuthRepository({this.webClient = const WebClient()});
 
   final WebClient webClient;
 
   Future<LoginResponse> signUp({
-    String url,
-    String secret,
-    @required String email,
-    @required String password,
-    @required String referralCode,
+    String? url,
+    String? secret,
+    required String email,
+    required String password,
+    required String referralCode,
   }) async {
     final credentials = {
       'email': email,
@@ -33,6 +35,7 @@ class AuthRepository {
       'terms_of_service': true,
       'privacy_policy': true,
       'token_name': _tokenName,
+      'platform': getPlatformName(),
     };
 
     if ((url ?? '').isEmpty) {
@@ -40,39 +43,55 @@ class AuthRepository {
     }
 
     return sendRequest(
-        url: formatApiUrl(url) + '/signup?rc=$referralCode',
-        data: credentials,
-        secret: secret);
+      url: formatApiUrl(url) + '/signup?rc=$referralCode',
+      data: credentials,
+      secret: secret,
+    );
   }
 
   Future<LoginResponse> oauthSignUp({
-    @required String idToken,
-    @required String accessToken,
-    @required String referralCode,
+    required String url,
+    required String? idToken,
+    required String? accessToken,
+    required String referralCode,
+    required String provider,
+    String? firstName = '',
+    String? lastName = '',
+    String? email = '',
   }) async {
-    final credentials = {
+    final credentials = <String, dynamic>{
       'terms_of_service': true,
       'privacy_policy': true,
       'token_name': _tokenName,
-      'id_token': idToken,
-      //'access_token': accessToken,
-      'provider': 'google',
+      'access_token': accessToken,
+      'provider': provider,
+      'platform': getPlatformName(),
+      'first_name': firstName,
+      'last_name': lastName,
+      'email': email,
     };
+    // Only send id_token when populated. Laravel's request()->has() returns
+    // true for null/empty values too, so an absent key is the only way to
+    // route the backend through the access_token branch.
+    if (idToken != null && idToken.isNotEmpty) {
+      credentials['id_token'] = idToken;
+    }
 
     return sendRequest(
-        url: formatApiUrl(Constants.hostedApiUrl) +
-            '/oauth_login?create=true&rc=$referralCode',
-        data: credentials,
-        secret: Config.API_SECRET);
+      url: formatApiUrl(url) + '/oauth_login?create=true&rc=$referralCode',
+      data: credentials,
+      secret: Config.API_SECRET,
+    );
   }
 
-  Future<LoginResponse> login(
-      {String email,
-      String password,
-      String url,
-      String secret,
-      String platform,
-      String oneTimePassword}) async {
+  Future<LoginResponse> login({
+    String? email,
+    String? password,
+    String? url,
+    String? secret,
+    String? platform,
+    String? oneTimePassword,
+  }) async {
     final credentials = {
       'email': email,
       'password': password,
@@ -84,34 +103,41 @@ class AuthRepository {
     return sendRequest(url: url, data: credentials, secret: secret);
   }
 
-  Future<dynamic> logout({@required Credentials credentials}) async {
-    return webClient.post(
-      '${credentials.url}/logout',
-      credentials.token,
-    );
+  Future<dynamic> logout({required Credentials credentials}) async {
+    return webClient.post('${credentials.url}/logout', credentials.token);
   }
 
-  Future<LoginResponse> oauthLogin(
-      {@required String idToken,
-      @required String accessToken,
-      @required String url,
-      @required String secret,
-      @required String platform}) async {
-    final credentials = {
-      'id_token': idToken,
-      'provider': 'google',
+  Future<LoginResponse> oauthLogin({
+    required String? idToken,
+    required String? accessToken,
+    required String url,
+    required String secret,
+    required String platform,
+    required String provider,
+    required String? email,
+    required String? authCode,
+  }) async {
+    final credentials = <String, dynamic>{
+      'provider': provider,
+      'access_token': accessToken,
+      'email': email,
+      'auth_code': authCode,
     };
+    // Only send id_token when populated; see oauthSignUp for rationale.
+    if (idToken != null && idToken.isNotEmpty) {
+      credentials['id_token'] = idToken;
+    }
     url = formatApiUrl(url) + '/oauth_login';
 
     return sendRequest(url: url, data: credentials, secret: secret);
   }
 
   Future<LoginResponse> refresh({
-    @required String url,
-    @required String token,
-    @required int updatedAt,
-    @required bool currentCompany,
-    @required bool includeStatic,
+    required String url,
+    required String token,
+    required int updatedAt,
+    required bool currentCompany,
+    required bool includeStatic,
   }) async {
     url = formatApiUrl(url) + '/refresh?';
 
@@ -121,7 +147,8 @@ class AuthRepository {
 
     if (updatedAt > 0) {
       url += '&updated_at=$updatedAt';
-      includeStatic = includeStatic ||
+      includeStatic =
+          includeStatic ||
           DateTime.now().millisecondsSinceEpoch - (updatedAt * 1000) >
               kMillisecondsToRefreshStaticData;
     } else {
@@ -131,57 +158,53 @@ class AuthRepository {
     return sendRequest(url: url, token: token, includeStatic: includeStatic);
   }
 
-  Future<LoginResponse> recoverPassword(
-      {String email, String url, String secret, String platform}) async {
-    final credentials = {
-      'email': email,
-    };
+  Future<LoginResponse> recoverPassword({
+    String? email,
+    String? url,
+    String? secret,
+    String? platform,
+  }) async {
+    final credentials = {'email': email};
     url = formatApiUrl(url) + '/reset_password';
 
     return sendRequest(url: url, data: credentials);
   }
 
   Future<void> setDefaultCompany({
-    @required Credentials credentials,
-    @required String companyId,
+    required Credentials credentials,
+    required String companyId,
   }) async {
     final url = '${credentials.url}/companies/$companyId/default';
     return webClient.post(url, credentials.token);
   }
 
-  Future<dynamic> addCompany({
-    @required Credentials credentials,
-  }) async {
+  Future<dynamic> addCompany({required Credentials credentials}) async {
     final url = '${credentials.url}/companies';
-    final data = {
-      'token_name': _tokenName,
-    };
+    final data = {'token_name': _tokenName};
 
     return webClient.post(url, credentials.token, data: json.encode(data));
   }
 
   Future<dynamic> deleteCompany({
-    @required Credentials credentials,
-    @required String companyId,
-    @required String password,
-    @required String reason,
+    required Credentials credentials,
+    required String companyId,
+    required String password,
+    required String reason,
   }) async {
     final url = '${credentials.url}/companies/$companyId';
     return webClient.delete(
       url,
       credentials.token,
       password: password,
-      data: json.encode(
-        {'cancellation_message': reason},
-      ),
+      data: json.encode({'cancellation_message': reason}),
     );
   }
 
   Future<dynamic> purgeData({
-    @required Credentials credentials,
-    @required String companyId,
-    @required String password,
-    @required String idToken,
+    required Credentials credentials,
+    required String companyId,
+    required String password,
+    required String idToken,
   }) async {
     return webClient.post(
       '${credentials.url}/companies/purge_save_settings/$companyId',
@@ -191,8 +214,10 @@ class AuthRepository {
     );
   }
 
-  Future<dynamic> resendConfirmation(
-      {@required Credentials credentials, @required String userId}) async {
+  Future<dynamic> resendConfirmation({
+    required Credentials credentials,
+    required String userId,
+  }) async {
     return webClient.post(
       '${credentials.url}/user/$userId/reconfirm',
       credentials.token,
@@ -200,10 +225,10 @@ class AuthRepository {
   }
 
   Future<LoginResponse> sendRequest({
-    String url,
+    required String url,
     dynamic data,
-    String token,
-    String secret,
+    String? token,
+    String? secret,
     bool includeStatic = true,
   }) async {
     if (url.contains('?')) {
@@ -215,7 +240,7 @@ class AuthRepository {
     url += 'first_load=true';
 
     if (includeStatic) {
-      url += '&include_static=true';
+      url += '&include_static=true&einvoice=true';
     }
 
     dynamic response;
@@ -223,17 +248,23 @@ class AuthRepository {
     if (Config.DEMO_MODE) {
       response = json.decode(kMockLogin);
     } else {
-      response = await webClient.post(url, token ?? '',
-          secret: secret, data: json.encode(data));
+      response = await webClient.post(
+        url,
+        token ?? '',
+        secret: secret,
+        data: json.encode(data),
+      );
     }
 
-    return await compute<dynamic, dynamic>(SerializationUtils.computeDecode,
-        <dynamic>[LoginResponse.serializer, response]);
+    return await compute<dynamic, dynamic>(
+      SerializationUtils.deserializeWith,
+      <dynamic>[LoginResponse.serializer, response],
+    );
   }
 
   String get _tokenName => kIsWeb
       ? 'web_client'
       : Platform.isAndroid
-          ? 'android_client'
-          : 'ios_client';
+      ? 'android_client'
+      : 'ios_client';
 }

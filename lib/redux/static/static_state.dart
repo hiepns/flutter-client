@@ -1,7 +1,11 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
+import 'package:invoiceninja_flutter/data/models/e_invoice_model.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 
 part 'static_state.g.dart';
@@ -19,6 +23,8 @@ abstract class StaticState implements Built<StaticState, StaticStateBuilder> {
       paymentTypeMap: BuiltMap<String, PaymentTypeEntity>(),
       countryMap: BuiltMap<String, CountryEntity>(),
       templateMap: BuiltMap<String, TemplateEntity>(),
+      bulkUpdates: BuiltMap<String, BuiltList<String>>(),
+      eInvoiceSchema: BuiltMap<String, EInvoiceFieldEntity>(),
     );
   }
 
@@ -28,17 +34,16 @@ abstract class StaticState implements Built<StaticState, StaticStateBuilder> {
   @memoized
   int get hashCode;
 
-  @nullable
-  int get updatedAt;
+  int? get updatedAt;
 
-  bool get isLoaded => updatedAt != null && updatedAt > 0;
+  bool get isLoaded => updatedAt != null && updatedAt! > 0;
 
   bool get isStale {
     if (!isLoaded) {
       return true;
     }
 
-    return DateTime.now().millisecondsSinceEpoch - updatedAt >
+    return DateTime.now().millisecondsSinceEpoch - updatedAt! >
         kMillisecondsToRefreshStaticData;
   }
 
@@ -61,6 +66,15 @@ abstract class StaticState implements Built<StaticState, StaticStateBuilder> {
   BuiltMap<String, CountryEntity> get countryMap;
 
   BuiltMap<String, TemplateEntity> get templateMap;
+
+  BuiltMap<String, BuiltList<String>> get bulkUpdates;
+
+  BuiltMap<String, EInvoiceFieldEntity> get eInvoiceSchema;
+
+  // ignore: unused_element
+  static void _initializeBuilder(StaticStateBuilder builder) => builder
+    ..bulkUpdates.replace(BuiltMap<String, List<String>>())
+    ..eInvoiceSchema.replace(BuiltMap<String, EInvoiceFieldEntity>());
 
   static Serializer<StaticState> get serializer => _$staticStateSerializer;
 }

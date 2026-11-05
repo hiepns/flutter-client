@@ -1,29 +1,29 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:image_picker/image_picker.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/expense/expense_actions.dart';
 import 'package:invoiceninja_flutter/redux/recurring_expense/recurring_expense_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/buttons/bottom_buttons.dart';
 import 'package:invoiceninja_flutter/ui/app/view_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/expense/view/expense_view_documents.dart';
+import 'package:invoiceninja_flutter/ui/expense/view/expense_view_overview.dart';
 import 'package:invoiceninja_flutter/ui/expense/view/expense_view_schedule.dart';
 import 'package:invoiceninja_flutter/ui/expense/view/expense_view_vm.dart';
-import 'package:invoiceninja_flutter/ui/expense/view/expense_view_overview.dart';
-import 'package:invoiceninja_flutter/utils/files.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class ExpenseView extends StatefulWidget {
   const ExpenseView({
-    Key key,
-    @required this.viewModel,
-    @required this.isFilter,
-    @required this.tabIndex,
+    Key? key,
+    required this.viewModel,
+    required this.isFilter,
+    required this.tabIndex,
   }) : super(key: key);
 
   final AbstractExpenseViewVM viewModel;
@@ -36,19 +36,25 @@ class ExpenseView extends StatefulWidget {
 
 class _ExpenseViewState extends State<ExpenseView>
     with SingleTickerProviderStateMixin {
-  TabController _controller;
+  TabController? _controller;
 
   @override
   void initState() {
     super.initState();
 
     final viewModel = widget.viewModel;
-    final state = viewModel.state;
+    final state = viewModel.state!;
+    final company = state.company;
+
     _controller = TabController(
-        vsync: this,
-        length: viewModel.expense.isRecurring ? 3 : 2,
-        initialIndex: widget.isFilter ? 0 : state.expenseUIState.tabIndex);
-    _controller.addListener(_onTabChanged);
+      vsync: this,
+      length:
+          1 +
+          (viewModel.expense.isRecurring ? 1 : 0) +
+          (company.isModuleEnabled(EntityType.document) ? 1 : 0),
+      initialIndex: widget.isFilter ? 0 : state.expenseUIState.tabIndex,
+    );
+    _controller!.addListener(_onTabChanged);
   }
 
   void _onTabChanged() {
@@ -60,9 +66,9 @@ class _ExpenseViewState extends State<ExpenseView>
     final expense = widget.viewModel.expense;
 
     if (expense.isRecurring) {
-      store.dispatch(UpdateRecurringExpenseTab(tabIndex: _controller.index));
+      store.dispatch(UpdateRecurringExpenseTab(tabIndex: _controller!.index));
     } else {
-      store.dispatch(UpdateExpenseTab(tabIndex: _controller.index));
+      store.dispatch(UpdateExpenseTab(tabIndex: _controller!.index));
     }
   }
 
@@ -71,14 +77,14 @@ class _ExpenseViewState extends State<ExpenseView>
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.tabIndex != widget.tabIndex) {
-      _controller.index = widget.tabIndex;
+      _controller!.index = widget.tabIndex;
     }
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_onTabChanged);
-    _controller.dispose();
+    _controller!.removeListener(_onTabChanged);
+    _controller!.dispose();
     super.dispose();
   }
 
@@ -87,107 +93,99 @@ class _ExpenseViewState extends State<ExpenseView>
     final localization = AppLocalization.of(context);
     final viewModel = widget.viewModel;
     final expense = viewModel.expense;
+    final company = viewModel.company!;
 
     return ViewScaffold(
       isFilter: widget.isFilter,
       entity: expense,
-      appBarBottom: TabBar(
-        controller: _controller,
-        isScrollable: isMobile(context),
-        tabs: [
-          Tab(
-            text: localization.overview,
-          ),
-          Tab(
-            text: expense.documents.isEmpty
-                ? localization.documents
-                : '${localization.documents} (${expense.documents.length})',
-          ),
-          if (expense.isRecurring)
-            Tab(
-              text: localization.schedule,
-            )
-        ],
-      ),
-      body: Builder(builder: (context) {
-        return Column(
-          children: [
-            Expanded(
-              child: TabBarView(
-                controller: _controller,
-                children: <Widget>[
-                  RefreshIndicator(
-                    onRefresh: () => viewModel.onRefreshed(context),
-                    child: ExpenseOverview(
-                      viewModel: viewModel,
-                      isFilter: widget.isFilter,
-                    ),
+      appBarBottom:
+          (company.isModuleEnabled(EntityType.document) || expense.isRecurring)
+          ? TabBar(
+              controller: _controller,
+              isScrollable: isMobile(context),
+              tabs: [
+                Tab(text: localization!.overview),
+                if (company.isModuleEnabled(EntityType.document))
+                  Tab(
+                    text: expense.documents.isEmpty
+                        ? localization.documents
+                        : '${localization.documents} (${expense.documents.length})',
                   ),
-                  RefreshIndicator(
-                    onRefresh: () => viewModel.onRefreshed(context),
-                    child: ExpenseViewDocuments(
-                        viewModel: viewModel, expense: viewModel.expense),
-                  ),
-                  if (expense.isRecurring)
-                    RefreshIndicator(
-                      onRefresh: () => viewModel.onRefreshed(context),
-                      child: ExpenseViewSchedule(viewModel: viewModel),
-                    ),
-                ],
-              ),
-            ),
-            BottomButtons(
-              entity: expense,
-              action1: expense.isRecurring
-                  ? (expense.canBeStopped
-                      ? EntityAction.stop
-                      : EntityAction.start)
-                  : EntityAction.invoiceExpense,
-              action1Enabled: !expense.isInvoiced ||
-                  (expense.isRecurring &&
-                      (expense.canBeStarted || expense.canBeStopped)),
-              action2: expense.isRecurring
-                  ? EntityAction.cloneToRecurring
-                  : EntityAction.cloneToExpense,
+                if (expense.isRecurring) Tab(text: localization.schedule),
+              ],
             )
-          ],
-        );
-      }),
-      floatingActionButton: viewModel.state.isEnterprisePlan
-          ? Builder(builder: (BuildContext context) {
-              return FloatingActionButton(
-                heroTag: 'expense_fab',
-                backgroundColor: Theme.of(context).primaryColorDark,
-                onPressed: () async {
-                  MultipartFile multipartFile;
-                  if (kIsWeb) {
-                    multipartFile = await pickFile();
-                  } else {
-                    final status = await Permission.camera.status;
-                    if (status == PermissionStatus.granted) {
-                      final image = await ImagePicker()
-                          .pickImage(source: ImageSource.camera);
-                      if (image != null && image.path != null) {
-                        final bytes = await image.readAsBytes();
-                        multipartFile = MultipartFile.fromBytes('file', bytes,
-                            filename: image.path.split('/').last);
-                      }
-                    } else {
-                      openAppSettings();
-                    }
-                  }
-                  if (multipartFile != null) {
-                    viewModel.onUploadDocument(context, multipartFile);
-                  }
-                },
-                child: Icon(
-                  Icons.camera_alt,
-                  color: Colors.white,
-                ),
-                tooltip: localization.create,
-              );
-            })
           : null,
+      body: Builder(
+        builder: (context) {
+          return Column(
+            children: [
+              Expanded(
+                child:
+                    (company.isModuleEnabled(EntityType.document) ||
+                        expense.isRecurring)
+                    ? TabBarView(
+                        controller: _controller,
+                        children: <Widget>[
+                          RefreshIndicator(
+                            onRefresh: () => viewModel.onRefreshed!(context),
+                            child: ExpenseOverview(
+                              key: ValueKey(
+                                '${viewModel.expense.id}-${viewModel.expense.loadedAt}',
+                              ),
+                              viewModel: viewModel,
+                              isFilter: widget.isFilter,
+                            ),
+                          ),
+                          if (company.isModuleEnabled(EntityType.document))
+                            RefreshIndicator(
+                              onRefresh: () => viewModel.onRefreshed!(context),
+                              child: ExpenseViewDocuments(
+                                key: ValueKey(
+                                  '${viewModel.expense.id}-${viewModel.expense.loadedAt}',
+                                ),
+                                viewModel: viewModel,
+                                expense: viewModel.expense,
+                              ),
+                            ),
+                          if (expense.isRecurring)
+                            RefreshIndicator(
+                              onRefresh: () => viewModel.onRefreshed!(context),
+                              child: ExpenseViewSchedule(
+                                key: ValueKey(
+                                  '${viewModel.expense.id}-${viewModel.expense.loadedAt}',
+                                ),
+                                viewModel: viewModel,
+                              ),
+                            ),
+                        ],
+                      )
+                    : RefreshIndicator(
+                        onRefresh: () => viewModel.onRefreshed!(context),
+                        child: ExpenseOverview(
+                          viewModel: viewModel,
+                          isFilter: widget.isFilter,
+                        ),
+                      ),
+              ),
+              BottomButtons(
+                entity: expense,
+                action1: expense.isRecurring
+                    ? (expense.canBeStopped
+                          ? EntityAction.stop
+                          : EntityAction.start)
+                    : EntityAction.invoiceExpense,
+                action1Enabled:
+                    (!expense.isInvoiced && expense.shouldBeInvoiced) ||
+                    (expense.isRecurring &&
+                        (expense.canBeStarted || expense.canBeStopped)),
+                action2: expense.isRecurring
+                    ? EntityAction.cloneToRecurring
+                    : EntityAction.cloneToExpense,
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

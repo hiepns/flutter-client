@@ -1,13 +1,22 @@
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
+// Flutter imports:
+import 'package:desktop_drop/desktop_drop.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:http/http.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:invoiceninja_flutter/redux/document/document_actions.dart';
+import 'package:invoiceninja_flutter/ui/app/dashed_rect.dart';
+import 'package:invoiceninja_flutter/utils/completers.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/data/web_client.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/ui/app/buttons/elevated_button.dart';
 import 'package:invoiceninja_flutter/ui/app/icon_text.dart';
@@ -17,55 +26,174 @@ import 'package:invoiceninja_flutter/utils/dialogs.dart';
 import 'package:invoiceninja_flutter/utils/files.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/icons.dart';
-import 'package:http/http.dart' as http;
 import 'package:invoiceninja_flutter/utils/localization.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:share/share.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:version/version.dart';
 
-class DocumentGrid extends StatelessWidget {
+class DocumentGrid extends StatefulWidget {
   const DocumentGrid({
-    @required this.documents,
-    @required this.onUploadDocument,
-    @required this.onDeleteDocument,
+    required this.documents,
+    required this.onUploadDocument,
+    required this.onRenamedDocument,
     this.onViewExpense,
   });
 
   final List<DocumentEntity> documents;
-  final Function(MultipartFile) onUploadDocument;
-  final Function(DocumentEntity, String, String) onDeleteDocument;
-  final Function(DocumentEntity) onViewExpense;
+  final Function(List<MultipartFile>, bool) onUploadDocument;
+  final Function(DocumentEntity)? onViewExpense;
+  final Function onRenamedDocument;
+
+  @override
+  State<DocumentGrid> createState() => _DocumentGridState();
+}
+
+class _DocumentGridState extends State<DocumentGrid> {
+  bool _dragging = false;
+
+  /// Null until the user touches the switch, so the company's
+  /// `documents_public_by_default` setting seeds it and a manual toggle still
+  /// wins for the rest of the session. Resolved in `build` rather than
+  /// `initState` because the store is only read from a built context here.
+  bool? _isPrivate;
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final state = StoreProvider.of<AppState>(context).state;
+
+    // Every upload below sends `is_public` explicitly, so without this seed the
+    // client would override the company setting on every single attachment.
+    final isPrivate =
+        _isPrivate ??
+        !(state.company.settings.documentsPublicByDefault ?? true);
+
+    final privateSwitch = Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SwitchListTile(
+        title: Row(
+          children: [
+            Icon(Icons.lock),
+            SizedBox(width: 16),
+            Text(localization.private),
+          ],
+        ),
+        value: isPrivate,
+        onChanged: (value) {
+          setState(() {
+            _isPrivate = value;
+          });
+        },
+      ),
+    );
 
     return ScrollableListView(
       children: [
-        if (state.isEnterprisePlan)
-          Padding(
-            padding: const EdgeInsets.only(left: 16, bottom: 16, right: 16),
-            child: Row(
-              children: <Widget>[
-                if (isMobileOS()) ...[
+        if (state.isEnterprisePlan) ...[
+          if (kIsWeb || isDesktopOS())
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final child = InkWell(
+                  onTap: () async {
+                    final files = await pickFiles(
+                      allowedExtensions: DocumentEntity.ALLOWED_EXTENSIONS,
+                    );
+                    if (files != null && files.isNotEmpty) {
+                      widget.onUploadDocument(files, isPrivate);
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: DropTarget(
+                      onDragDone: (detail) async {
+                        final List<MultipartFile> multipartFiles = [];
+                        for (
+                          var index = 0;
+                          index < detail.files.length;
+                          index++
+                        ) {
+                          final file = detail.files[index];
+                          final bytes = await file.readAsBytes();
+                          final multipartFile = MultipartFile.fromBytes(
+                            'documents[$index]',
+                            bytes,
+                            filename: file.name,
+                          );
+                          multipartFiles.add(multipartFile);
+                        }
+
+                        widget.onUploadDocument(multipartFiles, isPrivate);
+                      },
+                      onDragEntered: (detail) {
+                        setState(() => _dragging = true);
+                      },
+                      onDragExited: (detail) {
+                        setState(() => _dragging = false);
+                      },
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 75,
+                            width: double.infinity,
+                            child: Center(
+                              child: Text(localization.clickOrDropFilesHere),
+                            ),
+                            color: _dragging
+                                ? Colors.blue.withValues(alpha: 0.4)
+                                : Theme.of(context).scaffoldBackgroundColor,
+                          ),
+                          DashedRect(color: Colors.grey),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+
+                if (Version.parse(state.account.currentVersion) <
+                        Version.parse('5.6.32') &&
+                    kReleaseMode) {
+                  return child;
+                } else if (constraints.maxWidth > 500) {
+                  return Row(
+                    children: [
+                      Expanded(child: child, flex: 3),
+                      Expanded(child: privateSwitch, flex: 2),
+                    ],
+                  );
+                } else {
+                  return Column(children: [privateSwitch, child]);
+                }
+              },
+            ),
+          if (isMobileOS())
+            Padding(
+              padding: const EdgeInsets.only(left: 16, bottom: 16, right: 16),
+              child: Row(
+                children: <Widget>[
                   Expanded(
                     child: AppButton(
-                      iconData: Icons.camera_alt,
-                      label: localization.takePicture,
+                      iconData: isIOS() ? null : Icons.camera_alt,
+                      label: isIOS()
+                          ? localization.camera
+                          : localization.takePicture,
                       onPressed: () async {
-                        final status = await Permission.camera.status;
+                        final status = await Permission.camera.request();
                         if (status == PermissionStatus.granted) {
-                          final image = await ImagePicker()
-                              .pickImage(source: ImageSource.camera);
-                          if (image != null && image.path != null) {
-                            final bytes = await image.readAsBytes();
+                          final multipartFiles = <MultipartFile>[];
+                          final image = await ImagePicker().pickImage(
+                            source: ImageSource.camera,
+                          );
+                          if (image != null) {
+                            final croppedFile = (await ImageCropper().cropImage(
+                              sourcePath: image.path,
+                            ))!;
+                            final bytes = await croppedFile.readAsBytes();
                             final multipartFile = MultipartFile.fromBytes(
-                                'documents[]', bytes,
-                                filename: image.path.split('/').last);
-                            onUploadDocument(multipartFile);
+                              'documents[0]',
+                              bytes,
+                              filename: image.path.split('/').last,
+                            );
+                            multipartFiles.add(multipartFile);
+                            widget.onUploadDocument(multipartFiles, isPrivate);
                           }
                         } else {
                           openAppSettings();
@@ -73,31 +201,47 @@ class DocumentGrid extends StatelessWidget {
                       },
                     ),
                   ),
-                  SizedBox(
-                    width: 14,
-                  ),
-                ],
-                if (supportsFileUpload())
+                  if (isIOS()) ...[
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: AppButton(
+                        label: localization.gallery,
+                        onPressed: () async {
+                          final multipartFiles = await pickFiles(
+                            allowedExtensions:
+                                DocumentEntity.ALLOWED_EXTENSIONS,
+                            fileType: FileType.image,
+                          );
+
+                          if (multipartFiles != null &&
+                              multipartFiles.isNotEmpty) {
+                            widget.onUploadDocument(multipartFiles, isPrivate);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                  SizedBox(width: 12),
                   Expanded(
                     child: AppButton(
-                      iconData: Icons.insert_drive_file,
-                      label: localization.uploadFile,
+                      iconData: isIOS() ? null : Icons.insert_drive_file,
+                      label: isIOS()
+                          ? localization.files
+                          : localization.uploadFiles,
                       onPressed: () async {
-                        final multipartFile = await pickFile(
-                            fileIndex: 'documents[]',
-                            allowedExtensions:
-                                DocumentEntity.ALLOWED_EXTENSIONS);
-
-                        if (multipartFile != null) {
-                          onUploadDocument(multipartFile);
+                        final files = await pickFiles(
+                          allowedExtensions: DocumentEntity.ALLOWED_EXTENSIONS,
+                        );
+                        if (files != null && files.isNotEmpty) {
+                          widget.onUploadDocument(files, isPrivate);
                         }
                       },
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
-          )
-        else
+        ] else
           Padding(
             padding: EdgeInsets.symmetric(vertical: 30),
             child: Center(
@@ -108,24 +252,27 @@ class DocumentGrid extends StatelessWidget {
             ),
           ),
         ListDivider(),
-        LayoutBuilder(builder: (context, constraints) {
-          return GridView.count(
-            physics: NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.all(6),
-            childAspectRatio: ((constraints.maxWidth / 2) - 8) / 200,
-            shrinkWrap: true,
-            primary: true,
-            crossAxisCount: 2,
-            children: documents
-                .map((document) => DocumentTile(
-                      document: document,
-                      onDeleteDocument: onDeleteDocument,
-                      onViewExpense: onViewExpense,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return GridView.count(
+              physics: NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.all(6),
+              childAspectRatio: ((constraints.maxWidth / 2) - 8) / 200,
+              shrinkWrap: true,
+              crossAxisCount: 2,
+              children: widget.documents
+                  .map(
+                    (document) => DocumentTile(
+                      documentId: document.id,
+                      onViewExpense: widget.onViewExpense,
+                      onRenamedDocument: widget.onRenamedDocument,
                       isFromExpense: false,
-                    ))
-                .toList(),
-          );
-        }),
+                    ),
+                  )
+                  .toList(),
+            );
+          },
+        ),
       ],
     );
   }
@@ -133,22 +280,27 @@ class DocumentGrid extends StatelessWidget {
 
 class DocumentTile extends StatelessWidget {
   const DocumentTile({
-    @required this.document,
-    @required this.onDeleteDocument,
-    @required this.onViewExpense,
-    @required this.isFromExpense,
+    required this.documentId,
+    required this.onViewExpense,
+    required this.isFromExpense,
+    required this.onRenamedDocument,
   });
 
-  final DocumentEntity document;
-  final Function(DocumentEntity, String, String) onDeleteDocument;
-  final Function(DocumentEntity) onViewExpense;
+  final String documentId;
+  final Function(DocumentEntity)? onViewExpense;
   final bool isFromExpense;
+  final Function onRenamedDocument;
 
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalization.of(context);
     final store = StoreProvider.of<AppState>(context);
     final state = store.state;
+    final document = state.documentState.map[documentId];
+
+    if (document == null) {
+      return SizedBox();
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.max,
@@ -158,11 +310,25 @@ class DocumentTile extends StatelessWidget {
           child: Card(
             elevation: 4,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                DocumentPreview(
-                  document,
-                  height: 110,
+                InkWell(
+                  onTap: (document.isImage || document.isPdf)
+                      ? () => handleDocumentAction(context, [
+                          document,
+                        ], EntityAction.viewDocument)
+                      : null,
+                  child: Stack(
+                    alignment: Alignment.topLeft,
+                    children: [
+                      DocumentPreview(document, height: 110),
+                      if (!document.isPublic)
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Icon(Icons.lock),
+                        ),
+                    ],
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(4),
@@ -171,15 +337,18 @@ class DocumentTile extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(
-                            document.name ?? '',
-                            style: Theme.of(context).textTheme.headline6,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
+                          Tooltip(
+                            message: document.name,
+                            child: Text(
+                              document.name,
+                              style: Theme.of(context).textTheme.titleLarge,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
                           ),
                           Text(
                             '${formatDate(convertTimestampToDateString(document.createdAt), context)}\n${document.prettySize}',
-                            style: Theme.of(context).textTheme.caption,
+                            style: Theme.of(context).textTheme.bodySmall,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 2,
                           ),
@@ -191,71 +360,69 @@ class DocumentTile extends StatelessWidget {
                           padding: const EdgeInsets.only(top: 22),
                           child: PopupMenuButton<String>(
                             onSelected: (value) async {
-                              if (value == localization.view) {
-                                launch(state.account.defaultUrl +
-                                    document.downloadUrl +
-                                    '?inline=true');
+                              if (value == localization!.view) {
+                                handleDocumentAction(context, [
+                                  document,
+                                ], EntityAction.viewDocument);
                               } else if (value == localization.download) {
-                                if (kIsWeb ||
-                                    (!Platform.isIOS && !Platform.isAndroid)) {
-                                  launch(state.account.defaultUrl +
-                                      document.downloadUrl);
-                                } else {
-                                  Directory directory;
-                                  if (Platform.isAndroid) {
-                                    directory =
-                                        await getExternalStorageDirectory();
-                                  } else {
-                                    directory =
-                                        await getApplicationDocumentsDirectory();
-                                  }
-
-                                  final String folder =
-                                      '${directory.path}/documents';
-                                  await Directory(folder)
-                                      .create(recursive: true);
-                                  final filePath = '$folder/${document.name}';
-
-                                  final http.Response response =
-                                      await WebClient().get(
-                                          document.url, state.credentials.token,
-                                          rawResponse: true);
-
-                                  await File(filePath)
-                                      .writeAsBytes(response.bodyBytes);
-                                  await Share.shareFiles([filePath]);
-                                }
+                                handleDocumentAction(context, [
+                                  document,
+                                ], EntityAction.download);
                               } else if (value == localization.delete) {
-                                confirmCallback(
-                                    context: context,
-                                    callback: (_) {
-                                      passwordCallback(
-                                          context: context,
-                                          callback: (password, idToken) {
-                                            onDeleteDocument(
-                                                document, password, idToken);
-                                            Navigator.pop(context);
-                                          });
-                                    });
+                                handleDocumentAction(context, [
+                                  document,
+                                ], EntityAction.delete);
                               } else if (value == localization.viewExpense) {
-                                onViewExpense(document);
+                                onViewExpense!(document);
+                              } else if (value == localization.rename) {
+                                fieldCallback(
+                                  context: context,
+                                  title: localization.rename,
+                                  field: localization.name,
+                                  value: document.name,
+                                  maxLength: 250,
+                                  callback: (name) {
+                                    store.dispatch(
+                                      SaveDocumentRequest(
+                                        completer:
+                                            snackBarCompleter<DocumentEntity>(
+                                                localization.renamedDocument,
+                                              )
+                                              ..future.then((value) {
+                                                onRenamedDocument();
+                                              }),
+                                        document: document.rebuild(
+                                          (b) => b..name = name,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
                               }
                             },
                             itemBuilder: (context) {
                               return [
-                                PopupMenuItem<String>(
-                                  child: IconText(
-                                    text: localization.view,
-                                    icon: Icons.open_in_browser,
+                                if (document.isImage || document.isPdf)
+                                  PopupMenuItem<String>(
+                                    child: IconText(
+                                      text: localization!.view,
+                                      icon: Icons.open_in_browser,
+                                    ),
+                                    value: localization.view,
                                   ),
-                                  value: localization.view,
-                                ),
                                 PopupMenuItem<String>(
                                   child: IconText(
-                                    text: localization.download,
+                                    text: localization!.download,
                                     icon: Icons.download,
                                   ),
                                   value: localization.download,
+                                ),
+                                PopupMenuItem<String>(
+                                  child: IconText(
+                                    text: localization.rename,
+                                    icon: MdiIcons.renameBox,
+                                  ),
+                                  value: localization.rename,
                                 ),
                                 PopupMenuItem<String>(
                                   child: IconText(
@@ -271,7 +438,7 @@ class DocumentTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -285,32 +452,30 @@ class DocumentPreview extends StatelessWidget {
   const DocumentPreview(this.document, {this.height});
 
   final DocumentEntity document;
-  final double height;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
     final state = StoreProvider.of<AppState>(context).state;
+    final repoDocument = state.documentState.map[document.id];
 
-    if (['png', 'jpg', 'jpeg'].contains(document.type)) {
-      return CachedNetworkImage(
+    if (document.isImage) {
+      if (repoDocument!.data != null) {
+        return Image.memory(
+          repoDocument.data!,
           height: height,
-          width: double.infinity,
           fit: BoxFit.cover,
+        );
+      } else {
+        return Image.network(
+          '${cleanApiUrl(state.credentials.url)}/documents/${document.hash}',
           key: ValueKey(document.preview),
-          imageUrl: document.url,
-          imageRenderMethodForWeb: ImageRenderMethodForWeb.HttpGet,
-          httpHeaders: {'X-API-TOKEN': state.credentials.token},
-          placeholder: (context, url) => Container(
-                height: height,
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-          errorWidget: (context, url, Object error) => Text(
-                '$error: $url',
-                maxLines: 6,
-                overflow: TextOverflow.ellipsis,
-              ));
+          width: double.infinity,
+          height: height,
+          fit: BoxFit.cover,
+          headers: {'X-API-TOKEN': state.credentials.token},
+        );
+      }
     }
 
     return SizedBox(

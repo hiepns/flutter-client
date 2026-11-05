@@ -7,31 +7,36 @@ part of 'date_format_model.dart';
 // **************************************************************************
 
 Serializer<DateFormatListResponse> _$dateFormatListResponseSerializer =
-    new _$DateFormatListResponseSerializer();
+    _$DateFormatListResponseSerializer();
 Serializer<DateFormatItemResponse> _$dateFormatItemResponseSerializer =
-    new _$DateFormatItemResponseSerializer();
+    _$DateFormatItemResponseSerializer();
 Serializer<DateFormatEntity> _$dateFormatEntitySerializer =
-    new _$DateFormatEntitySerializer();
+    _$DateFormatEntitySerializer();
 
 class _$DateFormatListResponseSerializer
     implements StructuredSerializer<DateFormatListResponse> {
   @override
   final Iterable<Type> types = const [
     DateFormatListResponse,
-    _$DateFormatListResponse
+    _$DateFormatListResponse,
   ];
   @override
   final String wireName = 'DateFormatListResponse';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, DateFormatListResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    DateFormatListResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'data',
-      serializers.serialize(object.data,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(DateFormatEntity)])),
+      serializers.serialize(
+        object.data,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(DateFormatEntity),
+        ]),
+      ),
     ];
 
     return result;
@@ -39,21 +44,28 @@ class _$DateFormatListResponseSerializer
 
   @override
   DateFormatListResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new DateFormatListResponseBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = DateFormatListResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'data':
-          result.data.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(DateFormatEntity)]))
-              as BuiltList<Object>);
+          result.data.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(DateFormatEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
       }
     }
@@ -67,19 +79,23 @@ class _$DateFormatItemResponseSerializer
   @override
   final Iterable<Type> types = const [
     DateFormatItemResponse,
-    _$DateFormatItemResponse
+    _$DateFormatItemResponse,
   ];
   @override
   final String wireName = 'DateFormatItemResponse';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, DateFormatItemResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    DateFormatItemResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'data',
-      serializers.serialize(object.data,
-          specifiedType: const FullType(DateFormatEntity)),
+      serializers.serialize(
+        object.data,
+        specifiedType: const FullType(DateFormatEntity),
+      ),
     ];
 
     return result;
@@ -87,20 +103,26 @@ class _$DateFormatItemResponseSerializer
 
   @override
   DateFormatItemResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new DateFormatItemResponseBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = DateFormatItemResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'data':
-          result.data.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(DateFormatEntity))
-              as DateFormatEntity);
+          result.data.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(DateFormatEntity),
+                )!
+                as DateFormatEntity,
+          );
           break;
       }
     }
@@ -117,12 +139,17 @@ class _$DateFormatEntitySerializer
   final String wireName = 'DateFormatEntity';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, DateFormatEntity object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    DateFormatEntity object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'format_dart',
-      serializers.serialize(object.format,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.format,
+        specifiedType: const FullType(String),
+      ),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
     ];
@@ -132,23 +159,33 @@ class _$DateFormatEntitySerializer
 
   @override
   DateFormatEntity deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new DateFormatEntityBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = DateFormatEntityBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'format_dart':
-          result.format = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.format =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.id =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
       }
     }
@@ -161,23 +198,19 @@ class _$DateFormatListResponse extends DateFormatListResponse {
   @override
   final BuiltList<DateFormatEntity> data;
 
-  factory _$DateFormatListResponse(
-          [void Function(DateFormatListResponseBuilder) updates]) =>
-      (new DateFormatListResponseBuilder()..update(updates)).build();
+  factory _$DateFormatListResponse([
+    void Function(DateFormatListResponseBuilder)? updates,
+  ]) => (DateFormatListResponseBuilder()..update(updates))._build();
 
-  _$DateFormatListResponse._({this.data}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        data, 'DateFormatListResponse', 'data');
-  }
-
+  _$DateFormatListResponse._({required this.data}) : super._();
   @override
   DateFormatListResponse rebuild(
-          void Function(DateFormatListResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(DateFormatListResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   DateFormatListResponseBuilder toBuilder() =>
-      new DateFormatListResponseBuilder()..replace(this);
+      DateFormatListResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -185,28 +218,32 @@ class _$DateFormatListResponse extends DateFormatListResponse {
     return other is DateFormatListResponse && data == other.data;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, data.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, data.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('DateFormatListResponse')
-          ..add('data', data))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'DateFormatListResponse',
+    )..add('data', data)).toString();
   }
 }
 
 class DateFormatListResponseBuilder
     implements Builder<DateFormatListResponse, DateFormatListResponseBuilder> {
-  _$DateFormatListResponse _$v;
+  _$DateFormatListResponse? _$v;
 
-  ListBuilder<DateFormatEntity> _data;
+  ListBuilder<DateFormatEntity>? _data;
   ListBuilder<DateFormatEntity> get data =>
-      _$this._data ??= new ListBuilder<DateFormatEntity>();
-  set data(ListBuilder<DateFormatEntity> data) => _$this._data = data;
+      _$this._data ??= ListBuilder<DateFormatEntity>();
+  set data(ListBuilder<DateFormatEntity>? data) => _$this._data = data;
 
   DateFormatListResponseBuilder();
 
@@ -221,28 +258,32 @@ class DateFormatListResponseBuilder
 
   @override
   void replace(DateFormatListResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$DateFormatListResponse;
   }
 
   @override
-  void update(void Function(DateFormatListResponseBuilder) updates) {
+  void update(void Function(DateFormatListResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$DateFormatListResponse build() {
+  DateFormatListResponse build() => _build();
+
+  _$DateFormatListResponse _build() {
     _$DateFormatListResponse _$result;
     try {
-      _$result = _$v ?? new _$DateFormatListResponse._(data: data.build());
+      _$result = _$v ?? _$DateFormatListResponse._(data: data.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'data';
         data.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'DateFormatListResponse', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'DateFormatListResponse',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -255,23 +296,19 @@ class _$DateFormatItemResponse extends DateFormatItemResponse {
   @override
   final DateFormatEntity data;
 
-  factory _$DateFormatItemResponse(
-          [void Function(DateFormatItemResponseBuilder) updates]) =>
-      (new DateFormatItemResponseBuilder()..update(updates)).build();
+  factory _$DateFormatItemResponse([
+    void Function(DateFormatItemResponseBuilder)? updates,
+  ]) => (DateFormatItemResponseBuilder()..update(updates))._build();
 
-  _$DateFormatItemResponse._({this.data}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        data, 'DateFormatItemResponse', 'data');
-  }
-
+  _$DateFormatItemResponse._({required this.data}) : super._();
   @override
   DateFormatItemResponse rebuild(
-          void Function(DateFormatItemResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(DateFormatItemResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   DateFormatItemResponseBuilder toBuilder() =>
-      new DateFormatItemResponseBuilder()..replace(this);
+      DateFormatItemResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -279,28 +316,32 @@ class _$DateFormatItemResponse extends DateFormatItemResponse {
     return other is DateFormatItemResponse && data == other.data;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, data.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, data.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('DateFormatItemResponse')
-          ..add('data', data))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'DateFormatItemResponse',
+    )..add('data', data)).toString();
   }
 }
 
 class DateFormatItemResponseBuilder
     implements Builder<DateFormatItemResponse, DateFormatItemResponseBuilder> {
-  _$DateFormatItemResponse _$v;
+  _$DateFormatItemResponse? _$v;
 
-  DateFormatEntityBuilder _data;
+  DateFormatEntityBuilder? _data;
   DateFormatEntityBuilder get data =>
-      _$this._data ??= new DateFormatEntityBuilder();
-  set data(DateFormatEntityBuilder data) => _$this._data = data;
+      _$this._data ??= DateFormatEntityBuilder();
+  set data(DateFormatEntityBuilder? data) => _$this._data = data;
 
   DateFormatItemResponseBuilder();
 
@@ -315,28 +356,32 @@ class DateFormatItemResponseBuilder
 
   @override
   void replace(DateFormatItemResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$DateFormatItemResponse;
   }
 
   @override
-  void update(void Function(DateFormatItemResponseBuilder) updates) {
+  void update(void Function(DateFormatItemResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$DateFormatItemResponse build() {
+  DateFormatItemResponse build() => _build();
+
+  _$DateFormatItemResponse _build() {
     _$DateFormatItemResponse _$result;
     try {
-      _$result = _$v ?? new _$DateFormatItemResponse._(data: data.build());
+      _$result = _$v ?? _$DateFormatItemResponse._(data: data.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'data';
         data.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'DateFormatItemResponse', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'DateFormatItemResponse',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -351,22 +396,18 @@ class _$DateFormatEntity extends DateFormatEntity {
   @override
   final String id;
 
-  factory _$DateFormatEntity(
-          [void Function(DateFormatEntityBuilder) updates]) =>
-      (new DateFormatEntityBuilder()..update(updates)).build();
+  factory _$DateFormatEntity([
+    void Function(DateFormatEntityBuilder)? updates,
+  ]) => (DateFormatEntityBuilder()..update(updates))._build();
 
-  _$DateFormatEntity._({this.format, this.id}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(format, 'DateFormatEntity', 'format');
-    BuiltValueNullFieldError.checkNotNull(id, 'DateFormatEntity', 'id');
-  }
-
+  _$DateFormatEntity._({required this.format, required this.id}) : super._();
   @override
   DateFormatEntity rebuild(void Function(DateFormatEntityBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   DateFormatEntityBuilder toBuilder() =>
-      new DateFormatEntityBuilder()..replace(this);
+      DateFormatEntityBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -376,15 +417,20 @@ class _$DateFormatEntity extends DateFormatEntity {
         id == other.id;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc($jc(0, format.hashCode), id.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, format.hashCode);
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('DateFormatEntity')
+    return (newBuiltValueToStringHelper(r'DateFormatEntity')
           ..add('format', format)
           ..add('id', id))
         .toString();
@@ -393,15 +439,15 @@ class _$DateFormatEntity extends DateFormatEntity {
 
 class DateFormatEntityBuilder
     implements Builder<DateFormatEntity, DateFormatEntityBuilder> {
-  _$DateFormatEntity _$v;
+  _$DateFormatEntity? _$v;
 
-  String _format;
-  String get format => _$this._format;
-  set format(String format) => _$this._format = format;
+  String? _format;
+  String? get format => _$this._format;
+  set format(String? format) => _$this._format = format;
 
-  String _id;
-  String get id => _$this._id;
-  set id(String id) => _$this._id = id;
+  String? _id;
+  String? get id => _$this._id;
+  set id(String? id) => _$this._id = id;
 
   DateFormatEntityBuilder();
 
@@ -417,26 +463,35 @@ class DateFormatEntityBuilder
 
   @override
   void replace(DateFormatEntity other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$DateFormatEntity;
   }
 
   @override
-  void update(void Function(DateFormatEntityBuilder) updates) {
+  void update(void Function(DateFormatEntityBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$DateFormatEntity build() {
-    final _$result = _$v ??
-        new _$DateFormatEntity._(
-            format: BuiltValueNullFieldError.checkNotNull(
-                format, 'DateFormatEntity', 'format'),
-            id: BuiltValueNullFieldError.checkNotNull(
-                id, 'DateFormatEntity', 'id'));
+  DateFormatEntity build() => _build();
+
+  _$DateFormatEntity _build() {
+    final _$result =
+        _$v ??
+        _$DateFormatEntity._(
+          format: BuiltValueNullFieldError.checkNotNull(
+            format,
+            r'DateFormatEntity',
+            'format',
+          ),
+          id: BuiltValueNullFieldError.checkNotNull(
+            id,
+            r'DateFormatEntity',
+            'id',
+          ),
+        );
     replace(_$result);
     return _$result;
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

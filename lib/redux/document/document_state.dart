@@ -1,8 +1,12 @@
+// Dart imports:
 import 'dart:async';
 
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:built_collection/built_collection.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/document_model.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
@@ -36,10 +40,12 @@ abstract class DocumentState
 abstract class DocumentUIState extends Object
     with EntityUIState
     implements Built<DocumentUIState, DocumentUIStateBuilder> {
-  factory DocumentUIState(PrefStateSortField sortField) {
+  factory DocumentUIState(PrefStateSortField? sortField) {
     return _$DocumentUIState._(
-      listUIState: ListUIState(sortField?.field ?? DocumentFields.name,
-          sortAscending: sortField?.ascending),
+      listUIState: ListUIState(
+        sortField?.field ?? DocumentFields.name,
+        sortAscending: sortField?.ascending,
+      ),
       editing: DocumentEntity(),
       selectedId: '',
       tabIndex: 0,
@@ -52,14 +58,13 @@ abstract class DocumentUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  DocumentEntity get editing;
+  DocumentEntity? get editing;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<DocumentUIState> get serializer =>
       _$documentUIStateSerializer;

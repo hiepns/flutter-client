@@ -1,8 +1,12 @@
+// Dart imports:
 import 'dart:async';
 
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
@@ -30,7 +34,7 @@ abstract class ClientState implements Built<ClientState, ClientStateBuilder> {
 
   ClientEntity get(String clientId) {
     if (map.containsKey(clientId)) {
-      return map[clientId];
+      return map[clientId]!;
     } else {
       return ClientEntity(id: clientId);
     }
@@ -43,9 +47,11 @@ abstract class ClientState implements Built<ClientState, ClientStateBuilder> {
       value: (dynamic item) => item,
     );
 
-    return rebuild((b) => b
-      ..map.addAll(map)
-      ..list.replace((map.keys.toList() + list.toList()).toSet().toList()));
+    return rebuild(
+      (b) => b
+        ..map.addAll(map)
+        ..list.replace((map.keys.toList() + list.toList()).toSet().toList()),
+    );
   }
 
   static Serializer<ClientState> get serializer => _$clientStateSerializer;
@@ -54,12 +60,14 @@ abstract class ClientState implements Built<ClientState, ClientStateBuilder> {
 abstract class ClientUIState extends Object
     with EntityUIState
     implements Built<ClientUIState, ClientUIStateBuilder> {
-  factory ClientUIState(PrefStateSortField sortField) {
+  factory ClientUIState(PrefStateSortField? sortField) {
     return _$ClientUIState._(
-      listUIState: ListUIState(sortField?.field ?? ClientFields.name,
-          sortAscending: sortField?.ascending),
+      listUIState: ListUIState(
+        sortField?.field ?? ClientFields.name,
+        sortAscending: sortField?.ascending,
+      ),
       editing: ClientEntity(),
-      editingContact: ContactEntity(),
+      editingContact: ClientContactEntity(),
       saveCompleter: null,
       tabIndex: 0,
     );
@@ -71,17 +79,15 @@ abstract class ClientUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  ClientEntity get editing;
+  ClientEntity? get editing;
 
-  @nullable
-  ContactEntity get editingContact;
+  ClientContactEntity? get editingContact;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<ClientUIState> get serializer => _$clientUIStateSerializer;
 }

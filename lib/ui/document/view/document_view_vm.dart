@@ -1,9 +1,14 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:invoiceninja_flutter/data/models/document_model.dart';
+import 'package:redux/redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
@@ -11,13 +16,9 @@ import 'package:invoiceninja_flutter/redux/document/document_actions.dart';
 import 'package:invoiceninja_flutter/ui/document/view/document_view.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:redux/redux.dart';
 
 class DocumentViewScreen extends StatelessWidget {
-  const DocumentViewScreen({
-    Key key,
-    this.isFilter = false,
-  }) : super(key: key);
+  const DocumentViewScreen({Key? key, this.isFilter = false}) : super(key: key);
   final bool isFilter;
 
   static const String route = '/document/view';
@@ -29,10 +30,7 @@ class DocumentViewScreen extends StatelessWidget {
         return DocumentViewVM.fromStore(store);
       },
       builder: (context, vm) {
-        return DocumentView(
-          isFilter: isFilter,
-          viewModel: vm,
-        );
+        return DocumentView(isFilter: isFilter, viewModel: vm);
       },
     );
   }
@@ -40,27 +38,29 @@ class DocumentViewScreen extends StatelessWidget {
 
 class DocumentViewVM {
   DocumentViewVM({
-    @required this.state,
-    @required this.document,
-    @required this.company,
-    @required this.onEntityAction,
-    @required this.onRefreshed,
-    @required this.isSaving,
-    @required this.isLoading,
-    @required this.isDirty,
+    required this.state,
+    required this.document,
+    required this.company,
+    required this.onEntityAction,
+    required this.onRefreshed,
+    required this.isSaving,
+    required this.isLoading,
+    required this.isDirty,
   });
 
   factory DocumentViewVM.fromStore(Store<AppState> store) {
     final state = store.state;
     final document =
         state.documentState.map[state.documentUIState.selectedId] ??
-            DocumentEntity(id: state.documentUIState.selectedId);
+        DocumentEntity(id: state.documentUIState.selectedId);
 
     Future<Null> _handleRefresh(BuildContext context) {
       final completer = snackBarCompleter<Null>(
-          context, AppLocalization.of(context).refreshComplete);
+        AppLocalization.of(context)!.refreshComplete,
+      );
       store.dispatch(
-          LoadDocument(completer: completer, documentId: document.id));
+        LoadDocument(completer: completer, documentId: document.id),
+      );
       return completer.future;
     }
 
@@ -79,7 +79,7 @@ class DocumentViewVM {
 
   final AppState state;
   final DocumentEntity document;
-  final CompanyEntity company;
+  final CompanyEntity? company;
   final Function(BuildContext, EntityAction) onEntityAction;
   final Function(BuildContext) onRefreshed;
   final bool isSaving;

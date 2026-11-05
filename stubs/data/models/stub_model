@@ -4,6 +4,7 @@ import 'package:built_value/serializer.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
+import 'package:invoiceninja_flutter/utils/strings.dart';
 
 part 'stub_model.g.dart';
 
@@ -47,8 +48,6 @@ class StubFields {
 
 abstract class StubEntity extends Object with BaseEntity implements Built<StubEntity, StubEntityBuilder> {
 
-  // STARTER: properties - do not remove comment
-
   factory StubEntity({String id, AppState state}) {
     return _$StubEntity._(
       id: id ?? BaseEntity.nextId,
@@ -69,12 +68,10 @@ abstract class StubEntity extends Object with BaseEntity implements Built<StubEn
 @memoized
   int get hashCode;
 
+  // STARTER: properties - do not remove comment
+
   @override
   EntityType get entityType => EntityType.stub;
-
-  String get displayName {
-    // STARTER: display name - do not remove comment
-  }
 
 
   @override
@@ -85,15 +82,8 @@ abstract class StubEntity extends Object with BaseEntity implements Built<StubEn
       bool multiselect = false}) {
     final actions = <EntityAction>[];
 
-    if (!isDeleted && !multiselect) {
-      if (includePreview) {
-        actions.add(EntityAction.preview);
-      }
-
-
-      if (!multiselect && includeEdit && userCompany.canEditEntity(this)) {
-        actions.add(EntityAction.edit);
-      }
+    if (!isDeleted && !multiselect && includeEdit && userCompany.canEditEntity(this)) {
+      actions.add(EntityAction.edit);
     }
 
     if (actions.isNotEmpty && actions.last != null) {
@@ -125,24 +115,22 @@ abstract class StubEntity extends Object with BaseEntity implements Built<StubEn
 
   @override
   bool matchesFilter(String filter) {
-    if (filter == null || filter.isEmpty) {
-      return true;
-    }
-
-    filter = filter.toLowerCase();
-
-    return false;
+    return matchesStrings(
+      haystacks: [
+        //
+      ],
+      needle: filter,
+    );
   }
 
   @override
   String matchesFilterValue(String filter) {
-    if (filter == null || filter.isEmpty) {
-      return null;
-    }
-
-    filter = filter.toLowerCase();
-
-    return null;
+    return matchesStringsValue(
+      haystacks: [
+        //
+      ],
+      needle: filter,
+    );
   }
 
   @override

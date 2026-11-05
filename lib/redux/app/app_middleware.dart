@@ -1,9 +1,22 @@
+// Dart imports:
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'package:invoiceninja_flutter/.env.dart';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:invoiceninja_flutter/redux/settings/settings_actions.dart';
+import 'package:invoiceninja_flutter/ui/app/screen_imports.dart';
+import 'package:invoiceninja_flutter/utils/widgets.dart';
+
+// Package imports:
+import 'package:path_provider/path_provider.dart';
+import 'package:redux/redux.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/.env.dart';
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/file_storage.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
@@ -25,13 +38,9 @@ import 'package:invoiceninja_flutter/redux/ui/ui_state.dart';
 import 'package:invoiceninja_flutter/ui/app/app_builder.dart';
 import 'package:invoiceninja_flutter/ui/app/main_screen.dart';
 import 'package:invoiceninja_flutter/ui/auth/login_vm.dart';
-import 'package:invoiceninja_flutter/ui/dashboard/dashboard_screen_vm.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
-import 'package:redux/redux.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 // ignore: unused_import
 import 'package:invoiceninja_flutter/utils/web_stub.dart'
@@ -129,9 +138,7 @@ List<Middleware<AppState>> createStorePersistenceMiddleware([
   final accountLoaded = _createAccountLoaded();
   final dataRefreshed = _createDataRefreshed();
 
-  final persistData = _createPersistData(
-    companyRepositories,
-  );
+  final persistData = _createPersistData(companyRepositories);
 
   final persistStatic = _createPersistStatic(staticRepository);
 
@@ -178,14 +185,17 @@ Middleware<AppState> _createLoadState(
   PersistenceRepository staticRepository,
   List<PersistenceRepository> companyRepositories,
 ) {
-  AuthState authState;
-  UIState uiState;
-  StaticState staticState;
-  final List<UserCompanyState> companyStates = [];
+  AuthState? authState;
+  UIState? uiState;
+  StaticState? staticState;
+  final List<UserCompanyState?> companyStates = [];
 
-  return (Store<AppState> store, dynamic dynamicAction,
-      NextDispatcher next) async {
-    final action = dynamicAction as LoadStateRequest;
+  return (
+    Store<AppState> store,
+    dynamic dynamicAction,
+    NextDispatcher next,
+  ) async {
+    final action = dynamicAction as LoadStateRequest?;
 
     try {
       final state = store.state;
@@ -196,7 +206,7 @@ Middleware<AppState> _createLoadState(
       staticState = await staticRepository.loadStaticState();
 
       for (var i = 0; i < companyRepositories.length; i++) {
-        var companyState = UserCompanyState(state.reportErrors);
+        UserCompanyState? companyState = UserCompanyState(state.reportErrors);
         try {
           companyState = await companyRepositories[i].loadCompanyState(i);
         } catch (e) {
@@ -207,50 +217,48 @@ Middleware<AppState> _createLoadState(
 
       // Carry over a deeplink URL on the web
       if (state.uiState.currentRoute != LoginScreen.route) {
-        uiState = uiState
-            .rebuild((b) => b..currentRoute = state.uiState.currentRoute);
+        uiState = uiState!.rebuild(
+          (b) => b..currentRoute = state.uiState.currentRoute,
+        );
       }
 
-      final AppState appState = AppState(
-              prefState: prefState,
-              reportErrors: store.state.account.reportErrors)
-          .rebuild((b) => b
-            ..authState.replace(authState)
-            ..uiState.replace(uiState)
-            ..staticState.replace(staticState)
-            ..userCompanyStates.replace(companyStates));
+      final AppState appState =
+          AppState(
+            prefState: prefState,
+            isWhiteLabeled: store.state.isWhiteLabeled,
+            reportErrors: store.state.account.reportErrors,
+          ).rebuild(
+            (b) => b
+              ..authState.replace(authState!)
+              ..uiState.replace(uiState!)
+              ..staticState.replace(staticState!)
+              ..userCompanyStates.replace(companyStates),
+          );
 
-      AppBuilder.of(action.context).rebuild();
+      AppBuilder.of(navigatorKey.currentContext!)!.rebuild();
       store.dispatch(LoadStateSuccess(appState));
+      store.dispatch(
+        RefreshData(
+          loadCompany: true,
+          completer: Completer<Null>()
+            ..future.then<Null>((_) {
+              AppBuilder.of(navigatorKey.currentContext!)!.rebuild();
+              store.dispatch(UpdatedSetting());
+            }),
+        ),
+      );
 
-      if (store.state.company.isLarge) {
-        store.dispatch(LoadClients(
-            completer: Completer<Null>()
-              ..future.catchError((Object error) {
-                store.dispatch(UserLogout());
-              })));
-      } else {
-        store.dispatch(RefreshData(
-            completer: Completer<Null>()
-              ..future.then((value) {
-                AppBuilder.of(navigatorKey.currentContext).rebuild();
-              }).catchError((Object error) {
-                store.dispatch(UserLogout());
-              })));
-      }
-
-      if (uiState.currentRoute != LoginScreen.route &&
-          uiState.currentRoute.isNotEmpty &&
-          prefState.persistUI) {
-        final NavigatorState navigator = navigatorKey.currentState;
+      if (uiState!.currentRoute != LoginScreen.route &&
+          uiState!.currentRoute.isNotEmpty) {
+        final NavigatorState? navigator = navigatorKey.currentState;
         final routes = _getRoutes(appState);
         if (appState.prefState.appLayout == AppLayout.mobile) {
           bool isFirst = true;
           routes.forEach((route) {
             if (isFirst) {
-              navigator.pushReplacementNamed(route);
+              navigator!.pushReplacementNamed(route);
             } else {
-              navigator.pushNamed(route);
+              navigator!.pushNamed(route);
             }
             isFirst = false;
           });
@@ -264,15 +272,15 @@ Middleware<AppState> _createLoadState(
           store.dispatch(ViewMainScreen());
         }
       } else {
-        throw 'Unknown page: ${uiState.currentRoute}';
+        throw 'Unknown page: ${uiState!.currentRoute}';
       }
     } catch (error) {
       print('## ERROR (app_middleware - load state): $error');
 
-      String token;
+      String? token;
 
       if (Config.DEMO_MODE ||
-          cleanApiUrl(store.state.authState.url) == kAppDemoUrl) {
+          cleanApiUrl(store.state.authState.url) == kFlutterDemoUrl) {
         token = 'TOKEN';
       } else {
         final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -283,16 +291,17 @@ Middleware<AppState> _createLoadState(
         }
       }
 
-      if (token.isNotEmpty) {
-        if (calculateLayout(action.context) == AppLayout.mobile) {
+      if (token!.isNotEmpty) {
+        if (calculateLayout(navigatorKey.currentContext!) == AppLayout.mobile) {
           store.dispatch(UpdateUserPreferences(appLayout: AppLayout.mobile));
         } else {
           store.dispatch(ViewMainScreen());
         }
+
         WidgetsBinding.instance.addPostFrameCallback((duration) {
           store.dispatch(ViewDashboard());
         });
-        AppBuilder.of(action.context).rebuild();
+        AppBuilder.of(navigatorKey.currentContext!)!.rebuild();
       } else {
         store.dispatch(UserLogout());
       }
@@ -305,35 +314,38 @@ Middleware<AppState> _createLoadState(
 List<String> _getRoutes(AppState state) {
   final List<String> routes = [];
   var route = '';
-  EntityType entityType;
+  EntityType? entityType;
 
   state.uiState.currentRoute
       .split('/')
       .where((part) => part.isNotEmpty)
       .forEach((part) {
-    if (part == 'edit') {
-      // Only restore new unsaved entities to prevent conflicts
-      final bool isNew = state.getUIState(entityType)?.isCreatingNew ?? false;
-      if (isNew) {
-        route += '/edit';
-      } else if (entityType != EntityType.product) {
-        route += '/view';
-      }
-    } else {
-      if (![kMain, kDashboard, kSettings].contains(part) &&
-          entityType == null) {
-        try {
-          entityType = EntityType.valueOf(part);
-        } catch (e) {
+        if (part == 'edit') {
+          // Only restore new unsaved entities to prevent conflicts
+          final bool isNew =
+              state.getUIState(entityType)?.isCreatingNew ?? false;
+          if (isNew) {
+            route += '/edit';
+          }
+        } else if (part == 'view') {
           // do nothing
+        } else {
+          if (![kMain, kDashboard, kSettings].contains(part) &&
+              entityType == null) {
+            try {
+              entityType = EntityType.valueOf(part);
+            } catch (e) {
+              // do nothing
+            }
+          }
+
+          if (part != 'pdf' && part != 'email') {
+            route += '/' + part;
+          }
         }
-      }
 
-      route += '/' + part;
-    }
-
-    routes.add(route);
-  });
+        routes.add(route);
+      });
 
   return routes;
 }
@@ -345,7 +357,7 @@ Middleware<AppState> _createUserLoggedIn(
   List<PersistenceRepository> companyRepositories,
 ) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as UserLoginSuccess;
+    final action = dynamicAction as UserLoginSuccess?;
 
     next(action);
 
@@ -366,7 +378,7 @@ Middleware<AppState> _createPersistData(
   List<PersistenceRepository> companyRepositories,
 ) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as PersistData;
+    final action = dynamicAction as PersistData?;
 
     next(action);
 
@@ -380,39 +392,42 @@ Middleware<AppState> _createPersistData(
   };
 }
 
-final _persistUIDebouncer =
-    Debouncer(milliseconds: kMillisecondsToDebounceWrite);
+final _persistUIDebouncer = PersistDebouncer();
 Middleware<AppState> _createPersistUI(PersistenceRepository uiRepository) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as PersistUI;
+    final action = dynamicAction as PersistUI?;
 
     next(action);
 
-    if (store.state.prefState.persistUI) {
-      _persistUIDebouncer.run(() {
-        uiRepository.saveUIState(store.state.uiState);
-      });
-    }
+    _persistUIDebouncer.run(() {
+      uiRepository.saveUIState(store.state.uiState);
+    });
   };
 }
 
 Middleware<AppState> _createPersistPrefs() {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as PersistPrefs;
+    final action = dynamicAction as PersistPrefs?;
 
     next(action);
 
-    final string =
-        serializers.serializeWith(PrefState.serializer, store.state.prefState);
+    final string = serializers.serializeWith(
+      PrefState.serializer,
+      store.state.prefState,
+    );
 
-    SharedPreferences.getInstance()
-        .then((prefs) => prefs.setString(kSharedPrefs, json.encode(string)));
+    SharedPreferences.getInstance().then(
+      (prefs) => prefs.setString(kSharedPrefs, json.encode(string)),
+    );
   };
 }
 
 Middleware<AppState> _createAccountLoaded() {
-  return (Store<AppState> store, dynamic dynamicAction,
-      NextDispatcher next) async {
+  return (
+    Store<AppState> store,
+    dynamic dynamicAction,
+    NextDispatcher next,
+  ) async {
     final action = dynamicAction as LoadAccountSuccess;
     final response = action.loginResponse;
     final loadedStaticData = response.static.currencies.isNotEmpty;
@@ -425,9 +440,11 @@ Middleware<AppState> _createAccountLoaded() {
 
     try {
       print('## Account Loaded: ${response.userCompanies.length}');
-      for (int i = 0;
-          i < min(response.userCompanies.length, kMaxNumberOfCompanies);
-          i++) {
+      for (
+        int i = 0;
+        i < min(response.userCompanies.length, kMaxNumberOfCompanies);
+        i++
+      ) {
         final UserCompanyEntity userCompany = response.userCompanies[i];
 
         if (i == 0) {
@@ -436,7 +453,8 @@ Middleware<AppState> _createAccountLoaded() {
         }
 
         store.dispatch(
-            SelectCompany(companyIndex: i, clearSelection: loadedStaticData));
+          SelectCompany(companyIndex: i, clearSelection: loadedStaticData),
+        );
         store.dispatch(LoadCompanySuccess(userCompany));
 
         if (store.state.account.defaultCompanyId == userCompany.company.id) {
@@ -444,12 +462,16 @@ Middleware<AppState> _createAccountLoaded() {
         }
       }
     } catch (error) {
-      action.completer?.completeError(error);
+      action.completer.completeError(error);
       rethrow;
     }
 
-    store.dispatch(SelectCompany(
-        companyIndex: selectedCompanyIndex, clearSelection: loadedStaticData));
+    store.dispatch(
+      SelectCompany(
+        companyIndex: selectedCompanyIndex,
+        clearSelection: loadedStaticData,
+      ),
+    );
     store.dispatch(UserLoginSuccess());
 
     if (!store.state.userCompanyState.isLoaded &&
@@ -459,22 +481,40 @@ Middleware<AppState> _createAccountLoaded() {
       store.dispatch(LoadClients());
     }
 
-    if (action.completer != null) {
-      action.completer.complete(null);
-    }
+    action.completer.complete(null);
 
     next(action);
+
+    WidgetUtils.updateData();
   };
 }
 
 Middleware<AppState> _createDataRefreshed() {
-  return (Store<AppState> store, dynamic dynamicAction,
-      NextDispatcher next) async {
+  return (
+    Store<AppState> store,
+    dynamic dynamicAction,
+    NextDispatcher next,
+  ) async {
     final action = dynamicAction as RefreshDataSuccess;
-    final response = action.data;
+    final response = action.data!;
     final loadedStaticData = response.static.currencies.isNotEmpty;
     final state = store.state;
-    final selectedCompanyIndex = state.uiState.selectedCompanyIndex;
+    int selectedCompanyIndex = state.uiState.selectedCompanyIndex;
+
+    // Fallback to ensure the last or primary company is selected
+    if (state.companies.isEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      String? companyId = prefs.getString(kSharedPrefCompanyId);
+      companyId ??= store.state.account.defaultCompanyId;
+      if (companyId.isNotEmpty) {
+        final index = response.userCompanies.indexWhere(
+          (companyState) => companyState.company.id == companyId,
+        );
+        if (index > 0) {
+          selectedCompanyIndex = index;
+        }
+      }
+    }
 
     if (loadedStaticData) {
       store.dispatch(LoadStaticSuccess(data: response.static));
@@ -485,9 +525,11 @@ Middleware<AppState> _createDataRefreshed() {
         final userCompany = response.userCompanies.first;
         store.dispatch(LoadCompanySuccess(userCompany));
       } else {
-        for (int i = 0;
-            i < min(response.userCompanies.length, kMaxNumberOfCompanies);
-            i++) {
+        for (
+          int i = 0;
+          i < min(response.userCompanies.length, kMaxNumberOfCompanies);
+          i++
+        ) {
           final UserCompanyEntity userCompany = response.userCompanies[i];
 
           if (i == 0) {
@@ -497,7 +539,8 @@ Middleware<AppState> _createDataRefreshed() {
           }
 
           store.dispatch(
-              SelectCompany(companyIndex: i, clearSelection: loadedStaticData));
+            SelectCompany(companyIndex: i, clearSelection: loadedStaticData),
+          );
           store.dispatch(LoadCompanySuccess(userCompany));
         }
 
@@ -513,21 +556,31 @@ Middleware<AppState> _createDataRefreshed() {
     store.dispatch(PersistData());
 
     if (action.completer != null) {
-      action.completer.complete(null);
+      action.completer!.complete(null);
     }
 
     next(action);
 
+    WidgetUtils.updateData();
+
     if (store.state.company.isLarge && !store.state.isLoaded) {
-      store.dispatch(LoadClients());
+      // When multiple companies are returned the selected company may not
+      // be the one the token belongs to, in which case its data is missing
+      if (response.userCompanies.length > 1 &&
+          store.state.userCompany.token.token.isNotEmpty) {
+        store.dispatch(RefreshData(loadCompany: true));
+      } else {
+        store.dispatch(LoadClients());
+      }
     }
   };
 }
 
 Middleware<AppState> _createPersistStatic(
-    PersistenceRepository staticRepository) {
+  PersistenceRepository staticRepository,
+) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as PersistStatic;
+    final action = dynamicAction as PersistStatic?;
 
     // first process the action so the data is in the state
     next(action);
@@ -558,18 +611,24 @@ Middleware<AppState> _createDeleteState(
 
 Middleware<AppState> _createViewMainScreen() {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as ViewMainScreen;
+    final action = dynamicAction as ViewMainScreen?;
 
     if (store.state.uiState.currentRoute == LoginScreen.route) {
-      store.dispatch(UpdateCurrentRoute(DashboardScreenBuilder.route));
+      store.dispatch(
+        UpdateCurrentRoute(
+          store.state.userCompany.canViewDashboard || store.state.isDemo
+              ? DashboardScreenBuilder.route
+              : ClientScreen.route,
+        ),
+      );
     }
 
-    while (navigatorKey.currentState.canPop()) {
-      navigatorKey.currentState.pop();
+    while (navigatorKey.currentState!.canPop()) {
+      navigatorKey.currentState!.pop();
     }
 
     WidgetsBinding.instance.addPostFrameCallback((duration) {
-      navigatorKey.currentState.pushNamed(MainScreen.route);
+      navigatorKey.currentState!.pushNamed(MainScreen.route);
     });
 
     next(action);
@@ -581,6 +640,8 @@ Middleware<AppState> _createClearData(
 ) {
   return (Store<AppState> store, dynamic action, NextDispatcher next) async {
     companyRepositories.forEach((repo) => repo.delete());
+
+    store.dispatch(PersistData());
 
     next(action);
   };

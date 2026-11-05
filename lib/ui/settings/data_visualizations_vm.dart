@@ -1,13 +1,18 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:invoiceninja_flutter/constants.dart';
-import 'package:invoiceninja_flutter/ui/settings/data_visualizations.dart';
 import 'package:redux/redux.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/ui/settings/data_visualizations.dart';
 
 class DataVisualizationsScreen extends StatelessWidget {
-  const DataVisualizationsScreen({Key key}) : super(key: key);
+  const DataVisualizationsScreen({Key? key}) : super(key: key);
   static const String route = '/$kSettings/$kSettingsDataVisualizations';
 
   @override
@@ -23,9 +28,9 @@ class DataVisualizationsScreen extends StatelessWidget {
 
 class DataVisualizationsVM {
   DataVisualizationsVM({
-    @required this.state,
-    @required this.onSavePressed,
-    @required this.onCancelPressed,
+    required this.state,
+    required this.onSavePressed,
+    required this.onCancelPressed,
   });
 
   static DataVisualizationsVM fromStore(Store<AppState> store) {
@@ -39,6 +44,6 @@ class DataVisualizationsVM {
   }
 
   final AppState state;
-  final Function(BuildContext) onSavePressed;
-  final Function(BuildContext) onCancelPressed;
+  final Function(BuildContext)? onSavePressed;
+  final Function(BuildContext)? onCancelPressed;
 }

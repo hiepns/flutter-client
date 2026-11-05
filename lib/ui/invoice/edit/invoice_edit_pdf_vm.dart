@@ -1,13 +1,17 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:invoiceninja_flutter/ui/invoice/edit/invoice_edit_pdf.dart';
 import 'package:redux/redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/ui/invoice/edit/invoice_edit_pdf.dart';
 
 class InvoiceEditPDFScreen extends StatelessWidget {
-  const InvoiceEditPDFScreen({Key key}) : super(key: key);
+  const InvoiceEditPDFScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,9 +20,7 @@ class InvoiceEditPDFScreen extends StatelessWidget {
         return InvoiceEditPDFVM.fromStore(store);
       },
       builder: (context, viewModel) {
-        return InvoiceEditPDF(
-          viewModel: viewModel,
-        );
+        return InvoiceEditPDF(viewModel: viewModel);
       },
     );
   }
@@ -26,26 +28,22 @@ class InvoiceEditPDFScreen extends StatelessWidget {
 
 class EntityEditPDFVM {
   EntityEditPDFVM({
-    @required this.state,
-    @required this.company,
-    @required this.invoice,
+    required this.state,
+    required this.company,
+    required this.invoice,
   });
 
   final AppState state;
-  final CompanyEntity company;
-  final InvoiceEntity invoice;
+  final CompanyEntity? company;
+  final InvoiceEntity? invoice;
 }
 
 class InvoiceEditPDFVM extends EntityEditPDFVM {
   InvoiceEditPDFVM({
-    @required CompanyEntity company,
-    @required InvoiceEntity invoice,
-    @required AppState state,
-  }) : super(
-          company: company,
-          invoice: invoice,
-          state: state,
-        );
+    required CompanyEntity? company,
+    required InvoiceEntity? invoice,
+    required AppState state,
+  }) : super(company: company, invoice: invoice, state: state);
 
   factory InvoiceEditPDFVM.fromStore(Store<AppState> store) {
     final AppState state = store.state;

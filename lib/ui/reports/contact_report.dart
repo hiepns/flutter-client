@@ -1,17 +1,23 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
-import 'package:invoiceninja_flutter/utils/enums.dart';
+
+import 'package:invoiceninja_flutter/main_app.dart';
+import 'package:invoiceninja_flutter/redux/reports/reports_selectors.dart';
+import 'package:invoiceninja_flutter/utils/localization.dart';
+import 'package:memoize/memoize.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
-import 'package:invoiceninja_flutter/data/models/client_model.dart';
-import 'package:invoiceninja_flutter/data/models/company_model.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/reports/reports_state.dart';
 import 'package:invoiceninja_flutter/redux/static/static_state.dart';
 import 'package:invoiceninja_flutter/ui/reports/reports_screen.dart';
+import 'package:invoiceninja_flutter/utils/enums.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/money.dart';
-import 'package:memoize/memoize.dart';
 
 enum ContactReportFields {
+  id,
   name,
   website,
   currency,
@@ -63,17 +69,24 @@ enum ContactReportFields {
   is_active,
   created_at,
   updated_at,
+  record_state,
 }
 
-var memoizedContactReport = memo5((
-  UserCompanyEntity userCompany,
-  ReportsUIState reportsUIState,
-  BuiltMap<String, ClientEntity> clientMap,
-  BuiltMap<String, UserEntity> userMap,
-  StaticState staticState,
-) =>
-    contactReport(
-        userCompany, reportsUIState, clientMap, userMap, staticState));
+var memoizedContactReport = memo5(
+  (
+    UserCompanyEntity? userCompany,
+    ReportsUIState reportsUIState,
+    BuiltMap<String, ClientEntity> clientMap,
+    BuiltMap<String, UserEntity> userMap,
+    StaticState staticState,
+  ) => contactReport(
+    userCompany!,
+    reportsUIState,
+    clientMap,
+    userMap,
+    staticState,
+  ),
+);
 
 ReportResult contactReport(
   UserCompanyEntity userCompany,
@@ -86,10 +99,9 @@ ReportResult contactReport(
   BuiltList<ContactReportFields> columns;
 
   final reportSettings = userCompany.settings.reportSettings;
-  final clientReportSettings =
-      reportSettings != null && reportSettings.containsKey(kReportClient)
-          ? reportSettings[kReportClient]
-          : ReportSettingsEntity();
+  final clientReportSettings = reportSettings.containsKey(kReportClientContact)
+      ? reportSettings[kReportClientContact]!
+      : ReportSettingsEntity();
 
   final defaultColumns = [
     ContactReportFields.name,
@@ -100,20 +112,23 @@ ReportResult contactReport(
     ContactReportFields.balance,
     ContactReportFields.paid_to_date,
     ContactReportFields.country,
+    ContactReportFields.created_at,
   ];
 
   if (clientReportSettings.columns.isNotEmpty) {
-    columns = BuiltList(clientReportSettings.columns
-        .map((e) => EnumUtils.fromString(ContactReportFields.values, e))
-        .where((element) => element != null)
-        .toList());
+    columns = BuiltList(
+      clientReportSettings.columns
+          .map((e) => EnumUtils.fromString(ContactReportFields.values, e))
+          .nonNulls
+          .toList(),
+    );
   } else {
     columns = BuiltList(defaultColumns);
   }
 
   for (var clientId in clientMap.keys) {
-    final client = clientMap[clientId];
-    if (client.isDeleted) {
+    final client = clientMap[clientId]!;
+    if (client.isDeleted! && !userCompany.company.reportIncludeDeleted) {
       continue;
     }
 
@@ -121,14 +136,19 @@ ReportResult contactReport(
       bool skip = false;
       final List<ReportElement> row = [];
 
-      final exchangeRate = getExchangeRate(staticState.currencyMap,
-          fromCurrencyId: client.currencyId,
-          toCurrencyId: userCompany.company.currencyId);
+      final exchangeRate = getExchangeRate(
+        staticState.currencyMap,
+        fromCurrencyId: client.currencyId,
+        toCurrencyId: userCompany.company.currencyId,
+      );
 
       for (var column in columns) {
         dynamic value = '';
 
         switch (column) {
+          case ContactReportFields.id:
+            value = contact.id;
+            break;
           case ContactReportFields.name:
             value = client.displayName;
             break;
@@ -138,12 +158,12 @@ ReportResult contactReport(
           case ContactReportFields.currency:
             value =
                 staticState.currencyMap[client.currencyId]?.listDisplayName ??
-                    '';
+                '';
             break;
           case ContactReportFields.language:
             value =
                 staticState.languageMap[client.languageId]?.listDisplayName ??
-                    '';
+                '';
             break;
           case ContactReportFields.private_notes:
             value = client.privateNotes;
@@ -154,22 +174,38 @@ ReportResult contactReport(
           case ContactReportFields.industry:
             value =
                 staticState.industryMap[client.industryId]?.listDisplayName ??
-                    '';
+                '';
             break;
           case ContactReportFields.size:
             value = staticState.sizeMap[client.sizeId]?.listDisplayName ?? '';
             break;
           case ContactReportFields.client1:
-            value = client.customValue1;
+            value = presentCustomField(
+              value: client.customValue1,
+              customFieldType: CustomFieldType.client1,
+              company: userCompany.company,
+            );
             break;
           case ContactReportFields.client2:
-            value = client.customValue2;
+            value = presentCustomField(
+              value: client.customValue2,
+              customFieldType: CustomFieldType.client2,
+              company: userCompany.company,
+            );
             break;
           case ContactReportFields.client3:
-            value = client.customValue3;
+            value = presentCustomField(
+              value: client.customValue3,
+              customFieldType: CustomFieldType.client3,
+              company: userCompany.company,
+            );
             break;
           case ContactReportFields.client4:
-            value = client.customValue4;
+            value = presentCustomField(
+              value: client.customValue4,
+              customFieldType: CustomFieldType.client4,
+              company: userCompany.company,
+            );
             break;
           case ContactReportFields.address1:
             value = client.address1;
@@ -206,8 +242,10 @@ ReportResult contactReport(
             value = client.shippingPostalCode;
             break;
           case ContactReportFields.shipping_country:
-            value = staticState
-                    .countryMap[client.shippingCountryId]?.listDisplayName ??
+            value =
+                staticState
+                    .countryMap[client.shippingCountryId]
+                    ?.listDisplayName ??
                 '';
             break;
           case ContactReportFields.phone:
@@ -244,23 +282,40 @@ ReportResult contactReport(
             value = contact.phone;
             break;
           case ContactReportFields.contact1:
-            value = contact.customValue1;
+            value = presentCustomField(
+              value: contact.customValue1,
+              customFieldType: CustomFieldType.contact1,
+              company: userCompany.company,
+            );
             break;
           case ContactReportFields.contact2:
-            value = contact.customValue2;
+            value = presentCustomField(
+              value: contact.customValue2,
+              customFieldType: CustomFieldType.contact2,
+              company: userCompany.company,
+            );
             break;
           case ContactReportFields.contact3:
-            value = contact.customValue3;
+            value = presentCustomField(
+              value: contact.customValue3,
+              customFieldType: CustomFieldType.contact3,
+              company: userCompany.company,
+            );
             break;
           case ContactReportFields.contact4:
-            value = contact.customValue4;
+            value = presentCustomField(
+              value: contact.customValue4,
+              customFieldType: CustomFieldType.contact4,
+              company: userCompany.company,
+            );
             break;
           case ContactReportFields.contact_last_login:
             value = convertTimestampToDateString(contact.lastLogin);
             break;
           case ContactReportFields.total:
-            value =
-                contact.isPrimary ? (client.balance + client.paidToDate) : 0.0;
+            value = contact.isPrimary
+                ? (client.balance + client.paidToDate)
+                : 0.0;
             break;
           case ContactReportFields.balance:
             value = contact.isPrimary ? client.balance : 0.0;
@@ -273,19 +328,23 @@ ReportResult contactReport(
             break;
           case ContactReportFields.converted_total:
             value = contact.isPrimary
-                ? ((client.balance + client.paidToDate) * exchangeRate)
+                ? round((client.balance + client.paidToDate) * exchangeRate, 2)
                 : 0.0;
             break;
           case ContactReportFields.converted_balance:
-            value = contact.isPrimary ? (client.balance * exchangeRate) : 0.0;
+            value = contact.isPrimary
+                ? round(client.balance * exchangeRate, 2)
+                : 0.0;
             break;
           case ContactReportFields.converted_credit_balance:
-            value =
-                contact.isPrimary ? (client.creditBalance * exchangeRate) : 0.0;
+            value = contact.isPrimary
+                ? round(client.creditBalance * exchangeRate, 2)
+                : 0.0;
             break;
           case ContactReportFields.converted_paid_to_date:
-            value =
-                contact.isPrimary ? (client.paidToDate * exchangeRate) : 0.0;
+            value = contact.isPrimary
+                ? round(client.paidToDate * exchangeRate, 2)
+                : 0.0;
             break;
           case ContactReportFields.is_active:
             value = client.isActive;
@@ -296,6 +355,11 @@ ReportResult contactReport(
           case ContactReportFields.created_at:
             value = convertTimestampToDateString(client.createdAt);
             break;
+          case ContactReportFields.record_state:
+            value = AppLocalization.of(
+              navigatorKey.currentContext!,
+            )!.lookup(client.entityState);
+            break;
         }
 
         if (!ReportResult.matchField(
@@ -303,14 +367,14 @@ ReportResult contactReport(
           userCompany: userCompany,
           reportsUIState: reportsUIState,
           column: EnumUtils.parse(column),
-        )) {
+        )!) {
           skip = true;
         }
 
         if (value.runtimeType == bool) {
           row.add(client.getReportBool(value: value));
         } else if (value.runtimeType == double || value.runtimeType == int) {
-          String currencyId = client.currencyId;
+          String? currencyId = client.currencyId;
           if ([
             ContactReportFields.converted_balance,
             ContactReportFields.converted_credit_balance,
@@ -319,11 +383,13 @@ ReportResult contactReport(
           ].contains(column)) {
             currencyId = userCompany.company.currencyId;
           }
-          row.add(client.getReportDouble(
-            value: value,
-            currencyId: currencyId,
-            exchangeRate: exchangeRate,
-          ));
+          row.add(
+            client.getReportDouble(
+              value: value,
+              currencyId: currencyId,
+              exchangeRate: exchangeRate,
+            ),
+          );
         } else {
           row.add(client.getReportString(value: '$value'));
         }
@@ -336,16 +402,19 @@ ReportResult contactReport(
   }
 
   final selectedColumns = columns.map((item) => EnumUtils.parse(item)).toList();
-  data.sort((rowA, rowB) =>
-      sortReportTableRows(rowA, rowB, clientReportSettings, selectedColumns));
+  data.sort(
+    (rowA, rowB) =>
+        sortReportTableRows(rowA, rowB, clientReportSettings, selectedColumns)!,
+  );
 
   return ReportResult(
     allColumns: ContactReportFields.values
         .map((item) => EnumUtils.parse(item))
         .toList(),
     columns: selectedColumns,
-    defaultColumns:
-        defaultColumns.map((item) => EnumUtils.parse(item)).toList(),
+    defaultColumns: defaultColumns
+        .map((item) => EnumUtils.parse(item))
+        .toList(),
     data: data,
   );
 }

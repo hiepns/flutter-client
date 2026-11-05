@@ -1,11 +1,21 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:invoiceninja_flutter/ui/app/copy_to_clipboard.dart';
 
 class IconMessage extends StatelessWidget {
-  const IconMessage(this.text, {this.iconData, this.color});
+  const IconMessage(
+    this.text, {
+    this.iconData,
+    this.color,
+    this.trailing,
+    this.copyToClipboard = false,
+  });
 
-  final String text;
-  final IconData iconData;
-  final Color color;
+  final String? text;
+  final IconData? iconData;
+  final Color? color;
+  final Widget? trailing;
+  final bool copyToClipboard;
 
   @override
   Widget build(BuildContext context) {
@@ -20,16 +30,24 @@ class IconMessage extends StatelessWidget {
               size: 18.0,
               color: Colors.white,
             ),
-            SizedBox(width: 10.0),
-            Flexible(
-              child: Text(
-                text,
-                maxLines: null,
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
+            SizedBox(width: 16),
+            Expanded(
+              child: copyToClipboard
+                  ? CopyToClipboard(
+                      value: text,
+                      child: Text(
+                        text!,
+                        maxLines: null,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    )
+                  : Text(
+                      text!,
+                      maxLines: null,
+                      style: TextStyle(color: Colors.white),
+                    ),
             ),
+            if (trailing != null) ...[SizedBox(width: 16), trailing!],
           ],
         ),
       ),

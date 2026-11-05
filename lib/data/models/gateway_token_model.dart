@@ -1,8 +1,9 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:invoiceninja_flutter/data/models/company_model.dart';
-import 'package:invoiceninja_flutter/data/models/entities.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/strings.dart';
@@ -12,9 +13,9 @@ part 'gateway_token_model.g.dart';
 abstract class GatewayTokenListResponse
     implements
         Built<GatewayTokenListResponse, GatewayTokenListResponseBuilder> {
-  factory GatewayTokenListResponse(
-          [void updates(GatewayTokenListResponseBuilder b)]) =
-      _$GatewayTokenListResponse;
+  factory GatewayTokenListResponse([
+    void updates(GatewayTokenListResponseBuilder b),
+  ]) = _$GatewayTokenListResponse;
 
   GatewayTokenListResponse._();
 
@@ -31,9 +32,9 @@ abstract class GatewayTokenListResponse
 abstract class GatewayTokenItemResponse
     implements
         Built<GatewayTokenItemResponse, GatewayTokenItemResponseBuilder> {
-  factory GatewayTokenItemResponse(
-          [void updates(GatewayTokenItemResponseBuilder b)]) =
-      _$GatewayTokenItemResponse;
+  factory GatewayTokenItemResponse([
+    void updates(GatewayTokenItemResponseBuilder b),
+  ]) = _$GatewayTokenItemResponse;
 
   GatewayTokenItemResponse._();
 
@@ -56,7 +57,7 @@ class GatewayTokenFields {
 abstract class GatewayTokenEntity extends Object
     with BaseEntity, SelectableEntity
     implements Built<GatewayTokenEntity, GatewayTokenEntityBuilder> {
-  factory GatewayTokenEntity({String id}) {
+  factory GatewayTokenEntity({String? id}) {
     return _$GatewayTokenEntity._(
       id: id ?? BaseEntity.nextId,
       isChanged: false,
@@ -108,12 +109,17 @@ abstract class GatewayTokenEntity extends Object
   }
 
   int compareTo(
-      GatewayTokenEntity gatewayToken, String sortField, bool sortAscending) {
+    GatewayTokenEntity gatewayToken,
+    String sortField,
+    bool sortAscending,
+  ) {
     const int response = 0;
-    final GatewayTokenEntity gatewayTokenA =
-        sortAscending ? this : gatewayToken;
-    final GatewayTokenEntity gatewayTokenB =
-        sortAscending ? gatewayToken : this;
+    final GatewayTokenEntity gatewayTokenA = sortAscending
+        ? this
+        : gatewayToken;
+    final GatewayTokenEntity gatewayTokenB = sortAscending
+        ? gatewayToken
+        : this;
 
     switch (sortField) {
       case GatewayTokenFields.name:
@@ -122,41 +128,36 @@ abstract class GatewayTokenEntity extends Object
     }
 
     if (response == 0) {
-      return gatewayTokenA.customerReference
-          .toLowerCase()
-          .compareTo(gatewayTokenB.customerReference.toLowerCase());
+      return gatewayTokenA.customerReference.toLowerCase().compareTo(
+        gatewayTokenB.customerReference.toLowerCase(),
+      );
     } else {
       return response;
     }
   }
 
   @override
-  bool matchesFilter(String filter) {
-    return matchesStrings(
-      haystacks: [customerReference],
-      needle: filter,
-    );
+  bool matchesFilter(String? filter) {
+    return matchesStrings(haystacks: [customerReference], needle: filter);
   }
 
   @override
-  String matchesFilterValue(String filter) {
-    return matchesStringsValue(
-      haystacks: [customerReference],
-      needle: filter,
-    );
+  String? matchesFilterValue(String? filter) {
+    return matchesStringsValue(haystacks: [customerReference], needle: filter);
   }
 
   @override
-  List<EntityAction> getActions(
-      {UserCompanyEntity userCompany,
-      ClientEntity client,
-      bool includeEdit = false,
-      bool includePreview = false,
-      bool multiselect = false}) {
-    final actions = <EntityAction>[];
+  List<EntityAction?> getActions({
+    UserCompanyEntity? userCompany,
+    ClientEntity? client,
+    bool includeEdit = false,
+    bool includePreview = false,
+    bool multiselect = false,
+  }) {
+    final actions = <EntityAction?>[];
 
-    if (!isDeleted && !multiselect) {
-      if (includeEdit && userCompany.canEditEntity(this)) {
+    if (!isDeleted! && !multiselect) {
+      if (includeEdit && userCompany!.canEditEntity(this)) {
         actions.add(EntityAction.edit);
       }
     }
@@ -169,10 +170,10 @@ abstract class GatewayTokenEntity extends Object
   }
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   @override
-  FormatNumberType get listDisplayAmountType => null;
+  FormatNumberType? get listDisplayAmountType => null;
 
   static Serializer<GatewayTokenEntity> get serializer =>
       _$gatewayTokenEntitySerializer;
@@ -190,22 +191,17 @@ abstract class GatewayTokenMetaEntity
   @memoized
   int get hashCode;
 
-  @nullable
-  String get brand;
+  String? get brand;
 
-  @nullable
-  String get last4;
+  String? get last4;
 
-  @nullable
-  int get type;
+  int? get type;
 
-  @nullable
   @BuiltValueField(wireName: 'exp_month')
-  String get expMonth;
+  String? get expMonth;
 
-  @nullable
   @BuiltValueField(wireName: 'exp_year')
-  String get expYear;
+  String? get expYear;
 
   static Serializer<GatewayTokenMetaEntity> get serializer =>
       _$gatewayTokenMetaEntitySerializer;

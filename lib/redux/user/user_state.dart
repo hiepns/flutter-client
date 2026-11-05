@@ -1,11 +1,15 @@
+// Dart imports:
 import 'dart:async';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:built_collection/built_collection.dart';
-import 'package:invoiceninja_flutter/data/models/user_model.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
 
 part 'user_state.g.dart';
@@ -22,7 +26,7 @@ abstract class UserState implements Built<UserState, UserStateBuilder> {
 
   UserEntity get(String userId) {
     if (map.containsKey(userId)) {
-      return map[userId];
+      return map[userId]!;
     } else {
       return UserEntity(id: userId);
     }
@@ -42,10 +46,12 @@ abstract class UserState implements Built<UserState, UserStateBuilder> {
 abstract class UserUIState extends Object
     with EntityUIState
     implements Built<UserUIState, UserUIStateBuilder> {
-  factory UserUIState(PrefStateSortField sortField) {
+  factory UserUIState(PrefStateSortField? sortField) {
     return _$UserUIState._(
-      listUIState: ListUIState(sortField?.field ?? UserFields.firstName,
-          sortAscending: sortField?.ascending),
+      listUIState: ListUIState(
+        sortField?.field ?? UserFields.firstName,
+        sortAscending: sortField?.ascending,
+      ),
       editing: UserEntity(),
       selectedId: '',
       tabIndex: 0,
@@ -58,14 +64,13 @@ abstract class UserUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  UserEntity get editing;
+  UserEntity? get editing;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<UserUIState> get serializer => _$userUIStateSerializer;
 }

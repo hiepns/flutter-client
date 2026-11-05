@@ -1,10 +1,16 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:built_collection/built_collection.dart';
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/group_model.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
@@ -16,10 +22,9 @@ import 'package:invoiceninja_flutter/ui/app/tables/entity_list.dart';
 import 'package:invoiceninja_flutter/ui/group/group_list_item.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:redux/redux.dart';
 
 class GroupListBuilder extends StatelessWidget {
-  const GroupListBuilder({Key key}) : super(key: key);
+  const GroupListBuilder({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,28 +32,29 @@ class GroupListBuilder extends StatelessWidget {
       converter: GroupListVM.fromStore,
       builder: (context, viewModel) {
         return EntityList(
-            onClearMultiselect: viewModel.onClearMultielsect,
-            entityType: EntityType.group,
-            //presenter: ClientPresenter(),
-            state: viewModel.state,
-            entityList: viewModel.groupList,
-            //tableColumns: viewModel.tableColumns,
-            onRefreshed: viewModel.onRefreshed,
-            onSortColumn: viewModel.onSortColumn,
-            itemBuilder: (BuildContext context, index) {
-              final state = viewModel.state;
-              final groupId = viewModel.groupList[index];
-              final group = viewModel.groupMap[groupId];
-              final listState = state.getListState(EntityType.group);
-              final isInMultiselect = listState.isInMultiselect();
+          onClearMultiselect: viewModel.onClearMultielsect,
+          entityType: EntityType.group,
+          //presenter: ClientPresenter(),
+          state: viewModel.state,
+          entityList: viewModel.groupList,
+          //tableColumns: viewModel.tableColumns,
+          onRefreshed: viewModel.onRefreshed,
+          onSortColumn: viewModel.onSortColumn,
+          itemBuilder: (BuildContext context, index) {
+            final state = viewModel.state;
+            final groupId = viewModel.groupList[index];
+            final group = viewModel.groupMap[groupId]!;
+            final listState = state.getListState(EntityType.group);
+            final isInMultiselect = listState.isInMultiselect();
 
-              return GroupListItem(
-                user: viewModel.userCompany.user,
-                filter: viewModel.filter,
-                group: group,
-                isChecked: isInMultiselect && listState.isSelected(group.id),
-              );
-            });
+            return GroupListItem(
+              user: viewModel.userCompany!.user,
+              filter: viewModel.filter,
+              group: group,
+              isChecked: isInMultiselect && listState.isSelected(group.id),
+            );
+          },
+        );
       },
     );
   }
@@ -56,25 +62,26 @@ class GroupListBuilder extends StatelessWidget {
 
 class GroupListVM {
   GroupListVM({
-    @required this.state,
-    @required this.userCompany,
-    @required this.groupList,
-    @required this.groupMap,
-    @required this.filter,
-    @required this.isLoading,
-    @required this.listState,
-    @required this.onRefreshed,
-    @required this.onSortColumn,
-    @required this.onClearMultielsect,
+    required this.state,
+    required this.userCompany,
+    required this.groupList,
+    required this.groupMap,
+    required this.filter,
+    required this.isLoading,
+    required this.listState,
+    required this.onRefreshed,
+    required this.onSortColumn,
+    required this.onClearMultielsect,
   });
 
   static GroupListVM fromStore(Store<AppState> store) {
     Future<Null> _handleRefresh(BuildContext context) {
       if (store.state.isLoading) {
-        return Future<Null>(null);
+        return Future<Null>.value();
       }
       final completer = snackBarCompleter<Null>(
-          context, AppLocalization.of(context).refreshComplete);
+        AppLocalization.of(context)!.refreshComplete,
+      );
       store.dispatch(RefreshData(completer: completer));
       return completer.future;
     }
@@ -86,10 +93,11 @@ class GroupListVM {
       userCompany: state.userCompany,
       listState: state.groupListState,
       groupList: memoizedFilteredGroupList(
-          state.getUISelection(EntityType.group),
-          state.groupState.map,
-          state.groupState.list,
-          state.groupListState),
+        state.getUISelection(EntityType.group),
+        state.groupState.map,
+        state.groupState.list,
+        state.groupListState,
+      ),
       groupMap: state.groupState.map,
       isLoading: state.isLoading,
       filter: state.groupUIState.listUIState.filter,
@@ -100,11 +108,11 @@ class GroupListVM {
   }
 
   final AppState state;
-  final UserCompanyEntity userCompany;
+  final UserCompanyEntity? userCompany;
   final List<String> groupList;
   final BuiltMap<String, GroupEntity> groupMap;
   final ListUIState listState;
-  final String filter;
+  final String? filter;
   final bool isLoading;
   final Function(BuildContext) onRefreshed;
   final Function(String) onSortColumn;

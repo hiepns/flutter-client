@@ -1,8 +1,14 @@
-import 'package:built_collection/built_collection.dart';
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:redux/redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
@@ -15,11 +21,9 @@ import 'package:invoiceninja_flutter/ui/settings/device_settings.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/dialogs.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:local_auth/local_auth.dart';
-import 'package:redux/redux.dart';
 
 class DeviceSettingsScreen extends StatelessWidget {
-  const DeviceSettingsScreen({Key key}) : super(key: key);
+  const DeviceSettingsScreen({Key? key}) : super(key: key);
   static const String route = '/$kSettings/$kSettingsDeviceSettings';
 
   @override
@@ -35,21 +39,29 @@ class DeviceSettingsScreen extends StatelessWidget {
 
 class DeviceSettingsVM {
   DeviceSettingsVM({
-    @required this.state,
-    @required this.onRefreshTap,
-    @required this.onLogoutTap,
-    @required this.onDarkModeChanged,
-    @required this.onLayoutChanged,
-    @required this.onRequireAuthenticationChanged,
-    @required this.onLongPressSelectionIsDefault,
-    @required this.authenticationSupported,
-    @required this.onMenuModeChanged,
-    @required this.onHistoryModeChanged,
-    @required this.onColorThemeChanged,
-    @required this.onCustomColorsChanged,
-    @required this.onPersistDataChanged,
-    @required this.onPersistUiChanged,
-    @required this.onTapSelectedChanged,
+    required this.state,
+    required this.onRefreshTap,
+    required this.onLogoutTap,
+    required this.onDarkModeChanged,
+    required this.onLayoutChanged,
+    required this.onRequireAuthenticationChanged,
+    required this.onLongPressSelectionIsDefault,
+    required this.authenticationSupported,
+    required this.onMenuModeChanged,
+    required this.onHistoryModeChanged,
+    required this.onColorThemeChanged,
+    required this.onCustomColorsChanged,
+    required this.onPersistDataChanged,
+    required this.onShowPdfChanged,
+    required this.onEnableNativeBrowserChanged,
+    required this.onShowPdfSideBySideChanged,
+    required this.onTapSelectedChanged,
+    required this.onTextScaleFactorChanged,
+    required this.onEditAfterSavingChanged,
+    required this.onEnableTouchEventsChanged,
+    required this.onEnableTooltipsChanged,
+    required this.onEnableFlexibleSearchChanged,
+    required this.onDownloadsFolderChanged,
   });
 
   static DeviceSettingsVM fromStore(Store<AppState> store) {
@@ -59,22 +71,18 @@ class DeviceSettingsVM {
           showRefreshDataDialog(context: context, includeStatic: true),
       onLogoutTap: (BuildContext context) {
         final completer = snackBarCompleter<Null>(
-            context, AppLocalization.of(context).endedAllSessions);
+          AppLocalization.of(context)!.endedAllSessions,
+        );
         store.dispatch(UserLogoutAll(completer: completer));
       },
-      onDarkModeChanged: (BuildContext context, bool value) async {
-        store.dispatch(UpdateUserPreferences(
-            enableDarkMode: value,
-            colorTheme: value ? kColorThemeDark : kColorThemeLight,
-            customColors: value
-                ? BuiltMap<String, String>()
-                : BuiltMap<String, String>(PrefState.CONTRAST_COLORS)));
-        store.dispatch(UpdatedSetting());
-        AppBuilder.of(context).rebuild();
+      onDarkModeChanged: (BuildContext context, String value) async {
+        store.dispatch(UpdateUserPreferences(darkModeType: value));
+        AppBuilder.of(context)!.rebuild();
       },
       onLongPressSelectionIsDefault: (BuildContext context, bool value) async {
         store.dispatch(
-            UpdateUserPreferences(longPressSelectionIsDefault: value));
+          UpdateUserPreferences(longPressSelectionIsDefault: value),
+        );
       },
       onMenuModeChanged: (context, value) async {
         if (store.state.prefState.menuSidebarMode == value) {
@@ -93,17 +101,53 @@ class DeviceSettingsVM {
       onTapSelectedChanged: (context, value) async {
         store.dispatch(UpdateUserPreferences(tapSelectedToEdit: value));
       },
+      onDownloadsFolderChanged: (context, value) async {
+        store.dispatch(UpdateUserPreferences(downloadsFolder: value));
+      },
+      onEnableTouchEventsChanged: (context, value) async {
+        store.dispatch(UpdateUserPreferences(enableTouchEvents: value));
+        store.dispatch(UpdatedSetting());
+        AppBuilder.of(context)!.rebuild();
+      },
+      onShowPdfChanged: (context, value) {
+        store.dispatch(UpdateUserPreferences(showPdfPreview: value));
+      },
+      onEnableNativeBrowserChanged: (context, value) {
+        store.dispatch(UpdateUserPreferences(enableNativeBrowser: value));
+      },
+      onShowPdfSideBySideChanged: (context, value) {
+        store.dispatch(UpdateUserPreferences(showPdfPreviewSideBySide: value));
+      },
+      onTextScaleFactorChanged: (context, value) {
+        store.dispatch(UpdateUserPreferences(textScaleFactor: value));
+      },
+      onEnableTooltipsChanged: (context, value) {
+        store.dispatch(UpdateUserPreferences(enableTooltips: value));
+      },
+      onEnableFlexibleSearchChanged: (context, value) {
+        store.dispatch(UpdateUserPreferences(flexibleSearch: value));
+      },
       onColorThemeChanged: (context, value) async {
-        if (store.state.prefState.colorTheme != value) {
-          store.dispatch(UpdateUserPreferences(colorTheme: value));
+        final prefState = store.state.prefState;
+        if (prefState.enableDarkMode) {
+          if (prefState.darkColorTheme != value) {
+            store.dispatch(UpdateUserPreferences(darkColorTheme: value));
+          }
+        } else {
+          if (prefState.colorTheme != value) {
+            store.dispatch(UpdateUserPreferences(colorTheme: value));
+          }
         }
+      },
+      onEditAfterSavingChanged: (context, value) async {
+        store.dispatch(UpdateUserPreferences(editAfterSaving: value));
       },
       onLayoutChanged: (BuildContext context, AppLayout value) async {
         if (store.state.prefState.appLayout == value) {
           return;
         }
         store.dispatch(UpdateUserPreferences(appLayout: value));
-        AppBuilder.of(context).rebuild();
+        AppBuilder.of(context)!.rebuild();
         WidgetsBinding.instance.addPostFrameCallback((duration) {
           if (value == AppLayout.mobile) {
             store.dispatch(ViewDashboard());
@@ -116,11 +160,15 @@ class DeviceSettingsVM {
         bool authenticated = false;
         try {
           authenticated = await LocalAuthentication().authenticate(
-              localizedReason:
-                  AppLocalization.of(context).authenticateToChangeSetting,
+            localizedReason: AppLocalization.of(
+              context,
+            )!.authenticateToChangeSetting,
+            options: const AuthenticationOptions(
               biometricOnly: true,
               useErrorDialogs: true,
-              stickyAuth: false);
+              stickyAuth: false,
+            ),
+          );
         } catch (e) {
           print(e);
         }
@@ -131,20 +179,22 @@ class DeviceSettingsVM {
       //authenticationSupported: LocalAuthentication().canCheckBiometrics,
       // TODO remove this once issue is resolved:
       // https://github.com/flutter/flutter/issues/24339
-      authenticationSupported: Future<bool>(
-        () async {
-          bool enable = false;
-          try {
-            enable = await LocalAuthentication().canCheckBiometrics;
-          } catch (e) {
-            // do nothing
-          }
-          return enable;
-        },
-      ),
+      authenticationSupported: Future<bool>(() async {
+        bool enable = false;
+        try {
+          enable = await LocalAuthentication().canCheckBiometrics;
+        } catch (e) {
+          // do nothing
+        }
+        return enable;
+      }),
       onCustomColorsChanged: (context, customColors) {
-        store.dispatch(UpdateUserPreferences(customColors: customColors));
-        store.dispatch(UpdatedSetting());
+        if (store.state.prefState.enableDarkMode) {
+          store.dispatch(UpdateUserPreferences(darkCustomColors: customColors));
+        } else {
+          store.dispatch(UpdateUserPreferences(customColors: customColors));
+        }
+        store.dispatch(UpdatedSettingUI());
       },
       onPersistDataChanged: (context, value) {
         store.dispatch(UpdateUserPreferences(persistData: value));
@@ -154,19 +204,13 @@ class DeviceSettingsVM {
           store.dispatch(ClearPersistedData());
         }
       },
-      onPersistUiChanged: (context, value) {
-        store.dispatch(UpdateUserPreferences(persistUi: value));
-        if (value) {
-          store.dispatch(PersistUI());
-        }
-      },
     );
   }
 
   final AppState state;
   final Function(BuildContext) onRefreshTap;
   final Function(BuildContext) onLogoutTap;
-  final Function(BuildContext, bool) onDarkModeChanged;
+  final Function(BuildContext, String) onDarkModeChanged;
   final Function(BuildContext, BuiltMap<String, String>) onCustomColorsChanged;
   final Function(BuildContext, AppLayout) onLayoutChanged;
   final Function(BuildContext, AppSidebarMode) onMenuModeChanged;
@@ -174,8 +218,16 @@ class DeviceSettingsVM {
   final Function(BuildContext, String) onColorThemeChanged;
   final Function(BuildContext, bool) onLongPressSelectionIsDefault;
   final Function(BuildContext, bool) onTapSelectedChanged;
+  final Function(BuildContext, bool) onEditAfterSavingChanged;
   final Function(BuildContext, bool) onRequireAuthenticationChanged;
   final Function(BuildContext, bool) onPersistDataChanged;
-  final Function(BuildContext, bool) onPersistUiChanged;
+  final Function(BuildContext, bool) onShowPdfChanged;
+  final Function(BuildContext, bool) onEnableNativeBrowserChanged;
+  final Function(BuildContext, bool) onShowPdfSideBySideChanged;
+  final Function(BuildContext, bool) onEnableTouchEventsChanged;
+  final Function(BuildContext, bool) onEnableTooltipsChanged;
+  final Function(BuildContext, bool) onEnableFlexibleSearchChanged;
+  final Function(BuildContext, double) onTextScaleFactorChanged;
+  final Function(BuildContext, String) onDownloadsFolderChanged;
   final Future<bool> authenticationSupported;
 }

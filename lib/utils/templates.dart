@@ -1,22 +1,29 @@
+// Dart imports:
 import 'dart:convert';
+
+// Flutter imports:
 import 'package:flutter/cupertino.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/.env.dart';
 import 'package:invoiceninja_flutter/data/models/invoice_model.dart';
 import 'package:invoiceninja_flutter/data/web_client.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:invoiceninja_flutter/.env.dart';
 import 'dialogs.dart';
 
 void loadEmailTemplate({
-  @required BuildContext context,
-  @required Function(String, String, String, String) onComplete,
-  String template,
-  String subject,
-  String body,
-  InvoiceEntity invoice,
+  required BuildContext context,
+  required Function(String?, String?, String?, String?, String?) onComplete,
+  String? template,
+  String? subject,
+  String? body,
+  InvoiceEntity? invoice,
 }) {
   if (Config.DEMO_MODE) {
-    onComplete(subject, body, '', '');
+    onComplete(subject, body, '', '', '');
     return;
   }
 
@@ -38,26 +45,34 @@ void loadEmailTemplate({
     template = 'email_template_$template';
   }
 
+  // Fix for difference in template name
+  if (template == 'email_template_quote_reminder1') {
+    template = 'email_quote_template_reminder1';
+  }
+
   webClient
-      .post(url, credentials.token,
-          data: json.encode({
-            'entity': '${invoice?.entityType ?? ''}',
-            'entity_id': '${invoice?.id ?? ''}',
-            'template': (subject.isEmpty && body.isEmpty && template != null)
-                ? template
-                : '',
-            'subject': subject,
-            'body': body,
-          }))
+      .post(
+        url,
+        credentials.token,
+        data: json.encode({
+          'entity': '${invoice?.entityType ?? ''}',
+          'entity_id': '${invoice?.id ?? ''}',
+          'template': template,
+          'subject': subject,
+          'body': body,
+        }),
+      )
       .then((dynamic response) {
-    onComplete(
-      response['subject'],
-      response['wrapper'].replaceFirst('\$body', response['body']),
-      response['raw_subject'],
-      response['raw_body'],
-    );
-  }).catchError((dynamic error) {
-    showErrorDialog(context: context, message: '$error');
-    onComplete(subject, body, subject, body);
-  });
+        onComplete(
+          response['subject'],
+          response['body'],
+          response['wrapper'].replaceFirst('\$body', response['body']),
+          response['raw_subject'],
+          response['raw_body'],
+        );
+      })
+      .catchError((dynamic error) {
+        showErrorDialog(message: '$error');
+        onComplete(subject, body, body, subject, body);
+      });
 }

@@ -1,22 +1,27 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'constants.dart';
 import 'data/models/static/color_theme_model.dart';
 
 class InvoiceStatusColors {
   InvoiceStatusColors(this._colorTheme);
 
-  final ColorTheme _colorTheme;
+  final ColorTheme? _colorTheme;
 
-  Map<String, Color> get colors {
+  Map<String, Color?> get colors {
     return {
-      kInvoiceStatusDraft: _colorTheme.colorDarkGray,
-      kInvoiceStatusSent: _colorTheme.colorInfo,
-      kInvoiceStatusPartial: _colorTheme.colorPrimary,
-      kInvoiceStatusPaid: _colorTheme.colorSuccess,
-      kInvoiceStatusPastDue: _colorTheme.colorDanger,
-      kInvoiceStatusCancelled: _colorTheme.colorLightGray,
-      kInvoiceStatusReversed: _colorTheme.colorLightGray,
-      kInvoiceStatusViewed: _colorTheme.colorWarning,
+      kInvoiceStatusDraft: _colorTheme!.colorLightGray,
+      kInvoiceStatusSent: _colorTheme!.colorInfo,
+      kInvoiceStatusPartial: _colorTheme!.colorPrimary,
+      kInvoiceStatusPaid: _colorTheme!.colorSuccess,
+      kInvoiceStatusPastDue: _colorTheme!.colorDanger,
+      kInvoiceStatusCancelled: _colorTheme!.colorDarkGray,
+      kInvoiceStatusReversed: _colorTheme!.colorDarkGray,
+      kInvoiceStatusReplaced: _colorTheme!.colorDarkGray,
+      kInvoiceStatusViewed: _colorTheme!.colorWarning,
+      kInvoiceStatusBounced: _colorTheme!.colorDanger,
     };
   }
 }
@@ -24,15 +29,15 @@ class InvoiceStatusColors {
 class RecurringInvoiceStatusColors {
   RecurringInvoiceStatusColors(this._colorTheme);
 
-  final ColorTheme _colorTheme;
+  final ColorTheme? _colorTheme;
 
-  Map<String, Color> get colors {
+  Map<String, Color?> get colors {
     return {
-      kRecurringInvoiceStatusDraft: _colorTheme.colorDarkGray,
-      kRecurringInvoiceStatusActive: _colorTheme.colorSuccess,
-      kRecurringInvoiceStatusPaused: _colorTheme.colorLightGray,
-      kRecurringInvoiceStatusCompleted: _colorTheme.colorSuccess,
-      kRecurringInvoiceStatusPending: _colorTheme.colorLightGray,
+      kRecurringInvoiceStatusDraft: _colorTheme!.colorLightGray,
+      kRecurringInvoiceStatusActive: _colorTheme!.colorSuccess,
+      kRecurringInvoiceStatusPaused: _colorTheme!.colorDarkGray,
+      kRecurringInvoiceStatusCompleted: _colorTheme!.colorInfo,
+      kRecurringInvoiceStatusPending: _colorTheme!.colorPrimary,
     };
   }
 }
@@ -40,14 +45,50 @@ class RecurringInvoiceStatusColors {
 class CreditStatusColors {
   CreditStatusColors(this._colorTheme);
 
-  final ColorTheme _colorTheme;
+  final ColorTheme? _colorTheme;
 
-  Map<String, Color> get colors {
+  Map<String, Color?> get colors {
     return {
-      kCreditStatusDraft: _colorTheme.colorDarkGray,
-      kCreditStatusSent: _colorTheme.colorInfo,
-      kCreditStatusPartial: _colorTheme.colorPrimary,
-      kCreditStatusApplied: _colorTheme.colorSuccess,
+      kCreditStatusDraft: _colorTheme!.colorLightGray,
+      kCreditStatusSent: _colorTheme!.colorInfo,
+      kCreditStatusPartial: _colorTheme!.colorPrimary,
+      kCreditStatusApplied: _colorTheme!.colorSuccess,
+      kCreditStatusViewed: _colorTheme!.colorWarning,
+      kCreditStatusBounced: _colorTheme!.colorDanger,
+    };
+  }
+}
+
+class PurchaseOrderStatusColors {
+  PurchaseOrderStatusColors(this._colorTheme);
+
+  final ColorTheme? _colorTheme;
+
+  Map<String, Color?> get colors {
+    return {
+      kPurchaseOrderStatusDraft: _colorTheme!.colorLightGray,
+      kPurchaseOrderStatusSent: _colorTheme!.colorInfo,
+      kPurchaseOrderStatusAccepted: _colorTheme!.colorPrimary,
+      kPurchaseOrderStatusReceived: _colorTheme!.colorSuccess,
+      kPurchaseOrderStatusCancelled: _colorTheme!.colorDanger,
+      kPurchaseOrderStatusViewed: _colorTheme!.colorWarning,
+      kPurchaseOrderStatusBounced: _colorTheme!.colorDanger,
+    };
+  }
+}
+
+class TransactionStatusColors {
+  TransactionStatusColors(this._colorTheme);
+
+  final ColorTheme? _colorTheme;
+
+  Map<String, Color?> get colors {
+    return {
+      kTransactionStatusUnmatched: _colorTheme!.colorInfo,
+      kTransactionStatusMatched: _colorTheme!.colorPrimary,
+      kTransactionStatusConverted: _colorTheme!.colorSuccess,
+      kTransactionStatusDeposit: _colorTheme!.colorSuccess,
+      kTransactionStatusWithdrawal: _colorTheme!.colorDanger,
     };
   }
 }
@@ -55,16 +96,17 @@ class CreditStatusColors {
 class QuoteStatusColors {
   QuoteStatusColors(this._colorTheme);
 
-  final ColorTheme _colorTheme;
+  final ColorTheme? _colorTheme;
 
-  Map<String, Color> get colors {
+  Map<String, Color?> get colors {
     return {
-      kQuoteStatusDraft: _colorTheme.colorDarkGray,
-      kQuoteStatusSent: _colorTheme.colorInfo,
-      kQuoteStatusApproved: _colorTheme.colorPrimary,
-      kQuoteStatusConverted: _colorTheme.colorSuccess,
-      kQuoteStatusExpired: _colorTheme.colorDanger,
-      kQuoteStatusViewed: _colorTheme.colorWarning,
+      kQuoteStatusDraft: _colorTheme!.colorLightGray,
+      kQuoteStatusSent: _colorTheme!.colorInfo,
+      kQuoteStatusApproved: _colorTheme!.colorPrimary,
+      kQuoteStatusConverted: _colorTheme!.colorSuccess,
+      kQuoteStatusExpired: _colorTheme!.colorDanger,
+      kQuoteStatusViewed: _colorTheme!.colorWarning,
+      kQuoteStatusBounced: _colorTheme!.colorDanger,
     };
   }
 }
@@ -72,18 +114,18 @@ class QuoteStatusColors {
 class PaymentStatusColors {
   PaymentStatusColors(this._colorTheme);
 
-  final ColorTheme _colorTheme;
+  final ColorTheme? _colorTheme;
 
-  Map<String, Color> get colors {
+  Map<String, Color?> get colors {
     return {
-      kPaymentStatusPending: _colorTheme.colorDarkGray,
-      kPaymentStatusCancelled: _colorTheme.colorLightGray,
-      kPaymentStatusFailed: _colorTheme.colorDanger,
-      kPaymentStatusCompleted: _colorTheme.colorSuccess,
-      kPaymentStatusPartiallyRefunded: _colorTheme.colorPrimary,
-      kPaymentStatusRefunded: _colorTheme.colorLightGray,
-      kPaymentStatusUnapplied: _colorTheme.colorDarkGray,
-      kPaymentStatusPartiallyUnapplied: _colorTheme.colorDarkGray,
+      kPaymentStatusPending: _colorTheme!.colorLightGray,
+      kPaymentStatusCancelled: _colorTheme!.colorDarkGray,
+      kPaymentStatusFailed: _colorTheme!.colorDanger,
+      kPaymentStatusCompleted: _colorTheme!.colorSuccess,
+      kPaymentStatusPartiallyRefunded: _colorTheme!.colorPrimary,
+      kPaymentStatusRefunded: _colorTheme!.colorDarkGray,
+      kPaymentStatusUnapplied: _colorTheme!.colorInfo,
+      kPaymentStatusPartiallyUnapplied: _colorTheme!.colorInfo,
     };
   }
 }
@@ -91,13 +133,14 @@ class PaymentStatusColors {
 class ExpenseStatusColors {
   ExpenseStatusColors(this._colorTheme);
 
-  final ColorTheme _colorTheme;
+  final ColorTheme? _colorTheme;
 
-  Map<String, Color> get colors {
+  Map<String, Color?> get colors {
     return {
-      kExpenseStatusLogged: _colorTheme.colorDarkGray,
-      kExpenseStatusPending: _colorTheme.colorPrimary,
-      kExpenseStatusInvoiced: _colorTheme.colorSuccess,
+      kExpenseStatusLogged: _colorTheme!.colorLightGray,
+      kExpenseStatusPending: _colorTheme!.colorPrimary,
+      kExpenseStatusInvoiced: _colorTheme!.colorSuccess,
+      kExpenseStatusPaid: _colorTheme!.colorInfo,
     };
   }
 }
@@ -105,13 +148,13 @@ class ExpenseStatusColors {
 class TaskStatusColors {
   TaskStatusColors(this._colorTheme);
 
-  final ColorTheme _colorTheme;
+  final ColorTheme? _colorTheme;
 
-  Map<String, Color> get colors {
+  Map<String, Color?> get colors {
     return {
-      kTaskStatusLogged: _colorTheme.colorDarkGray,
-      kTaskStatusRunning: _colorTheme.colorPrimary,
-      kTaskStatusInvoiced: _colorTheme.colorSuccess,
+      kTaskStatusLogged: _colorTheme!.colorLightGray,
+      kTaskStatusRunning: _colorTheme!.colorPrimary,
+      kTaskStatusInvoiced: _colorTheme!.colorSuccess,
     };
   }
 }

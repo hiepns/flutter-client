@@ -1,24 +1,26 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/data/models/quote_model.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
-import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/quote/quote_actions.dart';
+import 'package:invoiceninja_flutter/ui/app/app_bottom_bar.dart';
 import 'package:invoiceninja_flutter/ui/app/list_filter.dart';
+import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
+import 'package:invoiceninja_flutter/ui/quote/quote_list_vm.dart';
 import 'package:invoiceninja_flutter/ui/quote/quote_presenter.dart';
 import 'package:invoiceninja_flutter/ui/quote/quote_screen_vm.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/ui/quote/quote_list_vm.dart';
-import 'package:invoiceninja_flutter/redux/quote/quote_actions.dart';
-import 'package:invoiceninja_flutter/ui/app/app_bottom_bar.dart';
 
 class QuoteScreen extends StatelessWidget {
-  const QuoteScreen({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const QuoteScreen({Key? key, required this.viewModel}) : super(key: key);
 
   static const String route = '/quote';
 
@@ -31,6 +33,48 @@ class QuoteScreen extends StatelessWidget {
     final company = store.state.company;
     final userCompany = store.state.userCompany;
     final localization = AppLocalization.of(context);
+    final statuses = [
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kQuoteStatusDraft
+          ..name = localization!.draft,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kQuoteStatusSent
+          ..name = localization!.sent,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kQuoteStatusViewed
+          ..name = localization!.viewed,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kQuoteStatusApproved
+          ..name = localization!.approved,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kQuoteStatusConverted
+          ..name = localization!.converted,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kQuoteStatusExpired
+          ..name = localization!.expired,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kQuoteStatusRejected
+          ..name = localization!.rejected,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kQuoteStatusBounced
+          ..name = localization!.bounced,
+      ),
+    ];
 
     return ListScaffold(
       entityType: EntityType.quote,
@@ -43,6 +87,13 @@ class QuoteScreen extends StatelessWidget {
         onFilterChanged: (value) {
           store.dispatch(FilterQuotes(value));
         },
+        onSelectedState: (EntityState state, value) {
+          store.dispatch(FilterQuotesByState(state));
+        },
+        onSelectedStatus: (EntityStatus status, value) {
+          store.dispatch(FilterQuotesByStatus(status));
+        },
+        statuses: statuses,
       ),
       onCheckboxPressed: () {
         if (store.state.quoteListState.isInMultiselect()) {
@@ -57,14 +108,22 @@ class QuoteScreen extends StatelessWidget {
         tableColumns: QuotePresenter.getAllTableFields(userCompany),
         defaultTableColumns: QuotePresenter.getDefaultTableFields(userCompany),
         onSelectedSortField: (value) => store.dispatch(SortQuotes(value)),
-        customValues1: company.getCustomFieldValues(CustomFieldType.invoice1,
-            excludeBlank: true),
-        customValues2: company.getCustomFieldValues(CustomFieldType.invoice2,
-            excludeBlank: true),
-        customValues3: company.getCustomFieldValues(CustomFieldType.invoice3,
-            excludeBlank: true),
-        customValues4: company.getCustomFieldValues(CustomFieldType.invoice4,
-            excludeBlank: true),
+        customValues1: company.getCustomFieldValues(
+          CustomFieldType.invoice1,
+          excludeBlank: true,
+        ),
+        customValues2: company.getCustomFieldValues(
+          CustomFieldType.invoice2,
+          excludeBlank: true,
+        ),
+        customValues3: company.getCustomFieldValues(
+          CustomFieldType.invoice3,
+          excludeBlank: true,
+        ),
+        customValues4: company.getCustomFieldValues(
+          CustomFieldType.invoice4,
+          excludeBlank: true,
+        ),
         onSelectedCustom1: (value) =>
             store.dispatch(FilterQuotesByCustom1(value)),
         onSelectedCustom2: (value) =>
@@ -85,33 +144,7 @@ class QuoteScreen extends StatelessWidget {
         onSelectedStatus: (EntityStatus status, value) {
           store.dispatch(FilterQuotesByStatus(status));
         },
-        statuses: [
-          InvoiceStatusEntity().rebuild(
-            (b) => b
-              ..id = kQuoteStatusDraft
-              ..name = localization.draft,
-          ),
-          InvoiceStatusEntity().rebuild(
-            (b) => b
-              ..id = kQuoteStatusSent
-              ..name = localization.sent,
-          ),
-          InvoiceStatusEntity().rebuild(
-            (b) => b
-              ..id = kQuoteStatusViewed
-              ..name = localization.viewed,
-          ),
-          InvoiceStatusEntity().rebuild(
-            (b) => b
-              ..id = kQuoteStatusApproved
-              ..name = localization.approved,
-          ),
-          InvoiceStatusEntity().rebuild(
-            (b) => b
-              ..id = kQuoteStatusExpired
-              ..name = localization.expired,
-          ),
-        ],
+        statuses: statuses,
         onCheckboxPressed: () {
           if (store.state.quoteListState.isInMultiselect()) {
             store.dispatch(ClearQuoteMultiselect());
@@ -120,20 +153,20 @@ class QuoteScreen extends StatelessWidget {
           }
         },
       ),
-      floatingActionButton: state.prefState.isMenuFloated &&
+      floatingActionButton:
+          state.prefState.isMenuFloated &&
               userCompany.canCreate(EntityType.quote)
           ? FloatingActionButton(
               heroTag: 'quote_fab',
               backgroundColor: Theme.of(context).primaryColorDark,
               onPressed: () {
                 createEntityByType(
-                    context: context, entityType: EntityType.quote);
+                  context: context,
+                  entityType: EntityType.quote,
+                );
               },
-              child: Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-              tooltip: localization.newQuote,
+              child: Icon(Icons.add, color: Colors.white),
+              tooltip: localization!.newQuote,
             )
           : null,
     );

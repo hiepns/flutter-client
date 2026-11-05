@@ -1,6 +1,9 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 
 part 'currency_model.g.dart';
@@ -91,7 +94,7 @@ abstract class CurrencyEntity extends Object
   double get exchangeRate;
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     if (filter == null || filter.isEmpty) {
       return true;
     }
@@ -108,7 +111,7 @@ abstract class CurrencyEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     if (filter == null || filter.isEmpty) {
       return null;
     }
@@ -128,7 +131,7 @@ abstract class CurrencyEntity extends Object
   }
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   static Serializer<CurrencyEntity> get serializer =>
       _$currencyEntitySerializer;

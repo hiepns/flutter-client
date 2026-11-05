@@ -1,17 +1,23 @@
+// Dart imports:
 import 'dart:convert';
+
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+import 'package:collection/collection.dart';
+import 'package:diacritic/diacritic.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
-import 'package:invoiceninja_flutter/data/models/client_model.dart';
-import 'package:invoiceninja_flutter/data/models/company_model.dart';
-import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/design/design_selectors.dart';
 import 'package:invoiceninja_flutter/redux/task_status/task_status_selectors.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/strings.dart';
-import 'package:collection/collection.dart';
 
 part 'task_model.g.dart';
 
@@ -73,16 +79,29 @@ class TaskFields {
   static const String isDeleted = 'is_deleted';
   static const String status = 'status';
   static const String isInvoiced = 'is_invoiced';
+  static const String date = 'date';
+  static const String assignedTo = 'assigned_to';
+  static const String createdBy = 'created_by';
+  static const String amount = 'amount';
 }
 
 abstract class TaskTime implements Built<TaskTime, TaskTimeBuilder> {
-  factory TaskTime({DateTime startDate, DateTime endDate}) {
+  factory TaskTime({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? description,
+    bool? isBillable,
+  }) {
     return _$TaskTime._(
-      startDate: startDate ??
+      startDate:
+          startDate ??
           DateTime.fromMillisecondsSinceEpoch(
-              (DateTime.now().millisecondsSinceEpoch / 1000).floor() * 1000,
-              isUtc: true),
+            (DateTime.now().millisecondsSinceEpoch / 1000).floor() * 1000,
+            isUtc: true,
+          ),
       endDate: endDate,
+      description: description ?? '',
+      isBillable: isBillable ?? true,
     );
   }
 
@@ -92,18 +111,39 @@ abstract class TaskTime implements Built<TaskTime, TaskTimeBuilder> {
   @memoized
   int get hashCode;
 
-  @nullable
-  DateTime get startDate;
+  DateTime? get startDate;
 
-  @nullable
-  DateTime get endDate;
+  DateTime? get endDate;
 
-  Duration get duration => (endDate ?? DateTime.now()).difference(startDate);
+  String get description;
 
-  List<dynamic> get asList => <dynamic>[
-        (startDate.millisecondsSinceEpoch / 1000).floor(),
-        endDate != null ? (endDate.millisecondsSinceEpoch / 1000).floor() : 0
-      ];
+  bool get isBillable;
+
+  Duration get duration => (endDate ?? DateTime.now()).difference(startDate!);
+
+  List<dynamic> get asList {
+    final startTime = startDate != null
+        ? (startDate!.millisecondsSinceEpoch / 1000).floor()
+        : 0;
+    var endTime = endDate != null
+        ? (endDate!.millisecondsSinceEpoch / 1000).floor()
+        : 0;
+
+    final store = StoreProvider.of<AppState>(navigatorKey.currentContext!);
+    final company = store.state.company;
+
+    // Handle the end time being before the start time
+    if (!company.showTaskEndDate && endTime != 0) {
+      const oneDay = 24 * 60 * 60;
+      if (endTime < startTime) {
+        endTime += oneDay;
+      } else if (endTime - startTime > oneDay) {
+        endTime -= oneDay;
+      }
+    }
+
+    return <dynamic>[startTime, endTime, description, isBillable];
+  }
 
   TaskTime get stop => rebuild((b) => b..endDate = DateTime.now().toUtc());
 
@@ -112,10 +152,11 @@ abstract class TaskTime implements Built<TaskTime, TaskTimeBuilder> {
 
   bool get isRunning => endDate == null;
 
-  bool get isEmpty => startDate == null && endDate == null;
+  bool get isEmpty =>
+      startDate == null && endDate == null && description.isEmpty;
 
   Map<String, Duration> getParts() {
-    final localStartDate = startDate.toLocal();
+    final localStartDate = startDate!.toLocal();
     final localEndDate = (endDate ?? DateTime.now()).toLocal();
     final startSqlDate = convertDateTimeToSqlDate(localStartDate);
     final endSqlDate = convertDateTimeToSqlDate(localEndDate);
@@ -128,15 +169,18 @@ abstract class TaskTime implements Built<TaskTime, TaskTimeBuilder> {
     DateTime nextDate;
     final Map<String, Duration> dates = {
       startSqlDate: DateTime(
-              localStartDate.year, localStartDate.month, localStartDate.day)
-          .add(Duration(days: offset))
-          .difference(localStartDate)
+        localStartDate.year,
+        localStartDate.month,
+        localStartDate.day,
+      ).add(Duration(days: offset)).difference(localStartDate),
     };
 
     do {
       nextDate = DateTime(
-              localStartDate.year, localStartDate.month, localStartDate.day)
-          .add(Duration(days: offset));
+        localStartDate.year,
+        localStartDate.month,
+        localStartDate.day,
+      ).add(Duration(days: offset));
       offset++;
 
       Duration duration = localEndDate.difference(nextDate);
@@ -151,53 +195,58 @@ abstract class TaskTime implements Built<TaskTime, TaskTimeBuilder> {
   }
 
   TaskTime copyWithStartDate(String date, {bool syncDates = false}) {
-    if ((date ?? '').isEmpty) {
+    if (date.isEmpty) {
       return this;
     }
 
-    final dateTime = DateTime.parse(date);
+    final dateTime = DateTime.tryParse(date) ?? DateTime.now();
     final now = DateTime.now();
 
     return TaskTime(
       startDate: DateTime(
-        dateTime.toLocal()?.year,
-        dateTime.toLocal()?.month,
-        dateTime.toLocal()?.day,
-        startDate?.toLocal()?.hour ?? now.hour,
-        startDate?.toLocal()?.minute ?? now.minute,
-        startDate?.toLocal()?.second ?? now.second,
+        dateTime.toLocal().year,
+        dateTime.toLocal().month,
+        dateTime.toLocal().day,
+        startDate?.toLocal().hour ?? now.hour,
+        startDate?.toLocal().minute ?? now.minute,
+        startDate?.toLocal().second ?? now.second,
       ).toUtc(),
       endDate: syncDates && endDate != null
           ? DateTime(
-              dateTime.toLocal()?.year,
-              dateTime.toLocal()?.month,
-              dateTime.toLocal()?.day,
-              endDate.toLocal().hour,
-              endDate.toLocal().minute,
-              endDate.toLocal().second,
+              dateTime.toLocal().year,
+              dateTime.toLocal().month,
+              dateTime.toLocal().day,
+              endDate!.toLocal().hour,
+              endDate!.toLocal().minute,
+              endDate!.toLocal().second,
             )
           : endDate,
+      description: description,
+      isBillable: isBillable,
     );
   }
 
   TaskTime copyWithEndDate(String date) {
-    if ((date ?? '').isEmpty) {
+    if (date.isEmpty) {
       return this;
     }
 
-    final dateTime = DateTime.parse(date);
+    final dateTime = DateTime.tryParse(date) ?? DateTime.now();
     final now = DateTime.now();
 
     return TaskTime(
-        startDate: startDate,
-        endDate: DateTime(
-          dateTime.toLocal()?.year,
-          dateTime.toLocal()?.month,
-          dateTime.toLocal()?.day,
-          endDate?.toLocal()?.hour ?? now.hour,
-          endDate?.toLocal()?.minute ?? now.minute,
-          endDate?.toLocal()?.second ?? now.second,
-        ).toUtc());
+      startDate: startDate,
+      endDate: DateTime(
+        dateTime.toLocal().year,
+        dateTime.toLocal().month,
+        dateTime.toLocal().day,
+        endDate?.toLocal().hour ?? now.hour,
+        endDate?.toLocal().minute ?? now.minute,
+        endDate?.toLocal().second ?? now.second,
+      ).toUtc(),
+      description: description,
+      isBillable: isBillable,
+    );
   }
 
   TaskTime copyWithStartTime(DateTime dateTime) {
@@ -205,14 +254,16 @@ abstract class TaskTime implements Built<TaskTime, TaskTimeBuilder> {
 
     return TaskTime(
       startDate: DateTime(
-        startDate?.toLocal()?.year ?? now.year,
-        startDate?.toLocal()?.month ?? now.month,
-        startDate?.toLocal()?.day ?? now.day,
+        startDate?.toLocal().year ?? now.year,
+        startDate?.toLocal().month ?? now.month,
+        startDate?.toLocal().day ?? now.day,
         dateTime.toLocal().hour,
         dateTime.toLocal().minute,
         dateTime.toLocal().second,
       ).toUtc(),
       endDate: endDate,
+      description: description,
+      isBillable: isBillable,
     );
   }
 
@@ -221,13 +272,15 @@ abstract class TaskTime implements Built<TaskTime, TaskTimeBuilder> {
     return TaskTime(
       startDate: startDate,
       endDate: DateTime(
-        endDate?.toLocal()?.year ?? startDate?.toLocal()?.year ?? now.year,
-        endDate?.toLocal()?.month ?? startDate?.toLocal()?.month ?? now.month,
-        endDate?.toLocal()?.day ?? startDate?.toLocal()?.day ?? now.day,
+        endDate?.toLocal().year ?? startDate?.toLocal().year ?? now.year,
+        endDate?.toLocal().month ?? startDate?.toLocal().month ?? now.month,
+        endDate?.toLocal().day ?? startDate?.toLocal().day ?? now.day,
         dateTime.toLocal().hour,
         dateTime.toLocal().minute,
         dateTime.toLocal().second,
       ).toUtc(),
+      description: description,
+      isBillable: isBillable,
     );
   }
 
@@ -236,8 +289,13 @@ abstract class TaskTime implements Built<TaskTime, TaskTimeBuilder> {
     return TaskTime(
       startDate: start,
       endDate: start.add(duration),
+      description: description,
+      isBillable: isBillable,
     );
   }
+
+  double calculateAmount(double taskRate) =>
+      taskRate * round(duration.inSeconds / 3600, 3);
 
   static Serializer<TaskTime> get serializer => _$taskTimeSerializer;
 }
@@ -246,20 +304,19 @@ abstract class TaskEntity extends Object
     with BaseEntity, SelectableEntity, BelongsToClient
     implements Built<TaskEntity, TaskEntityBuilder> {
   factory TaskEntity({
-    String id,
-    AppState state,
-    ClientEntity client,
-    UserEntity user,
-    ProjectEntity project,
+    String? id,
+    AppState? state,
+    ClientEntity? client,
+    UserEntity? user,
+    ProjectEntity? project,
   }) {
-    final isRunning = state?.company?.autoStartTasks ?? false;
+    final isRunning = state?.company.autoStartTasks ?? false;
 
     return _$TaskEntity._(
       id: id ?? BaseEntity.nextId,
       number: '',
       isChanged: false,
       description: '',
-      duration: 0,
       rate: 0,
       invoiceId: '',
       clientId: project?.clientId ?? client?.id ?? '',
@@ -278,9 +335,9 @@ abstract class TaskEntity extends Object
       createdAt: 0,
       createdUserId: '',
       statusId: defaultTaskStatusId(
-          state?.taskStatusState?.map ?? BuiltMap<String, TaskStatusEntity>()),
+        state?.taskStatusState.map ?? BuiltMap<String, TaskStatusEntity>(),
+      )!,
       documents: BuiltList<DocumentEntity>(),
-      showAsRunning: state?.company?.autoStartTasks ?? false,
     );
   }
 
@@ -290,14 +347,15 @@ abstract class TaskEntity extends Object
   @memoized
   int get hashCode;
 
-  TaskEntity get clone => rebuild((b) => b
-    ..id = BaseEntity.nextId
-    ..number = ''
-    ..isChanged = false
-    ..isDeleted = false
-    ..invoiceId = ''
-    ..duration = 0
-    ..documents.clear());
+  TaskEntity get clone => rebuild(
+    (b) => b
+      ..id = BaseEntity.nextId
+      ..number = ''
+      ..isChanged = false
+      ..isDeleted = false
+      ..invoiceId = ''
+      ..documents.clear(),
+  );
 
   TaskEntity toggle() => isRunning ? stop() : start();
 
@@ -310,7 +368,7 @@ abstract class TaskEntity extends Object
     return updateTaskTime(taskTime, times.length - 1);
   }
 
-  bool get isInvoiced => invoiceId != null && invoiceId.isNotEmpty;
+  bool get isInvoiced => invoiceId.isNotEmpty;
 
   @override
   EntityType get entityType {
@@ -321,11 +379,9 @@ abstract class TaskEntity extends Object
 
   String get number;
 
-  int get duration;
-
   bool get areTimesValid {
     final times = getTaskTimes();
-    DateTime lastDateTime = DateTime(2000);
+    DateTime? lastDateTime = DateTime(2000);
     int countRunning = 0;
     bool isValid = true;
 
@@ -335,18 +391,53 @@ abstract class TaskEntity extends Object
 
       if (time.isRunning) {
         countRunning++;
+
+        if (startDate!.isBefore(lastDateTime!)) {
+          isValid = false;
+        }
       } else {
-        if (startDate.isBefore(lastDateTime) || startDate.isAfter(endDate)) {
+        if (startDate!.isBefore(lastDateTime!) || startDate.isAfter(endDate!)) {
           isValid = false;
         }
-        if (endDate.isBefore(startDate) || endDate.isBefore(lastDateTime)) {
+        if (endDate!.isBefore(startDate) || endDate.isBefore(lastDateTime!)) {
           isValid = false;
         }
-        lastDateTime = lastDateTime.isAfter(endDate) ? lastDateTime : endDate;
+        lastDateTime = lastDateTime!.isAfter(endDate) ? lastDateTime : endDate;
       }
     });
 
     return isValid && countRunning <= 1;
+  }
+
+  List get getInvalidTimeIndices {
+    final times = getTaskTimes();
+    DateTime? lastDateTime = DateTime(2000);
+
+    final indices = <int>[];
+    int counter = 0;
+
+    times.forEach((time) {
+      final startDate = time.startDate;
+      final endDate = time.endDate;
+
+      if (time.isRunning) {
+        if (startDate!.isBefore(lastDateTime!)) {
+          indices.add(counter);
+        }
+      } else {
+        if (startDate!.isBefore(lastDateTime!) || startDate.isAfter(endDate!)) {
+          indices.add(counter);
+        }
+        if (endDate!.isBefore(startDate) || endDate.isBefore(lastDateTime!)) {
+          indices.add(counter);
+        }
+        lastDateTime = lastDateTime!.isAfter(endDate) ? lastDateTime : endDate;
+      }
+
+      counter++;
+    });
+
+    return indices;
   }
 
   bool get isRunning {
@@ -359,19 +450,39 @@ abstract class TaskEntity extends Object
     return taskTimes.any((taskTime) => taskTime.isRunning);
   }
 
-  bool isBetween(String startDate, String endDate) {
+  bool isBetween(String? startDate, String? endDate) {
     final taskTimes = getTaskTimes();
 
     if (taskTimes.isEmpty) {
       return false;
     }
 
-    final date = convertDateTimeToSqlDate(taskTimes.first.startDate.toLocal());
+    final taskStartDate = convertDateTimeToSqlDate(
+      taskTimes.first.startDate!.toLocal(),
+    );
+    if (startDate!.compareTo(taskStartDate) <= 0 &&
+        endDate!.compareTo(taskStartDate) >= 0) {
+      return true;
+    }
 
-    return startDate.compareTo(date) <= 0 && endDate.compareTo(date) >= 0;
+    final completedTimes = taskTimes.where((element) => !element.isRunning);
+
+    if (completedTimes.isNotEmpty) {
+      final lastTaskTime = completedTimes.last;
+      final taskEndDate = convertDateTimeToSqlDate(
+        lastTaskTime.endDate!.toLocal(),
+      );
+
+      if (startDate.compareTo(taskEndDate) <= 0 &&
+          endDate!.compareTo(taskEndDate) >= 0) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  int get startTimestamp {
+  int? get startTimestamp {
     if (timeLog.isEmpty) {
       return null;
     }
@@ -387,7 +498,7 @@ abstract class TaskEntity extends Object
     return first[0];
   }
 
-  int get endTimestamp {
+  int? get endTimestamp {
     if (timeLog.isEmpty) {
       return null;
     }
@@ -404,7 +515,8 @@ abstract class TaskEntity extends Object
       return null;
     }
 
-    return last[1];
+    // TODO remove this, it shouldn't be needed
+    return last[1].round();
   }
 
   List<TaskTime> getTaskTimes({bool sort = true}) {
@@ -416,81 +528,96 @@ abstract class TaskEntity extends Object
 
     final List<dynamic> log = jsonDecode(timeLog);
     log.forEach((dynamic detail) {
-      int startDate;
-      int endDate;
+      int? startDate;
+      int? endDate;
+      final taskItem = detail as List<dynamic>;
 
-      if ((detail as List)[0] == false || (detail as List)[0] == null) {
+      if (taskItem[0] == false || taskItem[0] == null) {
         startDate = 0;
       } else {
-        startDate = ((detail as List)[0]).round();
+        startDate = taskItem[0].round();
       }
 
-      if (startDate != 0) {
-        if ((detail as List)[1] == false || (detail as List)[1] == null) {
-          endDate = 0;
-        } else {
-          endDate = ((detail as List)[1]).round();
-        }
-
-        final taskTime = TaskTime(
-            startDate: convertTimestampToDate(startDate).toUtc(),
-            endDate: (endDate ?? 0) > 0
-                ? convertTimestampToDate(endDate).toUtc()
-                : null);
-
-        details.add(taskTime);
+      if (taskItem[1] == false || taskItem[1] == null) {
+        endDate = 0;
+      } else {
+        endDate = taskItem[1].round();
       }
+
+      final taskTime = TaskTime(
+        startDate: convertTimestampToDate(startDate).toUtc(),
+        endDate: (endDate ?? 0) > 0
+            ? convertTimestampToDate(endDate).toUtc()
+            : null,
+        description: taskItem.length >= 3 ? taskItem[2] : '',
+        isBillable: taskItem.length >= 4 && taskItem[3].runtimeType == bool
+            ? taskItem[3]
+            : true,
+      );
+
+      details.add(taskTime);
     });
 
     if (sort) {
-      details
-          .sort((timeA, timeB) => timeA.startDate.compareTo(timeB.startDate));
+      details.sort(
+        (timeA, timeB) => timeA.startDate!.compareTo(timeB.startDate!),
+      );
     }
 
     return details;
   }
 
   TaskEntity addTaskTime(TaskTime time) {
-    final List<dynamic> taskTimes =
-        timeLog.isNotEmpty ? jsonDecode(timeLog) : <dynamic>[];
+    final List<dynamic> taskTimes = timeLog.isNotEmpty
+        ? jsonDecode(timeLog)
+        : <dynamic>[];
 
     taskTimes.add(time.asList);
 
-    return rebuild((b) => b
-      ..isChanged = true
-      ..timeLog = jsonEncode(taskTimes));
+    return rebuild(
+      (b) => b
+        ..isChanged = true
+        ..timeLog = jsonEncode(taskTimes),
+    );
   }
 
   TaskEntity updateTaskTime(TaskTime time, int index) {
-    final List<dynamic> taskTimes =
-        timeLog.isNotEmpty ? jsonDecode(timeLog) : <dynamic>[];
+    final List<dynamic> taskTimes = timeLog.isNotEmpty
+        ? jsonDecode(timeLog)
+        : <dynamic>[];
 
     taskTimes[index] = time.asList;
 
-    return rebuild((b) => b
-      ..isChanged = true
-      ..timeLog = jsonEncode(taskTimes));
+    return rebuild(
+      (b) => b
+        ..isChanged = true
+        ..timeLog = jsonEncode(taskTimes),
+    );
   }
 
   TaskEntity deleteTaskTime(int index) {
-    final List<dynamic> taskTimes =
-        timeLog.isNotEmpty ? jsonDecode(timeLog) : <dynamic>[];
+    final List<dynamic> taskTimes = timeLog.isNotEmpty
+        ? jsonDecode(timeLog)
+        : <dynamic>[];
 
     taskTimes.removeAt(index);
 
-    return rebuild((b) => b
-      ..isChanged = true
-      ..timeLog = jsonEncode(taskTimes));
+    return rebuild(
+      (b) => b
+        ..isChanged = true
+        ..timeLog = jsonEncode(taskTimes),
+    );
   }
 
   double calculateAmount(double taskRate) =>
-      taskRate * round(calculateDuration().inSeconds / 3600, 3);
+      taskRate *
+      round(calculateDuration(onlyBillable: true).inSeconds / 3600, 3);
 
-  Duration calculateDuration({bool includeRunning = true}) {
+  Duration calculateDuration({bool onlyBillable = false}) {
     int seconds = 0;
 
     getTaskTimes().forEach((taskTime) {
-      if (!taskTime.isRunning || includeRunning) {
+      if (!onlyBillable || taskTime.isBillable) {
         seconds += taskTime.duration.inSeconds;
       }
     });
@@ -528,29 +655,28 @@ abstract class TaskEntity extends Object
   @BuiltValueField(wireName: 'status_id')
   String get statusId;
 
-  @nullable
   @BuiltValueField(wireName: 'status_order')
-  int get statusOrder;
+  int? get statusOrder;
 
   BuiltList<DocumentEntity> get documents;
 
-  @nullable
-  @BuiltValueField(compare: false)
-  bool get showAsRunning;
-
   @override
-  List<EntityAction> getActions(
-      {UserCompanyEntity userCompany,
-      ClientEntity client,
-      bool includeEdit = false,
-      bool includePreview = false,
-      bool multiselect = false}) {
-    final actions = <EntityAction>[];
+  List<EntityAction?> getActions({
+    UserCompanyEntity? userCompany,
+    ClientEntity? client,
+    bool includeEdit = false,
+    bool includePreview = false,
+    bool multiselect = false,
+  }) {
+    final actions = <EntityAction?>[];
 
-    if (!isDeleted) {
+    final isLocked = userCompany!.company.invoiceTaskLock && isInvoiced;
+
+    if (!isDeleted!) {
       if (includeEdit &&
           userCompany.canEditEntity(this) &&
-          !isDeleted &&
+          !isLocked &&
+          !isDeleted! &&
           !multiselect) {
         actions.add(EntityAction.edit);
       }
@@ -559,24 +685,51 @@ abstract class TaskEntity extends Object
         if (isRunning) {
           actions.add(EntityAction.stop);
         } else {
-          if (!multiselect) {
-            if (duration > 0) {
-              actions.add(EntityAction.resume);
-            } else {
-              actions.add(EntityAction.start);
-            }
+          if (calculateDuration().inSeconds > 0) {
+            actions.add(EntityAction.resume);
+          } else {
+            actions.add(EntityAction.start);
           }
+        }
+      }
 
-          if (userCompany.canCreate(EntityType.invoice)) {
-            actions.add(EntityAction.invoiceTask);
+      if (!isInvoiced && !isRunning) {
+        if (userCompany.canCreate(EntityType.invoice)) {
+          actions.add(EntityAction.invoiceTask);
+          if (clientId.isNotEmpty) {
+            actions.add(EntityAction.addToInvoice);
           }
         }
       }
     }
 
-    if (!multiselect) {
+    if (!multiselect && isOld) {
       if (userCompany.canCreate(EntityType.task)) {
         actions.add(EntityAction.clone);
+      }
+    }
+
+    if (!isDeleted! && !multiselect && isOld) {
+      if (userCompany.canEditEntity(this)) {
+        actions.add(EntityAction.changeStatus);
+      }
+    }
+
+    if (!isDeleted! && multiselect) {
+      actions.add(EntityAction.documents);
+    }
+
+    if (!isDeleted!) {
+      final store = StoreProvider.of<AppState>(navigatorKey.currentContext!);
+      if (hasDesignTemplatesForEntityType(
+        store.state.designState.map,
+        entityType,
+      )) {
+        actions.add(EntityAction.runTemplate);
+      }
+
+      if (!multiselect) {
+        //actions.add(EntityAction.addComment);
       }
     }
 
@@ -603,7 +756,10 @@ abstract class TaskEntity extends Object
 
     switch (sortField) {
       case TaskFields.duration:
-        response = taskA.duration.compareTo(taskB.duration);
+      case TaskFields.amount:
+        response = taskA.calculateDuration().compareTo(
+          taskB.calculateDuration(),
+        );
         break;
       case TaskFields.description:
         response = taskA.description.compareTo(taskB.description);
@@ -624,36 +780,37 @@ abstract class TaskEntity extends Object
       case TaskFields.client:
         final clientA = clientMap[taskA.clientId] ?? ClientEntity();
         final clientB = clientMap[taskB.clientId] ?? ClientEntity();
-        response = clientA.listDisplayName
+        response = removeDiacritics(clientA.listDisplayName)
             .toLowerCase()
-            .compareTo(clientB.listDisplayName.toLowerCase());
+            .compareTo(removeDiacritics(clientB.listDisplayName).toLowerCase());
         break;
       case TaskFields.projectId:
       case TaskFields.project:
         final projectA = projectMap[taskA.projectId] ?? ProjectEntity();
         final projectB = projectMap[taskB.projectId] ?? ProjectEntity();
-        response = projectA.listDisplayName
-            .toLowerCase()
-            .compareTo(projectB.listDisplayName.toLowerCase());
+        response = projectA.listDisplayName.toLowerCase().compareTo(
+          projectB.listDisplayName.toLowerCase(),
+        );
         break;
       case TaskFields.invoiceId:
         final invoiceA = invoiceMap[taskA.invoiceId] ?? InvoiceEntity();
         final invoiceB = invoiceMap[taskB.invoiceId] ?? InvoiceEntity();
-        response = invoiceA.listDisplayName
-            .toLowerCase()
-            .compareTo(invoiceB.listDisplayName.toLowerCase());
+        response = invoiceA.listDisplayName.toLowerCase().compareTo(
+          invoiceB.listDisplayName.toLowerCase(),
+        );
         break;
       case EntityFields.state:
-        final stateA =
-            EntityState.valueOf(taskA.entityState) ?? EntityState.active;
-        final stateB =
-            EntityState.valueOf(taskB.entityState) ?? EntityState.active;
-        response =
-            stateA.name.toLowerCase().compareTo(stateB.name.toLowerCase());
+        final stateA = EntityState.valueOf(taskA.entityState);
+        final stateB = EntityState.valueOf(taskB.entityState);
+        response = stateA.name.toLowerCase().compareTo(
+          stateB.name.toLowerCase(),
+        );
         break;
+      case TaskFields.date:
       case TaskFields.timeLog:
-        response =
-            taskA.timeLog.toLowerCase().compareTo(taskB.timeLog.toLowerCase());
+        response = taskA.timeLog.toLowerCase().compareTo(
+          taskB.timeLog.toLowerCase(),
+        );
         break;
       case EntityFields.createdAt:
         response = taskA.createdAt.compareTo(taskB.createdAt);
@@ -668,20 +825,42 @@ abstract class TaskEntity extends Object
         response = taskA.documents.length.compareTo(taskB.documents.length);
         break;
       case TaskFields.number:
-        response = compareNatural(
-            taskA.number.toLowerCase(), taskB.number.toLowerCase());
+        response = compareNatural(taskA.number, taskB.number);
+        break;
+      case TaskFields.createdBy:
+        final userA = userMap[taskA.createdUserId] ?? UserEntity();
+        final userB = userMap[taskB.createdUserId] ?? UserEntity();
+        response = userA.fullName.toLowerCase().compareTo(
+          userB.fullName.toLowerCase(),
+        );
+        break;
+      case TaskFields.assignedTo:
+        final userA = userMap[taskA.assignedUserId] ?? UserEntity();
+        final userB = userMap[taskB.assignedUserId] ?? UserEntity();
+        response = userA.fullName.toLowerCase().compareTo(
+          userB.fullName.toLowerCase(),
+        );
+        break;
+      case TaskFields.isInvoiced:
+        response = taskB.isInvoiced ? 1 : -1;
+        break;
+      case TaskFields.isDeleted:
+        response = taskB.isDeleted == true ? 1 : -1;
+        break;
+      case TaskFields.isRunning:
+        response = taskB.isRunning ? 1 : -1;
         break;
       case TaskFields.status:
         final taskAStatus = taskA.isRunning
             ? -1
             : taskA.isInvoiced
-                ? 999999
-                : (taskStatusMap[taskA.statusId]?.statusOrder ?? 0);
+            ? 999999
+            : (taskStatusMap[taskA.statusId]?.statusOrder ?? 0);
         final taskBStatus = taskB.isRunning
             ? -1
             : taskB.isInvoiced
-                ? 999999
-                : (taskStatusMap[taskB.statusId]?.statusOrder ?? 0);
+            ? 999999
+            : (taskStatusMap[taskB.statusId]?.statusOrder ?? 0);
         response = taskAStatus.compareTo(taskBStatus);
         break;
       default:
@@ -697,7 +876,7 @@ abstract class TaskEntity extends Object
   }
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     return matchesStrings(
       haystacks: [
         number,
@@ -724,6 +903,8 @@ abstract class TaskEntity extends Object
         return true;
       } else if (status.id == kTaskStatusLogged && isStopped && !isInvoiced) {
         return true;
+      } else if (status.id == statusId) {
+        return !isInvoiced;
       }
     }
 
@@ -731,7 +912,7 @@ abstract class TaskEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     return matchesStringsValue(
       haystacks: [
         number,
@@ -746,7 +927,7 @@ abstract class TaskEntity extends Object
   }
 
   @override
-  String get listDisplayName => number ?? '';
+  String get listDisplayName => number;
 
   @override
   double get listDisplayAmount => calculateDuration().inSeconds.toDouble();
@@ -768,8 +949,8 @@ abstract class TaskEntity extends Object
   bool get isStopped => !isRunning;
 
   // ignore: unused_element
-  static void _initializeBuilder(TaskEntityBuilder builder) =>
-      builder..showAsRunning = false;
+  //static void _initializeBuilder(TaskEntityBuilder builder) =>
+  //    builder..;
 
   static Serializer<TaskEntity> get serializer => _$taskEntitySerializer;
 }

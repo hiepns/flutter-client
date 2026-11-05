@@ -1,44 +1,54 @@
+// Dart imports:
 import 'dart:async';
 
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:built_collection/built_collection.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:http/http.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/document/document_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/entities/entity_actions_dialog.dart';
+import 'package:invoiceninja_flutter/ui/app/forms/vendor_picker.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
+import 'package:invoiceninja_flutter/utils/dialogs.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ViewVendorList implements PersistUI {
-  ViewVendorList({this.force = false});
+  ViewVendorList({this.force = false, this.page = 0});
 
   final bool force;
+  final int? page;
 }
 
 class ViewVendor implements PersistUI, PersistPrefs {
-  ViewVendor({
-    @required this.vendorId,
-    this.force = false,
-  });
+  ViewVendor({required this.vendorId, this.force = false});
 
-  final String vendorId;
+  final String? vendorId;
   final bool force;
 }
 
 class EditVendor implements PersistUI, PersistPrefs {
-  EditVendor(
-      {@required this.vendor,
-      this.contact,
-      this.completer,
-      this.cancelCompleter,
-      this.force = false});
+  EditVendor({
+    required this.vendor,
+    this.contact,
+    this.completer,
+    this.cancelCompleter,
+    this.force = false,
+  });
 
   final VendorEntity vendor;
-  final VendorContactEntity contact;
-  final Completer completer;
-  final Completer cancelCompleter;
+  final VendorContactEntity? contact;
+  final Completer? completer;
+  final Completer? cancelCompleter;
   final bool force;
 }
 
@@ -51,21 +61,22 @@ class UpdateVendor implements PersistUI {
 class LoadVendor {
   LoadVendor({this.completer, this.vendorId});
 
-  final Completer completer;
-  final String vendorId;
+  final Completer? completer;
+  final String? vendorId;
 }
 
 class LoadVendorActivity {
   LoadVendorActivity({this.completer, this.vendorId});
 
-  final Completer completer;
-  final String vendorId;
+  final Completer? completer;
+  final String? vendorId;
 }
 
 class LoadVendors {
-  LoadVendors({this.completer});
+  LoadVendors({this.completer, this.page = 1});
 
-  final Completer completer;
+  final Completer? completer;
+  final int page;
 }
 
 class LoadVendorRequest implements StartLoading {}
@@ -119,8 +130,8 @@ class LoadVendorsSuccess implements StopLoading {
 class SaveVendorRequest implements StartSaving {
   SaveVendorRequest({this.completer, this.vendor});
 
-  final Completer completer;
-  final VendorEntity vendor;
+  final Completer? completer;
+  final VendorEntity? vendor;
 }
 
 class SaveVendorSuccess implements StopSaving, PersistData, PersistUI {
@@ -157,6 +168,34 @@ class ArchiveVendorSuccess implements StopSaving, PersistData {
 class ArchiveVendorFailure implements StopSaving {
   ArchiveVendorFailure(this.vendors);
 
+  final List<VendorEntity?> vendors;
+}
+
+class MergeVendorsRequest implements StartSaving {
+  MergeVendorsRequest({
+    this.completer,
+    this.vendorId,
+    this.mergeIntoVendorId,
+    this.password,
+    this.idToken,
+  });
+
+  final Completer? completer;
+  final String? vendorId;
+  final String? mergeIntoVendorId;
+  final String? password;
+  final String? idToken;
+}
+
+class MergeVendorsSuccess implements StopSaving, PersistData {
+  MergeVendorsSuccess(this.vendorId);
+
+  final String? vendorId;
+}
+
+class MergeVendorsFailure implements StopSaving {
+  MergeVendorsFailure(this.vendors);
+
   final List<VendorEntity> vendors;
 }
 
@@ -176,7 +215,7 @@ class DeleteVendorSuccess implements StopSaving, PersistData {
 class DeleteVendorFailure implements StopSaving {
   DeleteVendorFailure(this.vendors);
 
-  final List<VendorEntity> vendors;
+  final List<VendorEntity?> vendors;
 }
 
 class RestoreVendorRequest implements StartSaving {
@@ -195,23 +234,23 @@ class RestoreVendorSuccess implements StopSaving, PersistData {
 class RestoreVendorFailure implements StopSaving {
   RestoreVendorFailure(this.vendors);
 
-  final List<VendorEntity> vendors;
+  final List<VendorEntity?> vendors;
 }
 
 class EditVendorContact implements PersistUI {
   EditVendorContact([this.contact]);
 
-  final VendorContactEntity contact;
+  final VendorContactEntity? contact;
 }
 
 class AddVendorContact implements PersistUI {
   AddVendorContact([this.contact]);
 
-  final VendorContactEntity contact;
+  final VendorContactEntity? contact;
 }
 
 class UpdateVendorContact implements PersistUI {
-  UpdateVendorContact({this.index, this.contact});
+  UpdateVendorContact({required this.index, required this.contact});
 
   final int index;
   final VendorContactEntity contact;
@@ -226,7 +265,7 @@ class DeleteVendorContact implements PersistUI {
 class FilterVendors implements PersistUI {
   FilterVendors(this.filter);
 
-  final String filter;
+  final String? filter;
 }
 
 class SortVendors implements PersistUI, PersistPrefs {
@@ -266,22 +305,15 @@ class FilterVendorsByCustom4 implements PersistUI {
 }
 
 void handleVendorAction(
-    BuildContext context, List<BaseEntity> vendors, EntityAction action) {
-  assert(
-      [
-            EntityAction.restore,
-            EntityAction.archive,
-            EntityAction.delete,
-            EntityAction.toggleMultiselect
-          ].contains(action) ||
-          vendors.length == 1,
-      'Cannot perform this action on more than one vendor');
-
+  BuildContext? context,
+  List<BaseEntity> vendors,
+  EntityAction? action,
+) async {
   if (vendors.isEmpty) {
     return;
   }
 
-  final store = StoreProvider.of<AppState>(context);
+  final store = StoreProvider.of<AppState>(context!);
   final state = store.state;
   final localization = AppLocalization.of(context);
   final vendor = vendors.first as VendorEntity;
@@ -289,47 +321,80 @@ void handleVendorAction(
 
   switch (action) {
     case EntityAction.edit:
-      editEntity(context: context, entity: vendor);
+      editEntity(entity: vendor);
+      break;
+    case EntityAction.vendorPortal:
+      final contact = vendor.contacts.firstWhere((contact) {
+        return contact.link.isNotEmpty;
+      }, orElse: null);
+      launchUrl(Uri.parse(contact.silentLink));
+      break;
+    case EntityAction.newPurchaseOrder:
+      createEntity(
+        entity: InvoiceEntity(
+          state: state,
+          vendor: vendor,
+          entityType: EntityType.purchaseOrder,
+        ),
+      );
       break;
     case EntityAction.newExpense:
       createEntity(
-        context: context,
         entity: ExpenseEntity(state: state, vendor: vendor),
-        filterEntity: vendor,
       );
       break;
     case EntityAction.newRecurringExpense:
       createEntity(
-          context: context,
-          entity: ExpenseEntity(
-              state: state,
-              vendor: vendor,
-              entityType: EntityType.recurringExpense),
-          filterEntity: vendor);
+        entity: ExpenseEntity(
+          state: state,
+          vendor: vendor,
+          entityType: EntityType.recurringExpense,
+        ),
+      );
       break;
     case EntityAction.restore:
       final message = vendorIds.length > 1
-          ? localization.restoredVendors
-              .replaceFirst(':value', vendorIds.length.toString())
-          : localization.restoredVendor;
-      store.dispatch(RestoreVendorRequest(
-          snackBarCompleter<Null>(context, message), vendorIds));
+          ? localization!.restoredVendors
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', vendorIds.length.toString())
+          : localization!.restoredVendor;
+      store.dispatch(
+        RestoreVendorRequest(snackBarCompleter<Null>(message), vendorIds),
+      );
       break;
     case EntityAction.archive:
       final message = vendorIds.length > 1
-          ? localization.archivedVendors
-              .replaceFirst(':value', vendorIds.length.toString())
-          : localization.archivedVendor;
-      store.dispatch(ArchiveVendorRequest(
-          snackBarCompleter<Null>(context, message), vendorIds));
+          ? localization!.archivedVendors
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', vendorIds.length.toString())
+          : localization!.archivedVendor;
+      store.dispatch(
+        ArchiveVendorRequest(snackBarCompleter<Null>(message), vendorIds),
+      );
       break;
     case EntityAction.delete:
       final message = vendorIds.length > 1
-          ? localization.deletedVendors
-              .replaceFirst(':value', vendorIds.length.toString())
-          : localization.deletedVendor;
-      store.dispatch(DeleteVendorRequest(
-          snackBarCompleter<Null>(context, message), vendorIds));
+          ? localization!.deletedVendors
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', vendorIds.length.toString())
+          : localization!.deletedVendor;
+      store.dispatch(
+        DeleteVendorRequest(snackBarCompleter<Null>(message), vendorIds),
+      );
+      break;
+    case EntityAction.bulkUpdate:
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) =>
+            BulkUpdateDialog(entityType: EntityType.vendor, entities: vendors),
+      );
+      break;
+    case EntityAction.merge:
+      showDialog<void>(
+        context: context,
+        builder: (context) => _MergVendorPicker(vendor: vendor),
+      );
       break;
     case EntityAction.toggleMultiselect:
       if (!store.state.vendorListState.isInMultiselect()) {
@@ -349,9 +414,41 @@ void handleVendorAction(
       }
       break;
     case EntityAction.more:
-      showEntityActionsDialog(
-        entities: [vendor],
+      showEntityActionsDialog(entities: [vendor]);
+      break;
+    case EntityAction.documents:
+      final documentIds = <String>[];
+      for (var vendor in vendors) {
+        for (var document in (vendor as VendorEntity).documents) {
+          documentIds.add(document.id);
+        }
+      }
+      if (documentIds.isEmpty) {
+        showMessageDialog(message: localization!.noDocumentsToDownload);
+      } else {
+        store.dispatch(
+          DownloadDocumentsRequest(
+            documentIds: documentIds,
+            completer: snackBarCompleter<Null>(localization!.exportedData),
+          ),
+        );
+      }
+      break;
+    case EntityAction.addComment:
+      final addedComment = await showDialog<bool>(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: false,
+        builder: (context) => AddCommentDialog(
+          entityType: EntityType.vendor,
+          entityId: vendor.id,
+        ),
       );
+      if (addedComment == true) {
+        store.dispatch(LoadVendor(vendorId: vendor.id));
+      }
+      break;
+    default:
+      print('## ERROR: unhandled action $action in vendor_actions');
       break;
   }
 }
@@ -359,28 +456,30 @@ void handleVendorAction(
 class StartVendorMultiselect {}
 
 class AddToVendorMultiselect {
-  AddToVendorMultiselect({@required this.entity});
+  AddToVendorMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class RemoveFromVendorMultiselect {
-  RemoveFromVendorMultiselect({@required this.entity});
+  RemoveFromVendorMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class ClearVendorMultiselect {}
 
 class SaveVendorDocumentRequest implements StartSaving {
   SaveVendorDocumentRequest({
-    @required this.completer,
-    @required this.multipartFile,
-    @required this.vendor,
+    required this.isPrivate,
+    required this.completer,
+    required this.multipartFiles,
+    required this.vendor,
   });
 
+  final bool isPrivate;
   final Completer completer;
-  final MultipartFile multipartFile;
+  final List<MultipartFile> multipartFiles;
   final VendorEntity vendor;
 }
 
@@ -399,5 +498,69 @@ class SaveVendorDocumentFailure implements StopSaving {
 class UpdateVendorTab implements PersistUI {
   UpdateVendorTab({this.tabIndex});
 
-  final int tabIndex;
+  final int? tabIndex;
+}
+
+class _MergVendorPicker extends StatefulWidget {
+  const _MergVendorPicker({Key? key, required this.vendor}) : super(key: key);
+
+  final VendorEntity? vendor;
+
+  @override
+  State<_MergVendorPicker> createState() => __MergVendorPickerState();
+}
+
+class __MergVendorPickerState extends State<_MergVendorPicker> {
+  String? _mergeIntoVendorId;
+
+  @override
+  Widget build(BuildContext context) {
+    final localization = AppLocalization.of(context)!;
+    final store = StoreProvider.of<AppState>(context);
+    final state = store.state;
+
+    return AlertDialog(
+      title: Text(localization.mergeInto),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          VendorPicker(
+            vendorId: _mergeIntoVendorId,
+            vendorState: state.vendorState,
+            excludeIds: [widget.vendor!.id],
+            onSelected: (vendor) =>
+                setState(() => _mergeIntoVendorId = vendor?.id),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(localization.close),
+        ),
+        TextButton(
+          onPressed: () {
+            passwordCallback(
+              context: context,
+              callback: (password, idToken) {
+                store.dispatch(
+                  MergeVendorsRequest(
+                    vendorId: widget.vendor!.id,
+                    idToken: idToken,
+                    password: password,
+                    mergeIntoVendorId: _mergeIntoVendorId,
+                    completer: snackBarCompleter<Null>(
+                      localization.mergedVendors,
+                    ),
+                  ),
+                );
+                Navigator.of(context).pop();
+              },
+            );
+          },
+          child: Text(localization.merge),
+        ),
+      ],
+    );
+  }
 }

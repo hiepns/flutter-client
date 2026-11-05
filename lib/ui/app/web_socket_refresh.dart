@@ -1,24 +1,24 @@
-import 'package:flutter/foundation.dart';
+// Dart imports:
+//import 'dart:convert';
+//import 'dart:io';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
 
-/*
-import 'dart:io';
-import 'dart:convert';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:invoiceninja_flutter/data/web_client.dart';
-import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-*/
+// Package imports:
+//import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
+//import 'package:invoiceninja_flutter/data/web_client.dart';
+//import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
+//import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 
 class WebSocketRefresh extends StatefulWidget {
-  const WebSocketRefresh({
-    Key key,
-    this.child,
-    this.companyId,
-  }) : super(key: key);
+  const WebSocketRefresh({Key? key, this.child, this.companyId})
+    : super(key: key);
 
-  final Widget child;
-  final String companyId;
+  final Widget? child;
+  final String? companyId;
 
   @override
   _WebSocketRefreshState createState() => _WebSocketRefreshState();
@@ -88,5 +88,5 @@ class _WebSocketRefreshState extends State<WebSocketRefresh> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) => widget.child!;
 }

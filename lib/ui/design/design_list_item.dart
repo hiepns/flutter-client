@@ -1,29 +1,33 @@
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/design_model.dart';
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:invoiceninja_flutter/ui/app/entity_state_label.dart';
-import 'package:invoiceninja_flutter/utils/formatting.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/ui/app/dismissible_entity.dart';
+import 'package:invoiceninja_flutter/ui/app/entity_state_label.dart';
+import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class DesignListItem extends StatelessWidget {
   const DesignListItem({
-    @required this.design,
-    @required this.filter,
+    required this.design,
+    required this.filter,
     this.onTap,
     this.onLongPress,
     this.onCheckboxChanged,
     this.isChecked = false,
   });
 
-  final GestureTapCallback onTap;
-  final GestureTapCallback onLongPress;
+  final GestureTapCallback? onTap;
+  final GestureTapCallback? onLongPress;
   final DesignEntity design;
-  final String filter;
-  final Function(bool) onCheckboxChanged;
+  final String? filter;
+  final Function(bool?)? onCheckboxChanged;
   final bool isChecked;
 
   @override
@@ -36,7 +40,7 @@ class DesignListItem extends StatelessWidget {
     final isInMultiselect = listUIState.isInMultiselect();
     final showCheckbox = onCheckboxChanged != null || isInMultiselect;
 
-    final filterMatch = filter != null && filter.isNotEmpty
+    final filterMatch = filter != null && filter!.isNotEmpty
         ? design.matchesFilterValue(filter)
         : null;
     final subtitle = filterMatch;
@@ -46,20 +50,18 @@ class DesignListItem extends StatelessWidget {
       entity: design,
       isSelected: false,
       child: ListTile(
-        onTap: () => onTap != null
-            ? onTap()
-            : selectEntity(entity: design, context: context),
+        onTap: () => onTap != null ? onTap!() : selectEntity(entity: design),
         onLongPress: () => onLongPress != null
-            ? onLongPress()
-            : selectEntity(entity: design, context: context, longPress: true),
+            ? onLongPress!()
+            : selectEntity(entity: design, longPress: true),
         leading: showCheckbox
             ? IgnorePointer(
                 ignoring: listUIState.isInMultiselect(),
                 child: Checkbox(
                   value: isChecked,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onChanged: (value) => onCheckboxChanged(value),
-                  activeColor: Theme.of(context).accentColor,
+                  onChanged: (value) => onCheckboxChanged!(value),
+                  activeColor: Theme.of(context).colorScheme.secondary,
                 ),
               )
             : null,
@@ -70,11 +72,14 @@ class DesignListItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   design.name,
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-              Text(formatNumber(design.listDisplayAmount, context),
-                  style: Theme.of(context).textTheme.headline6),
+              if (design.isTemplate)
+                Text(
+                  AppLocalization.of(context)!.template,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
             ],
           ),
         ),
@@ -82,11 +87,7 @@ class DesignListItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             subtitle != null && subtitle.isNotEmpty
-                ? Text(
-                    subtitle,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  )
+                ? Text(subtitle, maxLines: 3, overflow: TextOverflow.ellipsis)
                 : Container(),
             EntityStateLabel(design),
           ],

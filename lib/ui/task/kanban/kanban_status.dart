@@ -1,17 +1,22 @@
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:invoiceninja_flutter/ui/app/buttons/app_text_button.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/ui/app/buttons/app_text_button.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/decorated_form_field.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class KanbanStatusCard extends StatefulWidget {
   const KanbanStatusCard({
-    @required this.status,
-    @required this.onSavePressed,
-    @required this.isCorrectOrder,
-    @required this.isSaving,
+    required this.status,
+    required this.onSavePressed,
+    required this.isCorrectOrder,
+    required this.isSaving,
   });
 
   final TaskStatusEntity status;
@@ -36,9 +41,10 @@ class _KanbanStatusCardState extends State<KanbanStatusCard> {
   }
 
   void _onSavePressed() {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final completer = snackBarCompleter<TaskStatusEntity>(
-        context, localization.updatedTaskStatus);
+      localization.updatedTaskStatus,
+    );
     completer.future.then((value) {
       setState(() {
         _isEditing = false;
@@ -65,6 +71,7 @@ class _KanbanStatusCardState extends State<KanbanStatusCard> {
               maxLines: 1,
               onChanged: (value) => _name = value,
               onSavePressed: (context) => _onSavePressed(),
+              keyboardType: TextInputType.text,
             ),
             SizedBox(height: 8),
             Row(
@@ -76,7 +83,7 @@ class _KanbanStatusCardState extends State<KanbanStatusCard> {
                       _isEditing = false;
                     });
                   },
-                  label: localization.cancel,
+                  label: localization!.cancel,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(left: 8),
@@ -86,7 +93,7 @@ class _KanbanStatusCardState extends State<KanbanStatusCard> {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       );
@@ -98,7 +105,7 @@ class _KanbanStatusCardState extends State<KanbanStatusCard> {
         child: Opacity(
           opacity: widget.isCorrectOrder ? 1 : .7,
           child: Text(
-            status.isNew ? localization.unassigned : status.name,
+            status.isNew ? localization!.unassigned : status.name,
             style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),

@@ -7,7 +7,7 @@ part of 'reports_state.dart';
 // **************************************************************************
 
 Serializer<ReportsUIState> _$reportsUIStateSerializer =
-    new _$ReportsUIStateSerializer();
+    _$ReportsUIStateSerializer();
 
 class _$ReportsUIStateSerializer
     implements StructuredSerializer<ReportsUIState> {
@@ -17,34 +17,55 @@ class _$ReportsUIStateSerializer
   final String wireName = 'ReportsUIState';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, ReportsUIState object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ReportsUIState object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'report',
-      serializers.serialize(object.report,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.report,
+        specifiedType: const FullType(String),
+      ),
       'group',
-      serializers.serialize(object.group,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.group,
+        specifiedType: const FullType(String),
+      ),
       'selectedGroup',
-      serializers.serialize(object.selectedGroup,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.selectedGroup,
+        specifiedType: const FullType(String),
+      ),
       'chart',
-      serializers.serialize(object.chart,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.chart,
+        specifiedType: const FullType(String),
+      ),
       'subgroup',
-      serializers.serialize(object.subgroup,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.subgroup,
+        specifiedType: const FullType(String),
+      ),
       'customStartDate',
-      serializers.serialize(object.customStartDate,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.customStartDate,
+        specifiedType: const FullType(String),
+      ),
       'customEndDate',
-      serializers.serialize(object.customEndDate,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.customEndDate,
+        specifiedType: const FullType(String),
+      ),
       'filters',
-      serializers.serialize(object.filters,
-          specifiedType: const FullType(BuiltMap,
-              const [const FullType(String), const FullType(String)])),
+      serializers.serialize(
+        object.filters,
+        specifiedType: const FullType(BuiltMap, const [
+          const FullType(String),
+          const FullType(String),
+        ]),
+      ),
     ];
 
     return result;
@@ -52,48 +73,84 @@ class _$ReportsUIStateSerializer
 
   @override
   ReportsUIState deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ReportsUIStateBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ReportsUIStateBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'report':
-          result.report = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.report =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'group':
-          result.group = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.group =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'selectedGroup':
-          result.selectedGroup = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.selectedGroup =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'chart':
-          result.chart = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.chart =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'subgroup':
-          result.subgroup = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.subgroup =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'customStartDate':
-          result.customStartDate = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.customStartDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'customEndDate':
-          result.customEndDate = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.customEndDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'filters':
-          result.filters.replace(serializers.deserialize(value,
-              specifiedType: const FullType(BuiltMap,
-                  const [const FullType(String), const FullType(String)])));
+          result.filters.replace(
+            serializers.deserialize(
+              value,
+              specifiedType: const FullType(BuiltMap, const [
+                const FullType(String),
+                const FullType(String),
+              ]),
+            )!,
+          );
           break;
       }
     }
@@ -120,40 +177,25 @@ class _$ReportsUIState extends ReportsUIState {
   @override
   final BuiltMap<String, String> filters;
 
-  factory _$ReportsUIState([void Function(ReportsUIStateBuilder) updates]) =>
-      (new ReportsUIStateBuilder()..update(updates)).build();
+  factory _$ReportsUIState([void Function(ReportsUIStateBuilder)? updates]) =>
+      (ReportsUIStateBuilder()..update(updates))._build();
 
-  _$ReportsUIState._(
-      {this.report,
-      this.group,
-      this.selectedGroup,
-      this.chart,
-      this.subgroup,
-      this.customStartDate,
-      this.customEndDate,
-      this.filters})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(report, 'ReportsUIState', 'report');
-    BuiltValueNullFieldError.checkNotNull(group, 'ReportsUIState', 'group');
-    BuiltValueNullFieldError.checkNotNull(
-        selectedGroup, 'ReportsUIState', 'selectedGroup');
-    BuiltValueNullFieldError.checkNotNull(chart, 'ReportsUIState', 'chart');
-    BuiltValueNullFieldError.checkNotNull(
-        subgroup, 'ReportsUIState', 'subgroup');
-    BuiltValueNullFieldError.checkNotNull(
-        customStartDate, 'ReportsUIState', 'customStartDate');
-    BuiltValueNullFieldError.checkNotNull(
-        customEndDate, 'ReportsUIState', 'customEndDate');
-    BuiltValueNullFieldError.checkNotNull(filters, 'ReportsUIState', 'filters');
-  }
-
+  _$ReportsUIState._({
+    required this.report,
+    required this.group,
+    required this.selectedGroup,
+    required this.chart,
+    required this.subgroup,
+    required this.customStartDate,
+    required this.customEndDate,
+    required this.filters,
+  }) : super._();
   @override
   ReportsUIState rebuild(void Function(ReportsUIStateBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ReportsUIStateBuilder toBuilder() =>
-      new ReportsUIStateBuilder()..replace(this);
+  ReportsUIStateBuilder toBuilder() => ReportsUIStateBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -169,26 +211,26 @@ class _$ReportsUIState extends ReportsUIState {
         filters == other.filters;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(
-        $jc(
-            $jc(
-                $jc(
-                    $jc(
-                        $jc($jc($jc(0, report.hashCode), group.hashCode),
-                            selectedGroup.hashCode),
-                        chart.hashCode),
-                    subgroup.hashCode),
-                customStartDate.hashCode),
-            customEndDate.hashCode),
-        filters.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, report.hashCode);
+    _$hash = $jc(_$hash, group.hashCode);
+    _$hash = $jc(_$hash, selectedGroup.hashCode);
+    _$hash = $jc(_$hash, chart.hashCode);
+    _$hash = $jc(_$hash, subgroup.hashCode);
+    _$hash = $jc(_$hash, customStartDate.hashCode);
+    _$hash = $jc(_$hash, customEndDate.hashCode);
+    _$hash = $jc(_$hash, filters.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ReportsUIState')
+    return (newBuiltValueToStringHelper(r'ReportsUIState')
           ..add('report', report)
           ..add('group', group)
           ..add('selectedGroup', selectedGroup)
@@ -203,43 +245,43 @@ class _$ReportsUIState extends ReportsUIState {
 
 class ReportsUIStateBuilder
     implements Builder<ReportsUIState, ReportsUIStateBuilder> {
-  _$ReportsUIState _$v;
+  _$ReportsUIState? _$v;
 
-  String _report;
-  String get report => _$this._report;
-  set report(String report) => _$this._report = report;
+  String? _report;
+  String? get report => _$this._report;
+  set report(String? report) => _$this._report = report;
 
-  String _group;
-  String get group => _$this._group;
-  set group(String group) => _$this._group = group;
+  String? _group;
+  String? get group => _$this._group;
+  set group(String? group) => _$this._group = group;
 
-  String _selectedGroup;
-  String get selectedGroup => _$this._selectedGroup;
-  set selectedGroup(String selectedGroup) =>
+  String? _selectedGroup;
+  String? get selectedGroup => _$this._selectedGroup;
+  set selectedGroup(String? selectedGroup) =>
       _$this._selectedGroup = selectedGroup;
 
-  String _chart;
-  String get chart => _$this._chart;
-  set chart(String chart) => _$this._chart = chart;
+  String? _chart;
+  String? get chart => _$this._chart;
+  set chart(String? chart) => _$this._chart = chart;
 
-  String _subgroup;
-  String get subgroup => _$this._subgroup;
-  set subgroup(String subgroup) => _$this._subgroup = subgroup;
+  String? _subgroup;
+  String? get subgroup => _$this._subgroup;
+  set subgroup(String? subgroup) => _$this._subgroup = subgroup;
 
-  String _customStartDate;
-  String get customStartDate => _$this._customStartDate;
-  set customStartDate(String customStartDate) =>
+  String? _customStartDate;
+  String? get customStartDate => _$this._customStartDate;
+  set customStartDate(String? customStartDate) =>
       _$this._customStartDate = customStartDate;
 
-  String _customEndDate;
-  String get customEndDate => _$this._customEndDate;
-  set customEndDate(String customEndDate) =>
+  String? _customEndDate;
+  String? get customEndDate => _$this._customEndDate;
+  set customEndDate(String? customEndDate) =>
       _$this._customEndDate = customEndDate;
 
-  MapBuilder<String, String> _filters;
+  MapBuilder<String, String>? _filters;
   MapBuilder<String, String> get filters =>
-      _$this._filters ??= new MapBuilder<String, String>();
-  set filters(MapBuilder<String, String> filters) => _$this._filters = filters;
+      _$this._filters ??= MapBuilder<String, String>();
+  set filters(MapBuilder<String, String>? filters) => _$this._filters = filters;
 
   ReportsUIStateBuilder();
 
@@ -261,44 +303,71 @@ class ReportsUIStateBuilder
 
   @override
   void replace(ReportsUIState other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ReportsUIState;
   }
 
   @override
-  void update(void Function(ReportsUIStateBuilder) updates) {
+  void update(void Function(ReportsUIStateBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ReportsUIState build() {
+  ReportsUIState build() => _build();
+
+  _$ReportsUIState _build() {
     _$ReportsUIState _$result;
     try {
-      _$result = _$v ??
-          new _$ReportsUIState._(
-              report: BuiltValueNullFieldError.checkNotNull(
-                  report, 'ReportsUIState', 'report'),
-              group: BuiltValueNullFieldError.checkNotNull(
-                  group, 'ReportsUIState', 'group'),
-              selectedGroup: BuiltValueNullFieldError.checkNotNull(
-                  selectedGroup, 'ReportsUIState', 'selectedGroup'),
-              chart: BuiltValueNullFieldError.checkNotNull(
-                  chart, 'ReportsUIState', 'chart'),
-              subgroup: BuiltValueNullFieldError.checkNotNull(
-                  subgroup, 'ReportsUIState', 'subgroup'),
-              customStartDate: BuiltValueNullFieldError.checkNotNull(
-                  customStartDate, 'ReportsUIState', 'customStartDate'),
-              customEndDate: BuiltValueNullFieldError.checkNotNull(
-                  customEndDate, 'ReportsUIState', 'customEndDate'),
-              filters: filters.build());
+      _$result =
+          _$v ??
+          _$ReportsUIState._(
+            report: BuiltValueNullFieldError.checkNotNull(
+              report,
+              r'ReportsUIState',
+              'report',
+            ),
+            group: BuiltValueNullFieldError.checkNotNull(
+              group,
+              r'ReportsUIState',
+              'group',
+            ),
+            selectedGroup: BuiltValueNullFieldError.checkNotNull(
+              selectedGroup,
+              r'ReportsUIState',
+              'selectedGroup',
+            ),
+            chart: BuiltValueNullFieldError.checkNotNull(
+              chart,
+              r'ReportsUIState',
+              'chart',
+            ),
+            subgroup: BuiltValueNullFieldError.checkNotNull(
+              subgroup,
+              r'ReportsUIState',
+              'subgroup',
+            ),
+            customStartDate: BuiltValueNullFieldError.checkNotNull(
+              customStartDate,
+              r'ReportsUIState',
+              'customStartDate',
+            ),
+            customEndDate: BuiltValueNullFieldError.checkNotNull(
+              customEndDate,
+              r'ReportsUIState',
+              'customEndDate',
+            ),
+            filters: filters.build(),
+          );
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'filters';
         filters.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'ReportsUIState', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'ReportsUIState',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -307,4 +376,4 @@ class ReportsUIStateBuilder
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

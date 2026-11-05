@@ -1,5 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 
 class AppTextButton extends StatelessWidget {
@@ -10,17 +15,17 @@ class AppTextButton extends StatelessWidget {
     this.color,
   });
 
-  final String label;
-  final Function onPressed;
+  final String? label;
+  final Function? onPressed;
   final bool isInHeader;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     final store = StoreProvider.of<AppState>(context);
     final state = store.state;
 
-    Color primaryColor;
+    Color? primaryColor;
     if (onPressed == null) {
       //
     } else if (color != null) {
@@ -33,13 +38,14 @@ class AppTextButton extends StatelessWidget {
       primaryColor = Colors.black87;
     }
 
-    final ButtonStyle flatButtonStyle =
-        TextButton.styleFrom(primary: primaryColor);
+    final ButtonStyle flatButtonStyle = TextButton.styleFrom(
+      foregroundColor: primaryColor,
+    );
 
     return TextButton(
       style: flatButtonStyle,
-      onPressed: onPressed,
-      child: Text(label),
+      onPressed: onPressed as void Function()?,
+      child: Text(label!),
     );
   }
 }

@@ -1,24 +1,25 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/token/token_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/app_bottom_bar.dart';
-import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/app/list_filter.dart';
+import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/token/token_list_vm.dart';
 import 'package:invoiceninja_flutter/ui/token/token_presenter.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-
 import 'token_screen_vm.dart';
 
 class TokenScreen extends StatelessWidget {
-  const TokenScreen({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const TokenScreen({Key? key, required this.viewModel}) : super(key: key);
 
   static const String route = '/$kSettings/$kSettingsTokens';
 
@@ -44,6 +45,9 @@ class TokenScreen extends StatelessWidget {
         onFilterChanged: (value) {
           store.dispatch(FilterTokens(value));
         },
+        onSelectedState: (EntityState state, value) {
+          store.dispatch(FilterTokensByState(state));
+        },
       ),
       onCheckboxPressed: () {
         if (store.state.tokenListState.isInMultiselect()) {
@@ -60,9 +64,7 @@ class TokenScreen extends StatelessWidget {
         onSelectedSortField: (value) {
           store.dispatch(SortTokens(value));
         },
-        sortFields: [
-          TokenFields.name,
-        ],
+        sortFields: [TokenFields.name],
         onSelectedState: (EntityState state, value) {
           store.dispatch(FilterTokensByState(state));
         },
@@ -82,20 +84,20 @@ class TokenScreen extends StatelessWidget {
         onSelectedCustom4: (value) =>
             store.dispatch(FilterTokensByCustom4(value)),
       ),
-      floatingActionButton: state.prefState.isMenuFloated &&
+      floatingActionButton:
+          state.prefState.isMenuFloated &&
               userCompany.canCreate(EntityType.token)
           ? FloatingActionButton(
               heroTag: 'token_fab',
               backgroundColor: Theme.of(context).primaryColorDark,
               onPressed: () {
                 createEntityByType(
-                    context: context, entityType: EntityType.token);
+                  context: context,
+                  entityType: EntityType.token,
+                );
               },
-              child: Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-              tooltip: localization.newToken,
+              child: Icon(Icons.add, color: Colors.white),
+              tooltip: localization!.newToken,
             )
           : null,
     );

@@ -7,31 +7,36 @@ part of 'currency_model.dart';
 // **************************************************************************
 
 Serializer<CurrencyListResponse> _$currencyListResponseSerializer =
-    new _$CurrencyListResponseSerializer();
+    _$CurrencyListResponseSerializer();
 Serializer<CurrencyItemResponse> _$currencyItemResponseSerializer =
-    new _$CurrencyItemResponseSerializer();
+    _$CurrencyItemResponseSerializer();
 Serializer<CurrencyEntity> _$currencyEntitySerializer =
-    new _$CurrencyEntitySerializer();
+    _$CurrencyEntitySerializer();
 
 class _$CurrencyListResponseSerializer
     implements StructuredSerializer<CurrencyListResponse> {
   @override
   final Iterable<Type> types = const [
     CurrencyListResponse,
-    _$CurrencyListResponse
+    _$CurrencyListResponse,
   ];
   @override
   final String wireName = 'CurrencyListResponse';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, CurrencyListResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    CurrencyListResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'data',
-      serializers.serialize(object.data,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(CurrencyEntity)])),
+      serializers.serialize(
+        object.data,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(CurrencyEntity),
+        ]),
+      ),
     ];
 
     return result;
@@ -39,21 +44,28 @@ class _$CurrencyListResponseSerializer
 
   @override
   CurrencyListResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new CurrencyListResponseBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = CurrencyListResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'data':
-          result.data.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(CurrencyEntity)]))
-              as BuiltList<Object>);
+          result.data.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(CurrencyEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
       }
     }
@@ -67,19 +79,23 @@ class _$CurrencyItemResponseSerializer
   @override
   final Iterable<Type> types = const [
     CurrencyItemResponse,
-    _$CurrencyItemResponse
+    _$CurrencyItemResponse,
   ];
   @override
   final String wireName = 'CurrencyItemResponse';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, CurrencyItemResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    CurrencyItemResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'data',
-      serializers.serialize(object.data,
-          specifiedType: const FullType(CurrencyEntity)),
+      serializers.serialize(
+        object.data,
+        specifiedType: const FullType(CurrencyEntity),
+      ),
     ];
 
     return result;
@@ -87,19 +103,26 @@ class _$CurrencyItemResponseSerializer
 
   @override
   CurrencyItemResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new CurrencyItemResponseBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = CurrencyItemResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'data':
-          result.data.replace(serializers.deserialize(value,
-              specifiedType: const FullType(CurrencyEntity)) as CurrencyEntity);
+          result.data.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(CurrencyEntity),
+                )!
+                as CurrencyEntity,
+          );
           break;
       }
     }
@@ -116,31 +139,46 @@ class _$CurrencyEntitySerializer
   final String wireName = 'CurrencyEntity';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, CurrencyEntity object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    CurrencyEntity object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'symbol',
-      serializers.serialize(object.symbol,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.symbol,
+        specifiedType: const FullType(String),
+      ),
       'precision',
-      serializers.serialize(object.precision,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.precision,
+        specifiedType: const FullType(int),
+      ),
       'thousand_separator',
-      serializers.serialize(object.thousandSeparator,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.thousandSeparator,
+        specifiedType: const FullType(String),
+      ),
       'decimal_separator',
-      serializers.serialize(object.decimalSeparator,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.decimalSeparator,
+        specifiedType: const FullType(String),
+      ),
       'code',
       serializers.serialize(object.code, specifiedType: const FullType(String)),
       'swap_currency_symbol',
-      serializers.serialize(object.swapCurrencySymbol,
-          specifiedType: const FullType(bool)),
+      serializers.serialize(
+        object.swapCurrencySymbol,
+        specifiedType: const FullType(bool),
+      ),
       'exchange_rate',
-      serializers.serialize(object.exchangeRate,
-          specifiedType: const FullType(double)),
+      serializers.serialize(
+        object.exchangeRate,
+        specifiedType: const FullType(double),
+      ),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
     ];
@@ -150,51 +188,89 @@ class _$CurrencyEntitySerializer
 
   @override
   CurrencyEntity deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new CurrencyEntityBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = CurrencyEntityBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'name':
-          result.name = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.name =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'symbol':
-          result.symbol = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.symbol =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'precision':
-          result.precision = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+          result.precision =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'thousand_separator':
-          result.thousandSeparator = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.thousandSeparator =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'decimal_separator':
-          result.decimalSeparator = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.decimalSeparator =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'code':
-          result.code = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.code =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'swap_currency_symbol':
-          result.swapCurrencySymbol = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+          result.swapCurrencySymbol =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
           break;
         case 'exchange_rate':
-          result.exchangeRate = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
+          result.exchangeRate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(double),
+                  )!
+                  as double;
           break;
         case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.id =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
       }
     }
@@ -207,22 +283,19 @@ class _$CurrencyListResponse extends CurrencyListResponse {
   @override
   final BuiltList<CurrencyEntity> data;
 
-  factory _$CurrencyListResponse(
-          [void Function(CurrencyListResponseBuilder) updates]) =>
-      (new CurrencyListResponseBuilder()..update(updates)).build();
+  factory _$CurrencyListResponse([
+    void Function(CurrencyListResponseBuilder)? updates,
+  ]) => (CurrencyListResponseBuilder()..update(updates))._build();
 
-  _$CurrencyListResponse._({this.data}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(data, 'CurrencyListResponse', 'data');
-  }
-
+  _$CurrencyListResponse._({required this.data}) : super._();
   @override
   CurrencyListResponse rebuild(
-          void Function(CurrencyListResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(CurrencyListResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   CurrencyListResponseBuilder toBuilder() =>
-      new CurrencyListResponseBuilder()..replace(this);
+      CurrencyListResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -230,28 +303,32 @@ class _$CurrencyListResponse extends CurrencyListResponse {
     return other is CurrencyListResponse && data == other.data;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, data.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, data.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('CurrencyListResponse')
-          ..add('data', data))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'CurrencyListResponse',
+    )..add('data', data)).toString();
   }
 }
 
 class CurrencyListResponseBuilder
     implements Builder<CurrencyListResponse, CurrencyListResponseBuilder> {
-  _$CurrencyListResponse _$v;
+  _$CurrencyListResponse? _$v;
 
-  ListBuilder<CurrencyEntity> _data;
+  ListBuilder<CurrencyEntity>? _data;
   ListBuilder<CurrencyEntity> get data =>
-      _$this._data ??= new ListBuilder<CurrencyEntity>();
-  set data(ListBuilder<CurrencyEntity> data) => _$this._data = data;
+      _$this._data ??= ListBuilder<CurrencyEntity>();
+  set data(ListBuilder<CurrencyEntity>? data) => _$this._data = data;
 
   CurrencyListResponseBuilder();
 
@@ -266,28 +343,32 @@ class CurrencyListResponseBuilder
 
   @override
   void replace(CurrencyListResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$CurrencyListResponse;
   }
 
   @override
-  void update(void Function(CurrencyListResponseBuilder) updates) {
+  void update(void Function(CurrencyListResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$CurrencyListResponse build() {
+  CurrencyListResponse build() => _build();
+
+  _$CurrencyListResponse _build() {
     _$CurrencyListResponse _$result;
     try {
-      _$result = _$v ?? new _$CurrencyListResponse._(data: data.build());
+      _$result = _$v ?? _$CurrencyListResponse._(data: data.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'data';
         data.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'CurrencyListResponse', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'CurrencyListResponse',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -300,22 +381,19 @@ class _$CurrencyItemResponse extends CurrencyItemResponse {
   @override
   final CurrencyEntity data;
 
-  factory _$CurrencyItemResponse(
-          [void Function(CurrencyItemResponseBuilder) updates]) =>
-      (new CurrencyItemResponseBuilder()..update(updates)).build();
+  factory _$CurrencyItemResponse([
+    void Function(CurrencyItemResponseBuilder)? updates,
+  ]) => (CurrencyItemResponseBuilder()..update(updates))._build();
 
-  _$CurrencyItemResponse._({this.data}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(data, 'CurrencyItemResponse', 'data');
-  }
-
+  _$CurrencyItemResponse._({required this.data}) : super._();
   @override
   CurrencyItemResponse rebuild(
-          void Function(CurrencyItemResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(CurrencyItemResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   CurrencyItemResponseBuilder toBuilder() =>
-      new CurrencyItemResponseBuilder()..replace(this);
+      CurrencyItemResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -323,28 +401,31 @@ class _$CurrencyItemResponse extends CurrencyItemResponse {
     return other is CurrencyItemResponse && data == other.data;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, data.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, data.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('CurrencyItemResponse')
-          ..add('data', data))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'CurrencyItemResponse',
+    )..add('data', data)).toString();
   }
 }
 
 class CurrencyItemResponseBuilder
     implements Builder<CurrencyItemResponse, CurrencyItemResponseBuilder> {
-  _$CurrencyItemResponse _$v;
+  _$CurrencyItemResponse? _$v;
 
-  CurrencyEntityBuilder _data;
-  CurrencyEntityBuilder get data =>
-      _$this._data ??= new CurrencyEntityBuilder();
-  set data(CurrencyEntityBuilder data) => _$this._data = data;
+  CurrencyEntityBuilder? _data;
+  CurrencyEntityBuilder get data => _$this._data ??= CurrencyEntityBuilder();
+  set data(CurrencyEntityBuilder? data) => _$this._data = data;
 
   CurrencyItemResponseBuilder();
 
@@ -359,28 +440,32 @@ class CurrencyItemResponseBuilder
 
   @override
   void replace(CurrencyItemResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$CurrencyItemResponse;
   }
 
   @override
-  void update(void Function(CurrencyItemResponseBuilder) updates) {
+  void update(void Function(CurrencyItemResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$CurrencyItemResponse build() {
+  CurrencyItemResponse build() => _build();
+
+  _$CurrencyItemResponse _build() {
     _$CurrencyItemResponse _$result;
     try {
-      _$result = _$v ?? new _$CurrencyItemResponse._(data: data.build());
+      _$result = _$v ?? _$CurrencyItemResponse._(data: data.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'data';
         data.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'CurrencyItemResponse', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'CurrencyItemResponse',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -409,43 +494,26 @@ class _$CurrencyEntity extends CurrencyEntity {
   @override
   final String id;
 
-  factory _$CurrencyEntity([void Function(CurrencyEntityBuilder) updates]) =>
-      (new CurrencyEntityBuilder()..update(updates)).build();
+  factory _$CurrencyEntity([void Function(CurrencyEntityBuilder)? updates]) =>
+      (CurrencyEntityBuilder()..update(updates))._build();
 
-  _$CurrencyEntity._(
-      {this.name,
-      this.symbol,
-      this.precision,
-      this.thousandSeparator,
-      this.decimalSeparator,
-      this.code,
-      this.swapCurrencySymbol,
-      this.exchangeRate,
-      this.id})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(name, 'CurrencyEntity', 'name');
-    BuiltValueNullFieldError.checkNotNull(symbol, 'CurrencyEntity', 'symbol');
-    BuiltValueNullFieldError.checkNotNull(
-        precision, 'CurrencyEntity', 'precision');
-    BuiltValueNullFieldError.checkNotNull(
-        thousandSeparator, 'CurrencyEntity', 'thousandSeparator');
-    BuiltValueNullFieldError.checkNotNull(
-        decimalSeparator, 'CurrencyEntity', 'decimalSeparator');
-    BuiltValueNullFieldError.checkNotNull(code, 'CurrencyEntity', 'code');
-    BuiltValueNullFieldError.checkNotNull(
-        swapCurrencySymbol, 'CurrencyEntity', 'swapCurrencySymbol');
-    BuiltValueNullFieldError.checkNotNull(
-        exchangeRate, 'CurrencyEntity', 'exchangeRate');
-    BuiltValueNullFieldError.checkNotNull(id, 'CurrencyEntity', 'id');
-  }
-
+  _$CurrencyEntity._({
+    required this.name,
+    required this.symbol,
+    required this.precision,
+    required this.thousandSeparator,
+    required this.decimalSeparator,
+    required this.code,
+    required this.swapCurrencySymbol,
+    required this.exchangeRate,
+    required this.id,
+  }) : super._();
   @override
   CurrencyEntity rebuild(void Function(CurrencyEntityBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  CurrencyEntityBuilder toBuilder() =>
-      new CurrencyEntityBuilder()..replace(this);
+  CurrencyEntityBuilder toBuilder() => CurrencyEntityBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -462,28 +530,27 @@ class _$CurrencyEntity extends CurrencyEntity {
         id == other.id;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(
-        $jc(
-            $jc(
-                $jc(
-                    $jc(
-                        $jc(
-                            $jc($jc($jc(0, name.hashCode), symbol.hashCode),
-                                precision.hashCode),
-                            thousandSeparator.hashCode),
-                        decimalSeparator.hashCode),
-                    code.hashCode),
-                swapCurrencySymbol.hashCode),
-            exchangeRate.hashCode),
-        id.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, symbol.hashCode);
+    _$hash = $jc(_$hash, precision.hashCode);
+    _$hash = $jc(_$hash, thousandSeparator.hashCode);
+    _$hash = $jc(_$hash, decimalSeparator.hashCode);
+    _$hash = $jc(_$hash, code.hashCode);
+    _$hash = $jc(_$hash, swapCurrencySymbol.hashCode);
+    _$hash = $jc(_$hash, exchangeRate.hashCode);
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('CurrencyEntity')
+    return (newBuiltValueToStringHelper(r'CurrencyEntity')
           ..add('name', name)
           ..add('symbol', symbol)
           ..add('precision', precision)
@@ -499,46 +566,46 @@ class _$CurrencyEntity extends CurrencyEntity {
 
 class CurrencyEntityBuilder
     implements Builder<CurrencyEntity, CurrencyEntityBuilder> {
-  _$CurrencyEntity _$v;
+  _$CurrencyEntity? _$v;
 
-  String _name;
-  String get name => _$this._name;
-  set name(String name) => _$this._name = name;
+  String? _name;
+  String? get name => _$this._name;
+  set name(String? name) => _$this._name = name;
 
-  String _symbol;
-  String get symbol => _$this._symbol;
-  set symbol(String symbol) => _$this._symbol = symbol;
+  String? _symbol;
+  String? get symbol => _$this._symbol;
+  set symbol(String? symbol) => _$this._symbol = symbol;
 
-  int _precision;
-  int get precision => _$this._precision;
-  set precision(int precision) => _$this._precision = precision;
+  int? _precision;
+  int? get precision => _$this._precision;
+  set precision(int? precision) => _$this._precision = precision;
 
-  String _thousandSeparator;
-  String get thousandSeparator => _$this._thousandSeparator;
-  set thousandSeparator(String thousandSeparator) =>
+  String? _thousandSeparator;
+  String? get thousandSeparator => _$this._thousandSeparator;
+  set thousandSeparator(String? thousandSeparator) =>
       _$this._thousandSeparator = thousandSeparator;
 
-  String _decimalSeparator;
-  String get decimalSeparator => _$this._decimalSeparator;
-  set decimalSeparator(String decimalSeparator) =>
+  String? _decimalSeparator;
+  String? get decimalSeparator => _$this._decimalSeparator;
+  set decimalSeparator(String? decimalSeparator) =>
       _$this._decimalSeparator = decimalSeparator;
 
-  String _code;
-  String get code => _$this._code;
-  set code(String code) => _$this._code = code;
+  String? _code;
+  String? get code => _$this._code;
+  set code(String? code) => _$this._code = code;
 
-  bool _swapCurrencySymbol;
-  bool get swapCurrencySymbol => _$this._swapCurrencySymbol;
-  set swapCurrencySymbol(bool swapCurrencySymbol) =>
+  bool? _swapCurrencySymbol;
+  bool? get swapCurrencySymbol => _$this._swapCurrencySymbol;
+  set swapCurrencySymbol(bool? swapCurrencySymbol) =>
       _$this._swapCurrencySymbol = swapCurrencySymbol;
 
-  double _exchangeRate;
-  double get exchangeRate => _$this._exchangeRate;
-  set exchangeRate(double exchangeRate) => _$this._exchangeRate = exchangeRate;
+  double? _exchangeRate;
+  double? get exchangeRate => _$this._exchangeRate;
+  set exchangeRate(double? exchangeRate) => _$this._exchangeRate = exchangeRate;
 
-  String _id;
-  String get id => _$this._id;
-  set id(String id) => _$this._id = id;
+  String? _id;
+  String? get id => _$this._id;
+  set id(String? id) => _$this._id = id;
 
   CurrencyEntityBuilder();
 
@@ -561,39 +628,70 @@ class CurrencyEntityBuilder
 
   @override
   void replace(CurrencyEntity other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$CurrencyEntity;
   }
 
   @override
-  void update(void Function(CurrencyEntityBuilder) updates) {
+  void update(void Function(CurrencyEntityBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$CurrencyEntity build() {
-    final _$result = _$v ??
-        new _$CurrencyEntity._(
-            name: BuiltValueNullFieldError.checkNotNull(
-                name, 'CurrencyEntity', 'name'),
-            symbol: BuiltValueNullFieldError.checkNotNull(
-                symbol, 'CurrencyEntity', 'symbol'),
-            precision: BuiltValueNullFieldError.checkNotNull(
-                precision, 'CurrencyEntity', 'precision'),
-            thousandSeparator: BuiltValueNullFieldError.checkNotNull(
-                thousandSeparator, 'CurrencyEntity', 'thousandSeparator'),
-            decimalSeparator: BuiltValueNullFieldError.checkNotNull(
-                decimalSeparator, 'CurrencyEntity', 'decimalSeparator'),
-            code: BuiltValueNullFieldError.checkNotNull(
-                code, 'CurrencyEntity', 'code'),
-            swapCurrencySymbol: BuiltValueNullFieldError.checkNotNull(
-                swapCurrencySymbol, 'CurrencyEntity', 'swapCurrencySymbol'),
-            exchangeRate: BuiltValueNullFieldError.checkNotNull(
-                exchangeRate, 'CurrencyEntity', 'exchangeRate'),
-            id: BuiltValueNullFieldError.checkNotNull(id, 'CurrencyEntity', 'id'));
+  CurrencyEntity build() => _build();
+
+  _$CurrencyEntity _build() {
+    final _$result =
+        _$v ??
+        _$CurrencyEntity._(
+          name: BuiltValueNullFieldError.checkNotNull(
+            name,
+            r'CurrencyEntity',
+            'name',
+          ),
+          symbol: BuiltValueNullFieldError.checkNotNull(
+            symbol,
+            r'CurrencyEntity',
+            'symbol',
+          ),
+          precision: BuiltValueNullFieldError.checkNotNull(
+            precision,
+            r'CurrencyEntity',
+            'precision',
+          ),
+          thousandSeparator: BuiltValueNullFieldError.checkNotNull(
+            thousandSeparator,
+            r'CurrencyEntity',
+            'thousandSeparator',
+          ),
+          decimalSeparator: BuiltValueNullFieldError.checkNotNull(
+            decimalSeparator,
+            r'CurrencyEntity',
+            'decimalSeparator',
+          ),
+          code: BuiltValueNullFieldError.checkNotNull(
+            code,
+            r'CurrencyEntity',
+            'code',
+          ),
+          swapCurrencySymbol: BuiltValueNullFieldError.checkNotNull(
+            swapCurrencySymbol,
+            r'CurrencyEntity',
+            'swapCurrencySymbol',
+          ),
+          exchangeRate: BuiltValueNullFieldError.checkNotNull(
+            exchangeRate,
+            r'CurrencyEntity',
+            'exchangeRate',
+          ),
+          id: BuiltValueNullFieldError.checkNotNull(
+            id,
+            r'CurrencyEntity',
+            'id',
+          ),
+        );
     replace(_$result);
     return _$result;
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

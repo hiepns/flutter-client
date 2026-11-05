@@ -1,18 +1,23 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
-import 'package:invoiceninja_flutter/redux/task/task_actions.dart';
-import 'package:redux/redux.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/redux/ui/ui_actions.dart';
-import 'package:invoiceninja_flutter/ui/project/project_screen.dart';
-import 'package:invoiceninja_flutter/ui/project/edit/project_edit_vm.dart';
-import 'package:invoiceninja_flutter/ui/project/view/project_view_vm.dart';
-import 'package:invoiceninja_flutter/redux/project/project_actions.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:invoiceninja_flutter/data/repositories/project_repository.dart';
+import 'package:invoiceninja_flutter/redux/document/document_actions.dart';
 
+// Package imports:
+import 'package:redux/redux.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/data/repositories/project_repository.dart';
 import 'package:invoiceninja_flutter/main_app.dart';
+import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/project/project_actions.dart';
+import 'package:invoiceninja_flutter/redux/task/task_actions.dart';
+import 'package:invoiceninja_flutter/redux/ui/ui_actions.dart';
+import 'package:invoiceninja_flutter/ui/project/edit/project_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/project/project_screen.dart';
+import 'package:invoiceninja_flutter/ui/project/view/project_view_vm.dart';
 
 List<Middleware<AppState>> createStoreProjectsMiddleware([
   ProjectRepository repository = const ProjectRepository(),
@@ -44,36 +49,39 @@ List<Middleware<AppState>> createStoreProjectsMiddleware([
 
 Middleware<AppState> _editProject() {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as EditProject;
+    final action = dynamicAction as EditProject?;
 
     next(action);
 
     store.dispatch(UpdateCurrentRoute(ProjectEditScreen.route));
 
     if (store.state.prefState.isMobile) {
-      navigatorKey.currentState.pushNamed(ProjectEditScreen.route);
+      navigatorKey.currentState!.pushNamed(ProjectEditScreen.route);
     }
   };
 }
 
 Middleware<AppState> _viewProject() {
-  return (Store<AppState> store, dynamic dynamicAction,
-      NextDispatcher next) async {
-    final action = dynamicAction as ViewProject;
+  return (
+    Store<AppState> store,
+    dynamic dynamicAction,
+    NextDispatcher next,
+  ) async {
+    final action = dynamicAction as ViewProject?;
 
     next(action);
 
     store.dispatch(UpdateCurrentRoute(ProjectViewScreen.route));
 
     if (store.state.prefState.isMobile) {
-      navigatorKey.currentState.pushNamed(ProjectViewScreen.route);
+      navigatorKey.currentState!.pushNamed(ProjectViewScreen.route);
     }
   };
 }
 
 Middleware<AppState> _viewProjectList() {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as ViewProjectList;
+    final action = dynamicAction as ViewProjectList?;
 
     next(action);
 
@@ -84,8 +92,10 @@ Middleware<AppState> _viewProjectList() {
     store.dispatch(UpdateCurrentRoute(ProjectScreen.route));
 
     if (store.state.prefState.isMobile) {
-      navigatorKey.currentState.pushNamedAndRemoveUntil(
-          ProjectScreen.route, (Route<dynamic> route) => false);
+      navigatorKey.currentState!.pushNamedAndRemoveUntil(
+        ProjectScreen.route,
+        (Route<dynamic> route) => false,
+      );
     }
   };
 }
@@ -99,19 +109,19 @@ Middleware<AppState> _archiveProject(ProjectRepository repository) {
 
     repository
         .bulkAction(
-            store.state.credentials, action.projectIds, EntityAction.archive)
+          store.state.credentials,
+          action.projectIds,
+          EntityAction.archive,
+        )
         .then((List<ProjectEntity> projects) {
-      store.dispatch(ArchiveProjectSuccess(projects));
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(ArchiveProjectFailure(prevProjects));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          store.dispatch(ArchiveProjectSuccess(projects));
+          action.completer.complete(null);
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(ArchiveProjectFailure(prevProjects));
+          action.completer.completeError(error);
+        });
 
     next(action);
   };
@@ -126,19 +136,19 @@ Middleware<AppState> _deleteProject(ProjectRepository repository) {
 
     repository
         .bulkAction(
-            store.state.credentials, action.projectIds, EntityAction.delete)
+          store.state.credentials,
+          action.projectIds,
+          EntityAction.delete,
+        )
         .then((List<ProjectEntity> projects) {
-      store.dispatch(DeleteProjectSuccess(projects));
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(DeleteProjectFailure(prevProjects));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          store.dispatch(DeleteProjectSuccess(projects));
+          action.completer.complete(null);
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(DeleteProjectFailure(prevProjects));
+          action.completer.completeError(error);
+        });
 
     next(action);
   };
@@ -153,19 +163,19 @@ Middleware<AppState> _restoreProject(ProjectRepository repository) {
 
     repository
         .bulkAction(
-            store.state.credentials, action.projectIds, EntityAction.restore)
+          store.state.credentials,
+          action.projectIds,
+          EntityAction.restore,
+        )
         .then((List<ProjectEntity> projects) {
-      store.dispatch(RestoreProjectSuccess(projects));
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(RestoreProjectFailure(prevProjects));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          store.dispatch(RestoreProjectSuccess(projects));
+          action.completer.complete(null);
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(RestoreProjectFailure(prevProjects));
+          action.completer.completeError(error);
+        });
 
     next(action);
   };
@@ -175,25 +185,26 @@ Middleware<AppState> _saveProject(ProjectRepository repository) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
     final action = dynamicAction as SaveProjectRequest;
     repository
-        .saveData(store.state.credentials, action.project)
+        .saveData(store.state.credentials, action.project!)
         .then((ProjectEntity project) {
-      if (action.project.isNew) {
-        store.dispatch(AddProjectSuccess(project));
-      } else {
-        store.dispatch(SaveProjectSuccess(project));
-      }
+          if (action.project!.isNew) {
+            store.dispatch(AddProjectSuccess(project));
+          } else {
+            store.dispatch(SaveProjectSuccess(project));
+          }
 
-      action.completer.complete(project);
+          action.completer!.complete(project);
 
-      final projectUIState = store.state.projectUIState;
-      if (projectUIState.saveCompleter != null) {
-        projectUIState.saveCompleter.complete(project);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(SaveProjectFailure(error));
-      action.completer.completeError(error);
-    });
+          final projectUIState = store.state.projectUIState;
+          if (projectUIState.saveCompleter != null) {
+            projectUIState.saveCompleter!.complete(project);
+          }
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(SaveProjectFailure(error));
+          action.completer!.completeError(error);
+        });
 
     next(action);
   };
@@ -207,19 +218,20 @@ Middleware<AppState> _loadProject(ProjectRepository repository) {
     repository
         .loadItem(store.state.credentials, action.projectId)
         .then((project) {
-      store.dispatch(LoadProjectSuccess(project));
+          store.dispatch(LoadProjectSuccess(project));
 
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-      //store.dispatch(LoadClients());
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(LoadProjectFailure(error));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          if (action.completer != null) {
+            action.completer!.complete(null);
+          }
+          //store.dispatch(LoadClients());
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(LoadProjectFailure(error));
+          if (action.completer != null) {
+            action.completer!.completeError(error);
+          }
+        });
 
     next(action);
   };
@@ -227,30 +239,41 @@ Middleware<AppState> _loadProject(ProjectRepository repository) {
 
 Middleware<AppState> _loadProjects(ProjectRepository repository) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as LoadProjects;
+    final action = dynamicAction as LoadProjects?;
     final state = store.state;
 
     store.dispatch(LoadProjectsRequest());
     repository
-        .loadList(
-      state.credentials,
-      state.createdAtLimit,
-      state.filterDeletedClients,
-    )
+        .loadList(state.credentials, state.filterDeletedClients)
         .then((data) {
-      store.dispatch(LoadProjectsSuccess(data));
+          store.dispatch(LoadProjectsSuccess(data));
 
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-      store.dispatch(LoadTasks());
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(LoadProjectsFailure(error));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          final documents = <DocumentEntity>[];
+          data.forEach((project) {
+            project.documents.forEach((document) {
+              documents.add(
+                document.rebuild(
+                  (b) => b
+                    ..parentId = project.id
+                    ..parentType = EntityType.project,
+                ),
+              );
+            });
+          });
+          store.dispatch(LoadDocumentsSuccess(documents));
+
+          if (action!.completer != null) {
+            action.completer!.complete(null);
+          }
+          store.dispatch(LoadTasks());
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(LoadProjectsFailure(error));
+          if (action!.completer != null) {
+            action.completer!.completeError(error);
+          }
+        });
 
     next(action);
   };
@@ -258,23 +281,40 @@ Middleware<AppState> _loadProjects(ProjectRepository repository) {
 
 Middleware<AppState> _saveDocument(ProjectRepository repository) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as SaveProjectDocumentRequest;
+    final action = dynamicAction as SaveProjectDocumentRequest?;
     if (store.state.isEnterprisePlan) {
       repository
-          .uploadDocument(
-              store.state.credentials, action.project, action.multipartFile)
+          .uploadDocuments(
+            store.state.credentials,
+            action!.project,
+            action.multipartFile,
+            action.isPrivate,
+          )
           .then((project) {
-        store.dispatch(SaveProjectSuccess(project));
-        action.completer.complete(null);
-      }).catchError((Object error) {
-        print(error);
-        store.dispatch(SaveProjectDocumentFailure(error));
-        action.completer.completeError(error);
-      });
+            store.dispatch(SaveProjectSuccess(project));
+
+            final documents = <DocumentEntity>[];
+            project.documents.forEach((document) {
+              documents.add(
+                document.rebuild(
+                  (b) => b
+                    ..parentId = project.id
+                    ..parentType = EntityType.project,
+                ),
+              );
+            });
+            store.dispatch(LoadDocumentsSuccess(documents));
+            action.completer.complete(documents);
+          })
+          .catchError((Object error) {
+            print(error);
+            store.dispatch(SaveProjectDocumentFailure(error));
+            action.completer.completeError(error);
+          });
     } else {
       const error = 'Uploading documents requires an enterprise plan';
       store.dispatch(SaveProjectDocumentFailure(error));
-      action.completer.completeError(error);
+      action!.completer.completeError(error);
     }
 
     next(action);

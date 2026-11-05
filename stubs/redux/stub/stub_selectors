@@ -1,4 +1,3 @@
-import 'package:invoiceninja_flutter/data/models/stub_model.dart';
 import 'package:invoiceninja_flutter/redux/static/static_state.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:memoize/memoize.dart';
@@ -37,21 +36,17 @@ List<String> dropdownStubsSelector(BuiltMap<String, StubEntity> stubMap,
   return list;
 }
 
-var memoizedFilteredStubList = memo6((
+var memoizedFilteredStubList = memo4((
         SelectionState selectionState,
         BuiltMap<String, StubEntity> stubMap,
         BuiltList<String> stubList,
-        StaticState staticState,
-        BuiltMap<String, UserEntity> userMap, 
         ListUIState stubListState) =>
-    filteredStubsSelector(selectionState, stubMap, stubList, staticState, userMap, stubListState));
+    filteredStubsSelector(selectionState, stubMap, stubList, stubListState));
 
 List<String> filteredStubsSelector(
     SelectionState selectionState,
     BuiltMap<String, StubEntity> stubMap,
     BuiltList<String> stubList, 
-    StaticState staticState,
-    BuiltMap<String, UserEntity> userMap,
     ListUIState stubListState) {
 
   final filterEntityId = selectionState.filterEntityId;
@@ -88,14 +83,10 @@ List<String> filteredStubsSelector(
   list.sort((stubAId, stubBId) {
     final stubA = stubMap[stubAId];
     final stubB = stubMap[stubBId];
-    return clientA.compareTo(stubB, stubListState.sortField,
-        stubListState.sortAscending, userMap, staticState);
+    return stubA.compareTo(stubB, stubListState.sortField,
+        stubListState.sortAscending);
   });
 
 
   return list;
 }
-
-bool hasStubChanges(
-        StubEntity stub, BuiltMap<String, StubEntity> stubMap) =>
-    stub.isNew ? stub.isChanged : stub != stubMap[stub.id];

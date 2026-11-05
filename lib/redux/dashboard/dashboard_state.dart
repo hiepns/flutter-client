@@ -1,9 +1,12 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/dashboard_model.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
 import 'package:invoiceninja_flutter/utils/dates.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 
@@ -30,7 +33,7 @@ abstract class DashboardUIState
 
   EntityType get selectedEntityType;
 
-  BuiltMap<EntityType, BuiltList<String>> get selectedEntities;
+  BuiltMap<EntityType?, BuiltList<String>> get selectedEntities;
 
   bool get showSidebar;
 
@@ -52,10 +55,45 @@ abstract class DashboardUISettings
       offset: 0,
       currencyId: kCurrencyAll,
       includeTaxes: true,
+      groupBy: kReportGroupDay,
     );
   }
 
   DashboardUISettings._();
+
+  static const String FIELD_ACTIVE_INVOICES = 'total_active_invoices';
+  static const String FIELD_OUTSTANDING_INVOICES = 'total_outstanding_invoices';
+  static const String FIELD_COMPLETED_PAYMENTS = 'total_completed_payments';
+  static const String FIELD_REFUNDED_PAYMENTS = 'total_refunded_payments';
+  static const String FIELD_ACTIVE_QUOTES = 'total_active_quotes';
+  static const String FIELD_APPROVED_QUOTES = 'total_approved_quotes';
+  static const String FIELD_UNAPPROVED_QUOTES = 'total_unapproved_quotes';
+  static const String FIELD_INVOICED_QUOTES = 'total_invoiced_quotes';
+  static const String FIELD_INVOICE_PAID_QUOTES = 'total_invoice_paid_quotes';
+  static const String FIELD_LOGGED_TASKS = 'total_logged_tasks';
+  static const String FIELD_INVOICED_TASKS = 'total_invoiced_tasks';
+  static const String FIELD_PAID_TASKS = 'total_paid_tasks';
+  static const String FIELD_LOGGED_TASKS_DURATION =
+      'total_logged_tasks_duration';
+  static const String FIELD_INVOICED_TASKS_DURATION =
+      'total_invoiced_tasks_duration';
+  static const String FIELD_PAID_TASKS_DURATION = 'total_paid_tasks_duration';
+  static const String FIELD_LOGGED_EXPENSES = 'total_logged_expenses';
+  static const String FIELD_PENDING_EXPENSES = 'total_pending_expenses';
+  static const String FIELD_INVOICED_EXPENSES = 'total_invoiced_expenses';
+  static const String FIELD_INVOICE_PAID_EXPENSES =
+      'total_invoice_paid_expenses';
+
+  static const String PERIOD_CURRENT = 'current_period';
+  static const String PERIOD_PREVIOUS = 'previous_period';
+  static const String PERIOD_TOTAL = 'total';
+
+  static const String FORMAT_MONEY = 'money';
+  static const String FORMAT_TIME = 'time';
+
+  static const String CALCULATE_COUNT = 'count';
+  static const String CALCULATE_SUM = 'sum';
+  static const String CALCULATE_AVERAGE = 'average';
 
   @override
   @memoized
@@ -81,20 +119,17 @@ abstract class DashboardUISettings
 
   bool get includeTaxes;
 
-  static Serializer<DashboardUISettings> get serializer =>
-      _$dashboardUISettingsSerializer;
+  String get groupBy;
 
-  bool matchesCurrency(String match) {
-    if (currencyId == null ||
-        currencyId.isEmpty ||
-        currencyId == kCurrencyAll) {
+  bool matchesCurrency(String? match) {
+    if (currencyId.isEmpty || currencyId == kCurrencyAll) {
       return true;
     }
 
     return currencyId == match;
   }
 
-  String startDate(CompanyEntity company) {
+  String? startDate(CompanyEntity company) {
     return calculateStartDate(
       company: company,
       offset: offset,
@@ -104,7 +139,7 @@ abstract class DashboardUISettings
     );
   }
 
-  String endDate(CompanyEntity company) {
+  String? endDate(CompanyEntity company) {
     return calculateEndDate(
       company: company,
       offset: offset,
@@ -113,4 +148,11 @@ abstract class DashboardUISettings
       dateRange: dateRange,
     );
   }
+
+  // ignore: unused_element
+  static void _initializeBuilder(DashboardUISettingsBuilder builder) =>
+      builder..groupBy = kReportGroupDay;
+
+  static Serializer<DashboardUISettings> get serializer =>
+      _$dashboardUISettingsSerializer;
 }

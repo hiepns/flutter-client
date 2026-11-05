@@ -1,5 +1,7 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/webhook/webhook_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/entity_header.dart';
@@ -11,11 +13,8 @@ import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class WebhookView extends StatefulWidget {
-  const WebhookView({
-    Key key,
-    @required this.viewModel,
-    @required this.isFilter,
-  }) : super(key: key);
+  const WebhookView({Key? key, required this.viewModel, required this.isFilter})
+    : super(key: key);
 
   final WebhookViewVM viewModel;
   final bool isFilter;
@@ -27,7 +26,7 @@ class WebhookView extends StatefulWidget {
 class _WebhookViewState extends State<WebhookView> {
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final viewModel = widget.viewModel;
     final webhook = viewModel.webhook;
 
@@ -43,12 +42,12 @@ class _WebhookViewState extends State<WebhookView> {
             value: localization.lookup(webhook.eventType),
             secondLabel: localization.createdOn,
             secondValue: formatDate(
-                convertTimestampToDateString(webhook.createdAt), context),
+              convertTimestampToDateString(webhook.createdAt),
+              context,
+            ),
           ),
           ListDivider(),
-          TargetListTile(
-            webhook: webhook,
-          ),
+          TargetListTile(webhook: webhook),
           ListDivider(),
         ],
       ),
@@ -57,7 +56,7 @@ class _WebhookViewState extends State<WebhookView> {
 }
 
 class TargetListTile extends StatelessWidget {
-  const TargetListTile({this.webhook});
+  const TargetListTile({required this.webhook});
 
   final WebhookEntity webhook;
 

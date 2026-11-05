@@ -1,5 +1,11 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+import 'package:invoiceninja_flutter/redux/company/company_selectors.dart';
+
+// Package imports:
+import 'package:timeago/timeago.dart' as timeago;
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/redux/credit/credit_selectors.dart';
 import 'package:invoiceninja_flutter/redux/invoice/invoice_selectors.dart';
@@ -13,14 +19,10 @@ import 'package:invoiceninja_flutter/ui/app/view_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/design/view/design_view_vm.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:timeago/timeago.dart' as timeago;
 
 class DesignView extends StatefulWidget {
-  const DesignView({
-    Key key,
-    @required this.viewModel,
-    @required this.isFilter,
-  }) : super(key: key);
+  const DesignView({Key? key, required this.viewModel, required this.isFilter})
+    : super(key: key);
 
   final DesignViewVM viewModel;
   final bool isFilter;
@@ -36,86 +38,97 @@ class _DesignViewState extends State<DesignView> {
     final state = viewModel.state;
     final company = state.company;
     final design = viewModel.design;
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
 
     int count = 0;
 
     count += state.invoiceState.list
         .map((invoiceId) => state.invoiceState.map[invoiceId])
-        .where((invoice) => !invoice.isDeleted && invoice.designId == design.id)
+        .where(
+          (invoice) => !invoice!.isDeleted! && invoice.designId == design.id,
+        )
         .length;
 
     count += state.quoteState.list
         .map((quoteId) => state.quoteState.map[quoteId])
-        .where((quote) => !quote.isDeleted && quote.designId == design.id)
+        .where((quote) => !quote!.isDeleted! && quote.designId == design.id)
         .length;
 
     count += state.creditState.list
         .map((creditId) => state.creditState.map[creditId])
-        .where((credit) => !credit.isDeleted && credit.designId == design.id)
+        .where((credit) => !credit!.isDeleted! && credit.designId == design.id)
         .length;
 
     count += state.recurringInvoiceState.list
         .map((invoiceId) => state.recurringInvoiceState.map[invoiceId])
-        .where((invoice) => !invoice.isDeleted && invoice.designId == design.id)
+        .where(
+          (invoice) => !invoice!.isDeleted! && invoice.designId == design.id,
+        )
         .length;
 
     return ViewScaffold(
-        isFilter: widget.isFilter,
-        entity: design,
-        onBackPressed: () => viewModel.onBackPressed(),
-        body: ScrollableListView(
-          children: [
-            EntityHeader(
-              entity: design,
-              value: '$count',
-              label: localization.count,
-              secondLabel: localization.lastUpdated,
-              secondValue:
-                  timeago.format(convertTimestampToDate(design.updatedAt)),
+      isFilter: widget.isFilter,
+      entity: design,
+      onBackPressed: () => viewModel.onBackPressed(),
+      body: ScrollableListView(
+        children: [
+          EntityHeader(
+            entity: design,
+            value: '$count',
+            label: localization.count,
+            secondLabel: localization.lastUpdated,
+            secondValue: timeago.format(
+              convertTimestampToDate(design.updatedAt),
+              locale: localeSelector(state, twoLetter: true),
             ),
-            ListDivider(),
-            if (company.isModuleEnabled(EntityType.invoice))
-              EntitiesListTile(
-                entity: design,
-                isFilter: widget.isFilter,
-                title: localization.invoices,
-                entityType: EntityType.invoice,
-                subtitle: memoizedInvoiceStatsForDesign(
-                        design.id, state.invoiceState.map)
-                    .present(localization.active, localization.archived),
-              ),
-            if (company.isModuleEnabled(EntityType.quote))
-              EntitiesListTile(
-                entity: design,
-                isFilter: widget.isFilter,
-                title: localization.quotes,
-                entityType: EntityType.quote,
-                subtitle:
-                    memoizedQuoteStatsForDesign(design.id, state.quoteState.map)
-                        .present(localization.active, localization.archived),
-              ),
-            if (company.isModuleEnabled(EntityType.credit))
-              EntitiesListTile(
-                entity: design,
-                isFilter: widget.isFilter,
-                title: localization.credits,
-                entityType: EntityType.credit,
-                subtitle: memoizedCreditStatsForDesign(
-                        design.id, state.creditState.map)
-                    .present(localization.active, localization.archived),
-              ),
-            if (company.isModuleEnabled(EntityType.recurringInvoice))
-              EntitiesListTile(
-                entity: design,
-                isFilter: widget.isFilter,
-                title: localization.recurringInvoices,
-                entityType: EntityType.recurringInvoice,
-                subtitle: memoizedRecurringInvoiceStatsForDesign(
-                        design.id, state.recurringInvoiceState.map)
-                    .present(localization.active, localization.archived),
-              ),
-          ],
-        ));
+          ),
+          ListDivider(),
+          if (company.isModuleEnabled(EntityType.invoice))
+            EntitiesListTile(
+              entity: design,
+              isFilter: widget.isFilter,
+              title: localization.invoices,
+              entityType: EntityType.invoice,
+              subtitle: memoizedInvoiceStatsForDesign(
+                design.id,
+                state.invoiceState.map,
+              ).present(localization.active, localization.archived),
+            ),
+          if (company.isModuleEnabled(EntityType.quote))
+            EntitiesListTile(
+              entity: design,
+              isFilter: widget.isFilter,
+              title: localization.quotes,
+              entityType: EntityType.quote,
+              subtitle: memoizedQuoteStatsForDesign(
+                design.id,
+                state.quoteState.map,
+              ).present(localization.active, localization.archived),
+            ),
+          if (company.isModuleEnabled(EntityType.credit))
+            EntitiesListTile(
+              entity: design,
+              isFilter: widget.isFilter,
+              title: localization.credits,
+              entityType: EntityType.credit,
+              subtitle: memoizedCreditStatsForDesign(
+                design.id,
+                state.creditState.map,
+              ).present(localization.active, localization.archived),
+            ),
+          if (company.isModuleEnabled(EntityType.recurringInvoice))
+            EntitiesListTile(
+              entity: design,
+              isFilter: widget.isFilter,
+              title: localization.recurringInvoices,
+              entityType: EntityType.recurringInvoice,
+              subtitle: memoizedRecurringInvoiceStatsForDesign(
+                design.id,
+                state.recurringInvoiceState.map,
+              ).present(localization.active, localization.archived),
+            ),
+        ],
+      ),
+    );
   }
 }

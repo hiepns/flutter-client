@@ -1,8 +1,11 @@
-import 'package:built_value/built_value.dart';
+/// Package imports:
 import 'package:built_collection/built_collection.dart';
+import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/strings.dart';
 
@@ -11,9 +14,9 @@ part 'subscription_model.g.dart';
 abstract class SubscriptionListResponse
     implements
         Built<SubscriptionListResponse, SubscriptionListResponseBuilder> {
-  factory SubscriptionListResponse(
-          [void updates(SubscriptionListResponseBuilder b)]) =
-      _$SubscriptionListResponse;
+  factory SubscriptionListResponse([
+    void updates(SubscriptionListResponseBuilder b),
+  ]) = _$SubscriptionListResponse;
 
   SubscriptionListResponse._();
 
@@ -30,9 +33,9 @@ abstract class SubscriptionListResponse
 abstract class SubscriptionItemResponse
     implements
         Built<SubscriptionItemResponse, SubscriptionItemResponseBuilder> {
-  factory SubscriptionItemResponse(
-          [void updates(SubscriptionItemResponseBuilder b)]) =
-      _$SubscriptionItemResponse;
+  factory SubscriptionItemResponse([
+    void updates(SubscriptionItemResponseBuilder b),
+  ]) = _$SubscriptionItemResponse;
 
   SubscriptionItemResponse._();
 
@@ -57,7 +60,7 @@ abstract class SubscriptionEntity extends Object
     implements Built<SubscriptionEntity, SubscriptionEntityBuilder> {
   // STARTER: properties - do not remove comment
 
-  factory SubscriptionEntity({String id, AppState state}) {
+  factory SubscriptionEntity({String? id, AppState? state}) {
     return _$SubscriptionEntity._(
       id: id ?? BaseEntity.nextId,
       name: '',
@@ -86,18 +89,29 @@ abstract class SubscriptionEntity extends Object
       refundPeriod: 0,
       trialDuration: 0,
       trialEnabled: false,
+      optionalProductIds: '',
+      optionalRecurringProductIds: '',
+      registrationRequired: false,
+      useInventoryManagement: false,
+      steps: DEFAULT_STEPS,
+      remainingCycles: -1,
       webhookConfiguration: WebhookConfigurationEntity(),
     );
   }
 
   SubscriptionEntity._();
 
+  static const DEFAULT_STEPS = '$STEP_CART,$STEP_AUTH_LOGIN_OR_REGISTER';
+
+  static const STEP_CART = 'cart';
+  static const STEP_AUTH_LOGIN_OR_REGISTER = 'auth.login-or-register';
+
   @override
   @memoized
   int get hashCode;
 
   @override
-  EntityType get entityType => EntityType.subscription;
+  EntityType get entityType => EntityType.paymentLink;
 
   String get name;
 
@@ -109,6 +123,21 @@ abstract class SubscriptionEntity extends Object
 
   @BuiltValueField(wireName: 'recurring_product_ids')
   String get recurringProductIds;
+
+  @BuiltValueField(wireName: 'optional_product_ids')
+  String get optionalProductIds;
+
+  @BuiltValueField(wireName: 'optional_recurring_product_ids')
+  String get optionalRecurringProductIds;
+
+  @BuiltValueField(wireName: 'registration_required')
+  bool get registrationRequired;
+
+  @BuiltValueField(wireName: 'use_inventory_management')
+  bool get useInventoryManagement;
+
+  @BuiltValueField(wireName: 'remaining_cycles')
+  int? get remainingCycles;
 
   @BuiltValueField(wireName: 'frequency_id')
   String get frequencyId;
@@ -157,19 +186,22 @@ abstract class SubscriptionEntity extends Object
   @BuiltValueField(wireName: 'purchase_page')
   String get purchasePage;
 
+  String get steps;
+
   String get displayName => id;
 
   @override
-  List<EntityAction> getActions(
-      {UserCompanyEntity userCompany,
-      ClientEntity client,
-      bool includeEdit = false,
-      bool includePreview = false,
-      bool multiselect = false}) {
-    final actions = <EntityAction>[];
+  List<EntityAction?> getActions({
+    UserCompanyEntity? userCompany,
+    ClientEntity? client,
+    bool includeEdit = false,
+    bool includePreview = false,
+    bool multiselect = false,
+  }) {
+    final actions = <EntityAction?>[];
 
-    if (!isDeleted) {
-      if (!multiselect && includeEdit && userCompany.canEditEntity(this)) {
+    if (!isDeleted!) {
+      if (!multiselect && includeEdit && userCompany!.canEditEntity(this)) {
         actions.add(EntityAction.edit);
       }
     }
@@ -182,22 +214,25 @@ abstract class SubscriptionEntity extends Object
   }
 
   int compareTo(
-      SubscriptionEntity subscription, String sortField, bool sortAscending) {
+    SubscriptionEntity? subscription,
+    String sortField,
+    bool sortAscending,
+  ) {
     int response = 0;
     final subscriptionA = sortAscending ? this : subscription;
     final subscriptionB = sortAscending ? subscription : this;
 
     switch (sortField) {
       case SubscriptionFields.name:
-        response = subscriptionA.displayName
-            .toLowerCase()
-            .compareTo(subscriptionB.displayName.toLowerCase());
+        response = subscriptionA!.displayName.toLowerCase().compareTo(
+          subscriptionB!.displayName.toLowerCase(),
+        );
         break;
       case SubscriptionFields.createdAt:
-        response = subscriptionA.createdAt.compareTo(subscriptionB.createdAt);
+        response = subscriptionA!.createdAt.compareTo(subscriptionB!.createdAt);
         break;
       case SubscriptionFields.updatedAt:
-        response = subscriptionA.updatedAt.compareTo(subscriptionB.updatedAt);
+        response = subscriptionA!.updatedAt.compareTo(subscriptionB!.updatedAt);
         break;
       default:
         print('## ERROR: sort by subscription.$sortField is not implemented');
@@ -206,40 +241,39 @@ abstract class SubscriptionEntity extends Object
 
     if (response == 0) {
       // STARTER: sort default - do not remove comment
-      return subscriptionA.createdAt.compareTo(subscriptionB.createdAt);
+      return subscriptionA!.createdAt.compareTo(subscriptionB!.createdAt);
     } else {
       return response;
     }
   }
 
   @override
-  bool matchesFilter(String filter) {
-    return matchesStrings(
-      haystacks: [
-        name,
-      ],
-      needle: filter,
-    );
+  bool matchesFilter(String? filter) {
+    return matchesStrings(haystacks: [name], needle: filter);
   }
 
   @override
-  String matchesFilterValue(String filter) {
-    return matchesStringsValue(
-      haystacks: [
-        name,
-      ],
-      needle: filter,
-    );
+  String? matchesFilterValue(String? filter) {
+    return matchesStringsValue(haystacks: [name], needle: filter);
   }
 
   @override
   String get listDisplayName => name;
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   @override
-  FormatNumberType get listDisplayAmountType => null;
+  FormatNumberType? get listDisplayAmountType => null;
+
+  // ignore: unused_element
+  static void _initializeBuilder(SubscriptionEntityBuilder builder) => builder
+    ..optionalProductIds = ''
+    ..optionalRecurringProductIds = ''
+    ..remainingCycles = -1
+    ..registrationRequired = false
+    ..useInventoryManagement = false
+    ..steps = DEFAULT_STEPS;
 
   static Serializer<SubscriptionEntity> get serializer =>
       _$subscriptionEntitySerializer;

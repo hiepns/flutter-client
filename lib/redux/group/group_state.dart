@@ -1,11 +1,16 @@
+// Dart imports:
 import 'dart:async';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:built_collection/built_collection.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/group_model.dart';
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
 
 part 'group_state.g.dart';
@@ -26,7 +31,7 @@ abstract class GroupState implements Built<GroupState, GroupStateBuilder> {
 
   GroupEntity get(String groupId) {
     if (map.containsKey(groupId)) {
-      return map[groupId];
+      return map[groupId]!;
     } else {
       return GroupEntity(id: groupId);
     }
@@ -42,10 +47,12 @@ abstract class GroupState implements Built<GroupState, GroupStateBuilder> {
 abstract class GroupUIState extends Object
     with EntityUIState
     implements Built<GroupUIState, GroupUIStateBuilder> {
-  factory GroupUIState(PrefStateSortField sortField) {
+  factory GroupUIState(PrefStateSortField? sortField) {
     return _$GroupUIState._(
-      listUIState: ListUIState(sortField?.field ?? GroupFields.name,
-          sortAscending: sortField?.ascending),
+      listUIState: ListUIState(
+        sortField?.field ?? GroupFields.name,
+        sortAscending: sortField?.ascending,
+      ),
       editing: GroupEntity(),
       selectedId: '',
       tabIndex: 0,
@@ -58,14 +65,13 @@ abstract class GroupUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  GroupEntity get editing;
+  GroupEntity? get editing;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<GroupUIState> get serializer => _$groupUIStateSerializer;
 }

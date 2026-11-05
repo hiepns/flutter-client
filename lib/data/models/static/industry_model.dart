@@ -1,6 +1,9 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 
 part 'industry_model.g.dart';
@@ -45,10 +48,7 @@ abstract class IndustryEntity extends Object
     with SelectableEntity
     implements Built<IndustryEntity, IndustryEntityBuilder> {
   factory IndustryEntity() {
-    return _$IndustryEntity._(
-      id: '',
-      name: '',
-    );
+    return _$IndustryEntity._(id: '', name: '');
   }
   IndustryEntity._();
 
@@ -59,7 +59,7 @@ abstract class IndustryEntity extends Object
   String get name;
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     if (filter == null || filter.isEmpty) {
       return true;
     }
@@ -74,7 +74,7 @@ abstract class IndustryEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     if (filter == null || filter.isEmpty) {
       return null;
     }
@@ -90,7 +90,7 @@ abstract class IndustryEntity extends Object
   }
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   static Serializer<IndustryEntity> get serializer =>
       _$industryEntitySerializer;

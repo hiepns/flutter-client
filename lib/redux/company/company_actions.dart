@@ -1,17 +1,19 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:http/http.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:invoiceninja_flutter/data/models/company_model.dart';
+
+// Package imports:
+import 'package:http/http.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/client/client_actions.dart';
 
 class SelectCompany implements ClearClientMultiselect {
-  SelectCompany({
-    @required this.companyIndex,
-    this.clearSelection = true,
-  });
+  SelectCompany({required this.companyIndex, this.clearSelection = true});
 
   final int companyIndex;
   final bool clearSelection;
@@ -24,7 +26,7 @@ class LoadCompanySuccess {
 }
 
 class UpdateCompany implements PersistUI {
-  UpdateCompany({@required this.company});
+  UpdateCompany({required this.company});
 
   final CompanyEntity company;
 }
@@ -32,8 +34,8 @@ class UpdateCompany implements PersistUI {
 class SaveCompanyRequest implements StartSaving {
   SaveCompanyRequest({this.completer, this.company});
 
-  final Completer completer;
-  final CompanyEntity company;
+  final Completer? completer;
+  final CompanyEntity? company;
 }
 
 class SaveCompanySuccess implements StopSaving, PersistData, PersistUI {
@@ -48,21 +50,51 @@ class SaveCompanyFailure implements StopSaving {
   final Object error;
 }
 
+class SaveEInvoiceCertificateRequest implements StartSaving {
+  SaveEInvoiceCertificateRequest({
+    required this.completer,
+    required this.company,
+    required this.eInvoiceCertificate,
+  });
+
+  final Completer completer;
+  final CompanyEntity company;
+  final MultipartFile eInvoiceCertificate;
+}
+
+class SaveEInvoiceCertificateSuccess
+    implements StopSaving, PersistData, PersistUI {
+  SaveEInvoiceCertificateSuccess(this.company);
+
+  final CompanyEntity company;
+}
+
+class SaveEInvoiceCertificateFailure implements StopSaving {
+  SaveEInvoiceCertificateFailure(this.error);
+
+  final Object error;
+}
+
 class AddCompany implements StartSaving {
   AddCompany({this.context, this.completer});
 
-  final BuildContext context;
-  final Completer completer;
+  final BuildContext? context;
+  final Completer? completer;
 }
 
 class AddCompanySuccess implements StopSaving {}
 
+class AddCompanyFailure implements StopSaving {
+  const AddCompanyFailure(this.error);
+  final Object error;
+}
+
 class DeleteCompanyRequest implements StartSaving {
   DeleteCompanyRequest({
-    @required this.completer,
-    @required this.password,
-    @required this.idToken,
-    @required this.reason,
+    required this.completer,
+    required this.password,
+    required this.idToken,
+    required this.reason,
   });
 
   final Completer completer;
@@ -81,9 +113,9 @@ class DeleteCompanyFailure implements StopSaving {
 
 class PurgeDataRequest implements StartSaving {
   PurgeDataRequest({
-    @required this.completer,
-    @required this.password,
-    @required this.idToken,
+    required this.completer,
+    required this.password,
+    required this.idToken,
   });
 
   final Completer completer;
@@ -104,17 +136,19 @@ class PurgeDataFailure implements StopSaving {
 class UpdateCompanyLanguage {
   UpdateCompanyLanguage({this.languageId});
 
-  final String languageId;
+  final String? languageId;
 }
 
 class SaveCompanyDocumentRequest implements StartSaving {
   SaveCompanyDocumentRequest({
-    @required this.completer,
-    @required this.multipartFile,
+    required this.isPrivate,
+    required this.completer,
+    required this.multipartFiles,
   });
 
+  final bool isPrivate;
   final Completer completer;
-  final MultipartFile multipartFile;
+  final List<MultipartFile> multipartFiles;
 }
 
 class SaveCompanyDocumentSuccess implements StopSaving, PersistData, PersistUI {
@@ -130,9 +164,7 @@ class SaveCompanyDocumentFailure implements StopSaving {
 }
 
 class SetDefaultCompanyRequest implements StartSaving {
-  SetDefaultCompanyRequest({
-    @required this.completer,
-  });
+  SetDefaultCompanyRequest({required this.completer});
 
   final Completer completer;
 }

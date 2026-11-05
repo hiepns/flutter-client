@@ -1,7 +1,13 @@
+// Dart imports:
 import 'dart:async';
 
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/ui/app/entity_dropdown.dart';
@@ -10,7 +16,7 @@ import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class DynamicSelector extends StatelessWidget {
   const DynamicSelector({
-    Key key,
+    Key? key,
     this.entityId,
     this.entityType,
     this.entityIds,
@@ -22,15 +28,15 @@ class DynamicSelector extends StatelessWidget {
     this.labelText,
   }) : super(key: key);
 
-  final String labelText;
+  final String? labelText;
   final bool allowClearing;
-  final String entityId;
-  final List<String> entityIds;
-  final EntityType entityType;
-  final Function(String) onChanged;
-  final Function(BaseEntity) overrideSuggestedAmount;
-  final Function(BaseEntity) overrideSuggestedLabel;
-  final Function(Completer<SelectableEntity> completer) onAddPressed;
+  final String? entityId;
+  final List<String?>? entityIds;
+  final EntityType? entityType;
+  final Function(String)? onChanged;
+  final Function(SelectableEntity)? overrideSuggestedAmount;
+  final Function(SelectableEntity?)? overrideSuggestedLabel;
+  final Function(Completer<SelectableEntity> completer)? onAddPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -42,27 +48,30 @@ class DynamicSelector extends StatelessWidget {
       return SizedBox();
     }
 
-    if (entityIds.length < 10) {
+    if (entityIds!.length < 10) {
       return AppDropdownButton(
-        labelText: labelText ?? localization.lookup('$entityType'),
+        labelText: labelText ?? localization!.lookup('$entityType'),
         value: entityId,
         showBlank: allowClearing,
-        onChanged: (dynamic entityId) => onChanged(entityId),
-        items: entityIds
-            .map((entityId) => DropdownMenuItem(
-                  child: Text(overrideSuggestedLabel != null
-                      ? overrideSuggestedLabel(entityMap[entityId])
-                      : entityMap[entityId]?.listDisplayName ?? ''),
-                  value: entityId,
-                ))
+        onChanged: (dynamic entityId) => onChanged!(entityId),
+        items: entityIds!
+            .map(
+              (entityId) => DropdownMenuItem(
+                child: Text(
+                  overrideSuggestedLabel != null
+                      ? overrideSuggestedLabel!(entityMap![entityId])
+                      : entityMap![entityId]?.listDisplayName ?? '',
+                ),
+                value: entityId,
+              ),
+            )
             .toList(),
       );
     } else {
       return EntityDropdown(
-        key: ValueKey('__entity_id_${entityId}__'),
-        labelText: labelText ?? localization.lookup('$entityType'),
+        labelText: labelText ?? localization!.lookup('$entityType'),
         entityType: entityType,
-        onSelected: (entity) => onChanged(entity?.id),
+        onSelected: (entity) => onChanged!(entity?.id ?? ''),
         onAddPressed: onAddPressed,
         entityId: entityId,
         entityList: entityIds,

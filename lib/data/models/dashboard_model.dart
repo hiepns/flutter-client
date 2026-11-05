@@ -1,7 +1,11 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/redux/dashboard/dashboard_state.dart';
+import 'package:invoiceninja_flutter/utils/strings.dart';
 
 part 'dashboard_model.g.dart';
 
@@ -12,15 +16,19 @@ class DateRange extends EnumClass {
 
   static const DateRange last7Days = _$last7Days;
   static const DateRange last30Days = _$last30Days;
+  static const DateRange last365Days = _$last365Days;
   static const DateRange thisMonth = _$thisMonth;
   static const DateRange lastMonth = _$lastMonth;
   static const DateRange thisQuarter = _$thisQuarter;
   static const DateRange lastQuarter = _$lastQuarter;
   static const DateRange thisYear = _$thisYear;
   static const DateRange lastYear = _$lastYear;
+  static const DateRange allTime = _$allTime;
   static const DateRange custom = _$custom;
 
   static BuiltSet<DateRange> get values => _$values;
+
+  String get snakeCase => toSnakeCase(toString());
 
   static DateRange valueOf(String name) => _$valueOf(name);
 }
@@ -41,13 +49,13 @@ class DateRangeComparison extends EnumClass {
 }
 
 class DashboardSettings {
-  DateRange dateRange;
-  String startDate;
-  String endDate;
-  bool enableComparison;
-  DateRangeComparison compareDateRange;
-  String compareStartDate;
-  String compareEndDate;
+  DateRange? dateRange;
+  String? startDate;
+  String? endDate;
+  bool? enableComparison;
+  DateRangeComparison? compareDateRange;
+  String? compareStartDate;
+  String? compareEndDate;
 
   static DashboardSettings fromState(DashboardUIState state) {
     final settings = state.settings;

@@ -1,16 +1,22 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:http/http.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
+import 'package:redux/redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/group_model.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:invoiceninja_flutter/redux/document/document_actions.dart';
 import 'package:invoiceninja_flutter/redux/group/group_actions.dart';
 import 'package:invoiceninja_flutter/redux/ui/ui_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/dialogs/error_dialog.dart';
@@ -18,13 +24,9 @@ import 'package:invoiceninja_flutter/ui/group/group_screen.dart';
 import 'package:invoiceninja_flutter/ui/group/view/group_view.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:redux/redux.dart';
 
 class GroupViewScreen extends StatelessWidget {
-  const GroupViewScreen({
-    Key key,
-    this.isFilter = false,
-  }) : super(key: key);
+  const GroupViewScreen({Key? key, this.isFilter = false}) : super(key: key);
   final bool isFilter;
   static const String route = '/$kSettings/$kSettingsGroupSettingsView';
 
@@ -35,10 +37,7 @@ class GroupViewScreen extends StatelessWidget {
         return GroupViewVM.fromStore(store);
       },
       builder: (context, vm) {
-        return GroupView(
-          viewModel: vm,
-          isFilter: isFilter,
-        );
+        return GroupView(viewModel: vm, isFilter: isFilter);
       },
     );
   }
@@ -46,28 +45,29 @@ class GroupViewScreen extends StatelessWidget {
 
 class GroupViewVM {
   GroupViewVM({
-    @required this.state,
-    @required this.group,
-    @required this.company,
-    @required this.onEntityAction,
-    @required this.onBackPressed,
-    @required this.onClientsPressed,
-    @required this.onRefreshed,
-    @required this.isSaving,
-    @required this.isLoading,
-    @required this.isDirty,
-    @required this.onUploadDocument,
-    @required this.onDeleteDocument,
+    required this.state,
+    required this.group,
+    required this.company,
+    required this.onEntityAction,
+    required this.onBackPressed,
+    required this.onClientsPressed,
+    required this.onRefreshed,
+    required this.isSaving,
+    required this.isLoading,
+    required this.isDirty,
+    required this.onUploadDocuments,
   });
 
   factory GroupViewVM.fromStore(Store<AppState> store) {
     final state = store.state;
-    final group = state.groupState.map[state.groupUIState.selectedId] ??
+    final group =
+        state.groupState.map[state.groupUIState.selectedId] ??
         GroupEntity(id: state.groupUIState.selectedId);
 
     Future<Null> _handleRefresh(BuildContext context) {
       final completer = snackBarCompleter<Null>(
-          context, AppLocalization.of(context).refreshComplete);
+        AppLocalization.of(context)!.refreshComplete,
+      );
       store.dispatch(LoadGroup(completer: completer, groupId: group.id));
       return completer.future;
     }
@@ -90,48 +90,54 @@ class GroupViewVM {
           handleGroupAction(context, [group], EntityAction.newClient);
         } else {
           viewEntitiesByType(
-              entityType: EntityType.client, filterEntity: group);
+            entityType: EntityType.client,
+            filterEntity: group,
+          );
         }
       },
-      onUploadDocument: (BuildContext context, MultipartFile multipartFile) {
-        final Completer<DocumentEntity> completer = Completer<DocumentEntity>();
-        store.dispatch(SaveGroupDocumentRequest(
-            multipartFile: multipartFile, group: group, completer: completer));
-        completer.future.then((client) {
-          showToast(AppLocalization.of(context).uploadedDocument);
-        }).catchError((Object error) {
-          showDialog<ErrorDialog>(
-              context: context,
-              builder: (BuildContext context) {
-                return ErrorDialog(error);
-              });
-        });
-      },
-      onDeleteDocument: (BuildContext context, DocumentEntity document,
-          String password, String idToken) {
-        final completer = snackBarCompleter<Null>(
-            context, AppLocalization.of(context).deletedDocument);
-        completer.future.then<Null>(
-            (value) => store.dispatch(LoadGroup(groupId: group.id)));
-        store.dispatch(DeleteDocumentRequest(
-          completer: completer,
-          documentIds: [document.id],
-          password: password,
-          idToken: idToken,
-        ));
-      },
+      onUploadDocuments:
+          (
+            BuildContext context,
+            List<MultipartFile> multipartFile,
+            bool isPrivate,
+          ) {
+            final completer = Completer<List<DocumentEntity>>();
+            store.dispatch(
+              SaveGroupDocumentRequest(
+                isPrivate: isPrivate,
+                multipartFiles: multipartFile,
+                group: group,
+                completer: completer,
+              ),
+            );
+            completer.future
+                .then((client) {
+                  showToast(
+                    AppLocalization.of(
+                      navigatorKey.currentContext!,
+                    )!.uploadedDocument,
+                  );
+                })
+                .catchError((Object error) {
+                  showDialog<ErrorDialog>(
+                    context: navigatorKey.currentContext!,
+                    builder: (BuildContext context) {
+                      return ErrorDialog(error);
+                    },
+                  );
+                });
+          },
     );
   }
 
   final AppState state;
   final GroupEntity group;
-  final CompanyEntity company;
+  final CompanyEntity? company;
   final Function(BuildContext, EntityAction) onEntityAction;
   final Function(BuildContext, [bool]) onClientsPressed;
   final Function onBackPressed;
   final Function(BuildContext) onRefreshed;
-  final Function(BuildContext, MultipartFile) onUploadDocument;
-  final Function(BuildContext, DocumentEntity, String, String) onDeleteDocument;
+  final Function(BuildContext, List<MultipartFile>, bool) onUploadDocuments;
   final bool isSaving;
   final bool isLoading;
   final bool isDirty;

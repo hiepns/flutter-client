@@ -1,10 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
-import 'package:invoiceninja_flutter/data/models/client_model.dart';
-import 'package:invoiceninja_flutter/data/models/invoice_model.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/data/models/quote_model.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
@@ -14,12 +16,12 @@ import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class VariablesHelp extends StatefulWidget {
   const VariablesHelp({
-    this.showEmailVariables = false,
     this.showInvoiceAsQuote = false,
+    this.showInvoiceAsInvoices = false,
   });
 
-  final bool showEmailVariables;
   final bool showInvoiceAsQuote;
+  final bool showInvoiceAsInvoices;
 
   @override
   _VariablesHelpState createState() => _VariablesHelpState();
@@ -27,24 +29,23 @@ class VariablesHelp extends StatefulWidget {
 
 class _VariablesHelpState extends State<VariablesHelp>
     with SingleTickerProviderStateMixin {
-  TabController _controller;
+  TabController? _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller =
-        TabController(vsync: this, length: widget.showEmailVariables ? 5 : 4);
+    _controller = TabController(vsync: this, length: 4);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller!.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final store = StoreProvider.of<AppState>(context);
     final state = store.state;
     final company = state.company;
@@ -56,29 +57,42 @@ class _VariablesHelpState extends State<VariablesHelp>
           isScrollable: true,
           tabs: [
             Tab(
-                child: Text(widget.showInvoiceAsQuote
+              child: Text(
+                widget.showInvoiceAsQuote
                     ? localization.quote
-                    : localization.invoice)),
+                    : widget.showInvoiceAsInvoices
+                    ? localization.invoices
+                    : localization.invoice,
+              ),
+            ),
             Tab(child: Text(localization.client)),
             Tab(child: Text(localization.contact)),
             Tab(child: Text(localization.company)),
-            if (widget.showEmailVariables) Tab(child: Text(localization.email)),
           ],
         ),
         SizedBox(
-          height: 400,
+          height: 540,
           child: TabBarView(
             controller: _controller,
             children: [
               _VariableGrid(
                 fields: [
-                  'view_button', // TODO change to email variables
+                  'view_button',
                   'view_url',
                   'payment_button',
                   'payment_url',
                   'created_by_user',
                   'assigned_to_user',
-                  if (widget.showInvoiceAsQuote) ...[
+                  'invoice',
+                  'invoices',
+                  if (widget.showInvoiceAsInvoices) ...[
+                    'invoice_references',
+                    'payment.status',
+                    'invoices.po_number',
+                    'invoices.amount',
+                    'invoices.balance',
+                    'invoices.due_date',
+                  ] else if (widget.showInvoiceAsQuote) ...[
                     QuoteFields.amount,
                     QuoteFields.discount,
                     QuoteFields.date,
@@ -101,6 +115,7 @@ class _VariablesHelpState extends State<VariablesHelp>
                     InvoiceFields.number,
                     InvoiceFields.terms,
                     InvoiceFields.footer,
+                    'payments',
                   ],
                   if (company.hasCustomField(CustomFieldType.invoice1))
                     InvoiceFields.customValue1,
@@ -172,6 +187,8 @@ class _VariablesHelpState extends State<VariablesHelp>
                   CompanyFields.country,
                   CompanyFields.address1,
                   CompanyFields.address2,
+                  CompanyFields.city,
+                  CompanyFields.postalCode,
                   CompanyFields.idNumber,
                   CompanyFields.email,
                   CompanyFields.phone,
@@ -188,7 +205,6 @@ class _VariablesHelpState extends State<VariablesHelp>
                     CompanyFields.custom4,
                 ].map((field) => 'company.$field').toList(),
               ),
-              if (widget.showEmailVariables) SizedBox(),
             ],
           ),
         ),
@@ -200,45 +216,49 @@ class _VariablesHelpState extends State<VariablesHelp>
 class _VariableGrid extends StatelessWidget {
   const _VariableGrid({this.fields});
 
-  final List<String> fields;
+  final List<String>? fields;
 
   @override
   Widget build(BuildContext context) {
-    fields.sort((a, b) => a.compareTo(b));
+    fields!.sort((a, b) => a.compareTo(b));
 
     return Padding(
       padding: const EdgeInsets.only(top: 16),
-      child: LayoutBuilder(builder: (context, constraints) {
-        return GridView.count(
-          //physics: NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.all(6),
-          shrinkWrap: true,
-          primary: true,
-          crossAxisCount: 2,
-          childAspectRatio: ((constraints.maxWidth / 2) - 8) / 50,
-          children: fields
-              .map(
-                (field) => TextButton(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '\$$field',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.start,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return GridView.count(
+            //physics: NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.all(6),
+            shrinkWrap: true,
+            primary: true,
+            crossAxisCount: 2,
+            childAspectRatio: ((constraints.maxWidth / 2) - 8) / 50,
+            children: fields!
+                .map(
+                  (field) => TextButton(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '\$$field',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.start,
+                      ),
                     ),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: '\$$field'));
+                      showToast(
+                        AppLocalization.of(
+                          context,
+                        )!.copiedToClipboard.replaceFirst(':value', '\$$field'),
+                      );
+                    },
                   ),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: '\$$field'));
-                    showToast(AppLocalization.of(context)
-                        .copiedToClipboard
-                        .replaceFirst(':value', '\$$field'));
-                  },
-                ),
-              )
-              .toList(),
-        );
-      }),
+                )
+                .toList(),
+          );
+        },
+      ),
     );
   }
 }

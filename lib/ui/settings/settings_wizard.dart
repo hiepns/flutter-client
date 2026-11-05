@@ -1,22 +1,26 @@
+// Dart imports:
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:built_collection/built_collection.dart';
+// Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
+import 'package:invoiceninja_flutter/data/models/company_model.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/user_model.dart';
 import 'package:invoiceninja_flutter/data/web_client.dart';
-import 'package:invoiceninja_flutter/main_app.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/company/company_actions.dart';
 import 'package:invoiceninja_flutter/redux/settings/settings_actions.dart';
 import 'package:invoiceninja_flutter/redux/static/static_selectors.dart';
-import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
 import 'package:invoiceninja_flutter/ui/app/app_builder.dart';
 import 'package:invoiceninja_flutter/ui/app/entity_dropdown.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/app_form.dart';
@@ -28,26 +32,27 @@ import 'package:invoiceninja_flutter/utils/localization.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
 
 class SettingsWizard extends StatefulWidget {
-  const SettingsWizard({
-    @required this.user,
-  });
+  const SettingsWizard({required this.user, required this.company});
 
-  final UserEntity user;
+  final UserEntity? user;
+  final CompanyEntity? company;
 
   @override
   _SettingsWizardState createState() => _SettingsWizardState();
 }
 
 class _SettingsWizardState extends State<SettingsWizard> {
-  static final GlobalKey<FormState> _formKey =
-      GlobalKey<FormState>(debugLabel: '_settingsWizard');
+  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>(
+    debugLabel: '_settingsWizard',
+  );
   final FocusScopeNode _focusNode = FocusScopeNode();
   final _debouncer = Debouncer(milliseconds: kMillisecondsToDebounceSave);
 
-  bool _autoValidate = false;
   bool _isSaving = false;
+  bool _showLogo = false;
   bool _isSubdomainUnique = false;
   bool _isCheckingSubdomain = false;
+  bool _hasCheckedSubdomain = false;
   String _currencyId = kCurrencyUSDollar;
   String _languageId = kLanguageEnglish;
   final _nameController = TextEditingController();
@@ -62,15 +67,16 @@ class _SettingsWizardState extends State<SettingsWizard> {
   void initState() {
     super.initState();
 
-    _firstNameController.text = widget.user.firstName;
-    _lastNameController.text = widget.user.lastName;
-
     _controllers = [
       _nameController,
       _firstNameController,
       _lastNameController,
       _subdomainController,
     ];
+
+    _firstNameController.text = widget.user!.firstName;
+    _lastNameController.text = widget.user!.lastName;
+    _subdomainController.text = widget.company!.subdomain;
   }
 
   @override
@@ -99,227 +105,233 @@ class _SettingsWizardState extends State<SettingsWizard> {
         return;
       }
 
-      setState(() => _isCheckingSubdomain = true);
+      setState(() {
+        _isCheckingSubdomain = true;
+        _hasCheckedSubdomain = true;
+      });
 
       _webClient
-          .post(url, credentials.token,
-              data: jsonEncode(
-                {'subdomain': subdomain},
-              ))
+          .post(
+            url,
+            credentials.token,
+            data: jsonEncode({'subdomain': subdomain}),
+          )
           .then((dynamic data) {
-        setState(() {
-          _isSubdomainUnique = true;
-          _isCheckingSubdomain = false;
-        });
-      }).catchError((Object error) {
-        setState(() {
-          _isSubdomainUnique = false;
-          _isCheckingSubdomain = false;
-        });
-      });
-    });
-  }
-
-  void _onRefreshPressed() async {
-    final localization = AppLocalization.of(context);
-    final store = StoreProvider.of<AppState>(context);
-    final completer =
-        snackBarCompleter<Null>(context, localization.refreshComplete)
-          ..future.then((value) {
-            setState(() => _isSaving = false);
-            if (store.state.companies.length == 2) {
-              navigatorKey.currentState.pop();
-            } else {
-              showMessageDialog(
-                  context: context,
-                  message: localization.migrationNotYetCompleted);
-            }
-          }).catchError((Object error) {
-            setState(() => _isSaving = false);
+            setState(() {
+              _isSubdomainUnique = true;
+              _isCheckingSubdomain = false;
+            });
+          })
+          .catchError((Object error) {
+            setState(() {
+              _isSubdomainUnique = false;
+              _isCheckingSubdomain = false;
+            });
           });
-
-    store.dispatch(RefreshData(
-      completer: completer,
-      clearData: true,
-      includeStatic: true,
-      allCompanies: true,
-    ));
+    });
   }
 
   void _onSavePressed() {
-    final bool isValid = _formKey.currentState.validate();
-
-    setState(() {
-      _autoValidate = !isValid;
-    });
+    final bool isValid = _formKey.currentState!.validate();
 
     if (!isValid || _isCheckingSubdomain) {
       return;
     }
 
     final store = StoreProvider.of<AppState>(context);
-    final navigator = Navigator.of(context);
     final state = store.state;
 
     passwordCallback(
-        context: context,
-        callback: (password, idToken) {
-          final localization = AppLocalization.of(context);
-          final completer = Completer<Null>();
-          completer.future.then((value) {
-            final toastCompleter =
-                snackBarCompleter<Null>(context, localization.savedSettings);
-            toastCompleter.future
-                .then((value) => navigator.pop())
-                .catchError((Object error) {
+      context: context,
+      callback: (password, idToken) {
+        final localization = AppLocalization.of(context);
+        final completer = Completer<Null>();
+        completer.future
+            .then<Null>((_) {
+              final toastCompleter = snackBarCompleter<Null>(
+                localization!.savedSettings,
+              );
+              toastCompleter.future
+                  .then<Null>((_) {
+                    setState(() {
+                      _isSaving = false;
+                      _showLogo = true;
+                    });
+                  })
+                  .catchError((Object error) {
+                    setState(() {
+                      _isSaving = false;
+                    });
+                  });
+              store.dispatch(
+                SaveCompanyRequest(
+                  completer: toastCompleter,
+                  company: state.company.rebuild(
+                    (b) => b
+                      ..subdomain = _subdomainController.text.trim()
+                      ..settings.name = _nameController.text.trim()
+                      ..settings.currencyId = _currencyId
+                      ..settings.languageId = _languageId,
+                  ),
+                ),
+              );
+            })
+            .catchError((Object error) {
               setState(() => _isSaving = false);
             });
-            store.dispatch(
-              SaveCompanyRequest(
-                completer: toastCompleter,
-                company: state.company.rebuild(
-                  (b) => b
-                    ..subdomain = _subdomainController.text.trim()
-                    ..settings.name = _nameController.text.trim()
-                    ..settings.currencyId = _currencyId
-                    ..settings.languageId = _languageId,
-                ),
-              ),
-            );
-          }).catchError((Object error) {
-            setState(() => _isSaving = false);
-          });
 
-          setState(() => _isSaving = true);
+        setState(() => _isSaving = true);
 
-          if (state.companies.length > 1) {
-            completer.complete();
-          } else {
-            store.dispatch(
-              SaveAuthUserRequest(
-                completer: completer,
-                user: state.user.rebuild((b) => b
+        if (state.companies.length > 1) {
+          completer.complete();
+        } else {
+          store.dispatch(
+            SaveAuthUserRequest(
+              completer: completer,
+              user: state.user.rebuild(
+                (b) => b
                   ..firstName = _firstNameController.text.trim()
-                  ..lastName = _lastNameController.text.trim()),
-                password: password,
-                idToken: idToken,
+                  ..lastName = _lastNameController.text.trim(),
               ),
-            );
-          }
-        });
+              password: password,
+              idToken: idToken,
+            ),
+          );
+        }
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final store = StoreProvider.of<AppState>(context);
     final state = store.state;
-    final countCompanies = state.companies.length;
 
     final companyName = DecoratedFormField(
       autofocus: true,
       label: localization.companyName,
-      autovalidate: _autoValidate,
       controller: _nameController,
       validator: (value) =>
           value.isEmpty ? localization.pleaseEnterAValue : null,
+      keyboardType: TextInputType.text,
+      textCapitalization: TextCapitalization.words,
     );
 
     final firstName = DecoratedFormField(
       label: localization.firstName,
-      autovalidate: _autoValidate,
       controller: _firstNameController,
+      keyboardType: TextInputType.text,
+      textCapitalization: TextCapitalization.words,
+      autofillHints: [AutofillHints.givenName],
       validator: (value) =>
           value.isEmpty ? localization.pleaseEnterAValue : null,
     );
 
     final lastName = DecoratedFormField(
       label: localization.lastName,
-      autovalidate: _autoValidate,
       controller: _lastNameController,
+      keyboardType: TextInputType.text,
+      textCapitalization: TextCapitalization.words,
+      autofillHints: [AutofillHints.familyName],
       validator: (value) =>
           value.isEmpty ? localization.pleaseEnterAValue : null,
     );
 
     final currency = EntityDropdown(
-      key: ValueKey('__currency_${_currencyId}__'),
       entityType: EntityType.currency,
       entityList: memoizedCurrencyList(state.staticState.currencyMap),
       labelText: localization.currency,
       entityId: _currencyId,
-      onSelected: (SelectableEntity currency) =>
-          setState(() => _currencyId = currency?.id),
+      onSelected: (SelectableEntity? currency) =>
+          setState(() => _currencyId = currency?.id ?? ''),
       validator: (dynamic value) =>
           value.isEmpty ? localization.pleaseEnterAValue : null,
     );
 
     final language = EntityDropdown(
-      key: ValueKey('__language_${_languageId}__'),
       entityType: EntityType.language,
       entityList: memoizedLanguageList(state.staticState.languageMap),
       labelText: localization.language,
       entityId: _languageId,
-      onSelected: (SelectableEntity language) {
-        setState(() => _languageId = language?.id);
+      onSelected: (SelectableEntity? language) {
+        setState(() => _languageId = language?.id ?? '');
         store.dispatch(UpdateCompanyLanguage(languageId: language?.id));
-        AppBuilder.of(context).rebuild();
+        AppBuilder.of(context)!.rebuild();
       },
       validator: (dynamic value) =>
           value.isEmpty ? localization.pleaseEnterAValue : null,
     );
 
-    final darkMode = LayoutBuilder(builder: (context, constraints) {
-      return ToggleButtons(
-        children: [
-          Text(localization.light),
-          Text(localization.dark),
-        ],
-        constraints: BoxConstraints.expand(
-            width: (constraints.maxWidth / 2) - 2, height: 40),
-        isSelected: [
-          !state.prefState.enableDarkMode,
-          state.prefState.enableDarkMode,
-        ],
-        onPressed: (index) {
-          final isDark = index == 1;
-          store.dispatch(
-            UpdateUserPreferences(
-              enableDarkMode: isDark,
-              colorTheme: isDark ? kColorThemeDark : kColorThemeLight,
-              customColors: isDark
-                  ? BuiltMap<String, String>()
-                  : BuiltMap<String, String>(PrefState.CONTRAST_COLORS),
-            ),
-          );
-          AppBuilder.of(context).rebuild();
-        },
-      );
-    });
+    final darkMode = LayoutBuilder(
+      builder: (context, constraints) {
+        return ToggleButtons(
+          children: [
+            Text(localization.system),
+            Text(localization.light),
+            Text(localization.dark),
+          ],
+          constraints: BoxConstraints.expand(
+            width: (constraints.maxWidth / 3) - 2,
+            height: 40,
+          ),
+          isSelected: [
+            state.prefState.darkModeType == kBrightnessSytem,
+            state.prefState.darkModeType == kBrightnessLight,
+            state.prefState.darkModeType == kBrightnessDark,
+          ],
+          onPressed: (index) {
+            store.dispatch(
+              UpdateUserPreferences(
+                darkModeType: index == 0
+                    ? kBrightnessSytem
+                    : index == 1
+                    ? kBrightnessLight
+                    : kBrightnessDark,
+              ),
+            );
+            AppBuilder.of(context)!.rebuild();
+          },
+        );
+      },
+    );
 
     final subdomain = DecoratedFormField(
       label: localization.subdomain,
-      autovalidate: _autoValidate,
       controller: _subdomainController,
+      keyboardType: TextInputType.text,
       validator: (value) {
         if (value.isEmpty) {
           return localization.pleaseEnterAValue;
-        } else if (!_isCheckingSubdomain && !_isSubdomainUnique) {
+        } else if (_hasCheckedSubdomain &&
+            !_isCheckingSubdomain &&
+            !_isSubdomainUnique) {
           return localization.subdomainIsNotAvailable;
         }
 
         return null;
       },
-      suffixIcon: Icon(_isCheckingSubdomain
-          ? Icons.pending_outlined
-          : _isSubdomainUnique
-              ? Icons.check_circle_outline
-              : Icons.error_outline),
+      suffixIcon: Icon(
+        _isCheckingSubdomain
+            ? Icons.pending_outlined
+            : _isSubdomainUnique
+            ? Icons.check_circle_outline
+            : Icons.error_outline,
+      ),
       onChanged: (value) => _validateSubdomain(),
       hint: localization.subdomainHelp,
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'[a-z0-9\-]')),
       ],
     );
+
+    var showNameFields = true;
+    if (state.companies.length > 1 && kReleaseMode) {
+      showNameFields = false;
+    }
+    if (state.user.isConnectedToApple && state.user.fullName.isEmpty) {
+      showNameFields = false;
+    }
 
     return AlertDialog(
       content: AppForm(
@@ -329,8 +341,17 @@ class _SettingsWizardState extends State<SettingsWizard> {
           child: Container(
             width: 500,
             child: _isSaving
-                ? LoadingIndicator(
-                    height: 200,
+                ? LoadingIndicator(height: 200)
+                : _showLogo
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 32),
+                      child: Text(
+                        localization.setupWizardLogo,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,15 +362,12 @@ class _SettingsWizardState extends State<SettingsWizard> {
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Text(
                                 localization.welcomeToInvoiceNinja,
-                                style: Theme.of(context).textTheme.headline6,
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
                             ),
                             companyName,
                             if (state.isHosted) subdomain,
-                            if (state.companies.length == 1) ...[
-                              firstName,
-                              lastName,
-                            ],
+                            if (showNameFields) ...[firstName, lastName],
                             language,
                             currency,
                             SizedBox(height: 16),
@@ -358,20 +376,23 @@ class _SettingsWizardState extends State<SettingsWizard> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 32),
                                 child: Text(localization.subdomainGuide),
-                              )
+                              ),
                           ]
                         : [
                             Row(
                               children: [
                                 Expanded(
-                                    child: Text(
-                                  localization.welcomeToInvoiceNinja,
-                                  style: Theme.of(context).textTheme.headline6,
-                                )),
+                                  child: Text(
+                                    localization.welcomeToInvoiceNinja,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleLarge,
+                                  ),
+                                ),
                                 if (state.isHosted) ...[
                                   SizedBox(width: kTableColumnGap),
                                   Flexible(child: darkMode),
-                                ]
+                                ],
                               ],
                             ),
                             SizedBox(height: 16),
@@ -380,11 +401,11 @@ class _SettingsWizardState extends State<SettingsWizard> {
                                 Expanded(child: companyName),
                                 SizedBox(width: kTableColumnGap),
                                 Expanded(
-                                    child:
-                                        state.isHosted ? subdomain : darkMode),
+                                  child: state.isHosted ? subdomain : darkMode,
+                                ),
                               ],
                             ),
-                            if (state.companies.length == 1)
+                            if (showNameFields)
                               Row(
                                 children: [
                                   Expanded(child: firstName),
@@ -415,16 +436,22 @@ class _SettingsWizardState extends State<SettingsWizard> {
             onPressed: () => Navigator.of(context).pop(),
             child: Text(localization.close.toUpperCase()),
           ),
-          if (countCompanies == 1)
+          if (_showLogo)
             TextButton(
-              onPressed: _onRefreshPressed,
-              child: Text(localization.refresh.toUpperCase()),
+              onPressed: () {
+                store.dispatch(
+                  ViewSettings(section: kSettingsCompanyDetails, tabIndex: 2),
+                );
+                Navigator.of(context).pop();
+              },
+              child: Text(localization.upload.toUpperCase()),
+            )
+          else
+            TextButton(
+              onPressed: _onSavePressed,
+              child: Text(localization.save.toUpperCase()),
             ),
-          TextButton(
-            onPressed: _onSavePressed,
-            child: Text(localization.save.toUpperCase()),
-          ),
-        ]
+        ],
       ],
     );
   }

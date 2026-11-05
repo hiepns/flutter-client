@@ -1,6 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:invoiceninja_flutter/utils/localization.dart';
+
+// Package imports:
 import 'package:pointer_interceptor/pointer_interceptor.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class MessageDialog extends StatelessWidget {
   const MessageDialog(
@@ -11,11 +16,11 @@ class MessageDialog extends StatelessWidget {
     this.secondaryActions,
   });
 
-  final String message;
-  final String dismissLabel;
-  final List<TextButton> secondaryActions;
-  final Function onDismiss;
-  final Function onDiscard;
+  final String? message;
+  final String? dismissLabel;
+  final List<TextButton>? secondaryActions;
+  final Function? onDismiss;
+  final Function? onDiscard;
 
   @override
   Widget build(BuildContext context) {
@@ -34,8 +39,8 @@ class MessageDialog extends StatelessWidget {
                   children: <Widget>[
                     SizedBox(height: 20.0),
                     Text(
-                      message,
-                      style: Theme.of(context).textTheme.headline6,
+                      message!,
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
                     SizedBox(height: 40.0),
                     Row(
@@ -43,11 +48,13 @@ class MessageDialog extends StatelessWidget {
                       children: <Widget>[
                         if (secondaryActions != null)
                           Row(
-                            children: secondaryActions
-                                .map((action) => Padding(
-                                      padding: const EdgeInsets.only(right: 16),
-                                      child: action,
-                                    ))
+                            children: secondaryActions!
+                                .map(
+                                  (action) => Padding(
+                                    padding: const EdgeInsets.only(right: 16),
+                                    child: action,
+                                  ),
+                                )
                                 .toList(),
                           ),
                         Padding(
@@ -56,22 +63,26 @@ class MessageDialog extends StatelessWidget {
                             onPressed: () {
                               Navigator.of(context).pop();
                               if (onDismiss != null) {
-                                onDismiss();
+                                onDismiss!();
                               }
                             },
-                            child: Text((dismissLabel ?? localization.dismiss)
-                                .toUpperCase()),
+                            child: Text(
+                              (dismissLabel ?? localization!.dismiss)
+                                  .toUpperCase(),
+                            ),
                           ),
                         ),
                         if (onDiscard != null)
                           TextButton(
-                              autofocus: true,
-                              child: Text(
-                                  localization.discardChanges.toUpperCase()),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                                onDiscard();
-                              }),
+                            autofocus: true,
+                            child: Text(
+                              localization!.discardChanges.toUpperCase(),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              onDiscard!();
+                            },
+                          ),
                       ],
                     ),
                   ],

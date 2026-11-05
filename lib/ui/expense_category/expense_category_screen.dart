@@ -1,24 +1,26 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/expense_category/expense_category_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/app_bottom_bar.dart';
-import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/app/list_filter.dart';
+import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/expense_category/expense_category_list_vm.dart';
 import 'package:invoiceninja_flutter/ui/expense_category/expense_category_presenter.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-
 import 'expense_category_screen_vm.dart';
 
 class ExpenseCategoryScreen extends StatelessWidget {
-  const ExpenseCategoryScreen({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const ExpenseCategoryScreen({Key? key, required this.viewModel})
+    : super(key: key);
 
   static const String route = '/$kSettings/$kSettingsExpenseCategories';
 
@@ -45,27 +47,29 @@ class ExpenseCategoryScreen extends StatelessWidget {
       },
       appBarTitle: ListFilter(
         key: ValueKey(
-            '__filter_${state.expenseCategoryListState.filterClearedAt}__'),
+          '__filter_${state.expenseCategoryListState.filterClearedAt}__',
+        ),
         entityType: EntityType.expenseCategory,
         entityIds: viewModel.expenseCategoryList,
         filter: state.expenseCategoryListState.filter,
         onFilterChanged: (value) {
           store.dispatch(FilterExpenseCategories(value));
         },
+        onSelectedState: (EntityState state, value) {
+          store.dispatch(FilterExpenseCategoriesByState(state));
+        },
       ),
       body: ExpenseCategoryListBuilder(),
       bottomNavigationBar: AppBottomBar(
         entityType: EntityType.expenseCategory,
         tableColumns: ExpenseCategoryPresenter.getAllTableFields(userCompany),
-        defaultTableColumns:
-            ExpenseCategoryPresenter.getDefaultTableFields(userCompany),
+        defaultTableColumns: ExpenseCategoryPresenter.getDefaultTableFields(
+          userCompany,
+        ),
         onSelectedSortField: (value) {
           store.dispatch(SortExpenseCategories(value));
         },
-        sortFields: [
-          ExpenseCategoryFields.name,
-          EntityFields.updatedAt,
-        ],
+        sortFields: [ExpenseCategoryFields.name, EntityFields.updatedAt],
         onSelectedState: (EntityState state, value) {
           store.dispatch(FilterExpenseCategoriesByState(state));
         },
@@ -85,20 +89,20 @@ class ExpenseCategoryScreen extends StatelessWidget {
         onSelectedCustom4: (value) =>
             store.dispatch(FilterExpenseCategoriesByCustom4(value)),
       ),
-      floatingActionButton: state.prefState.isMenuFloated &&
+      floatingActionButton:
+          state.prefState.isMenuFloated &&
               userCompany.canCreate(EntityType.expenseCategory)
           ? FloatingActionButton(
               heroTag: 'expense_category_fab',
               backgroundColor: Theme.of(context).primaryColorDark,
               onPressed: () {
                 createEntityByType(
-                    context: context, entityType: EntityType.expenseCategory);
+                  context: context,
+                  entityType: EntityType.expenseCategory,
+                );
               },
-              child: Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-              tooltip: localization.newExpenseCategory,
+              child: Icon(Icons.add, color: Colors.white),
+              tooltip: localization!.newExpenseCategory,
             )
           : null,
     );

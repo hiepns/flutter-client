@@ -1,5 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 
 class AppTabBar extends StatelessWidget {
@@ -10,10 +15,10 @@ class AppTabBar extends StatelessWidget {
     this.onTap,
   });
 
-  final List<Widget> tabs;
-  final TabController controller;
+  final List<Widget>? tabs;
+  final TabController? controller;
   final bool isScrollable;
-  final Function(int) onTap;
+  final Function(int)? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +26,10 @@ class AppTabBar extends StatelessWidget {
     final state = store.state;
 
     final tabBar = TabBar(
-      tabs: tabs,
+      tabs: tabs!,
       controller: controller,
       isScrollable: isScrollable,
-      indicatorColor: Theme.of(context).accentColor,
+      indicatorColor: Theme.of(context).colorScheme.secondary,
       onTap: onTap,
     );
 
@@ -32,11 +37,12 @@ class AppTabBar extends StatelessWidget {
       return tabBar;
     }
 
+    final theme = Theme.of(context);
     return Theme(
-      data: ThemeData(
-        tabBarTheme: TabBarTheme(
+      data: theme.copyWith(
+        tabBarTheme: theme.tabBarTheme.copyWith(
           labelColor: Colors.black,
-          unselectedLabelColor: Colors.black.withOpacity(.65),
+          unselectedLabelColor: Colors.black.withValues(alpha: .65),
         ),
       ),
       child: tabBar,

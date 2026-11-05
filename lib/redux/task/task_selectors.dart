@@ -1,123 +1,280 @@
+// Flutter imports:
 import 'package:flutter/widgets.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:invoiceninja_flutter/data/models/group_model.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:invoiceninja_flutter/utils/formatting.dart';
-import 'package:memoize/memoize.dart';
-import 'package:built_collection/built_collection.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
 
-InvoiceItemEntity convertTaskToInvoiceItem(
-    {BuildContext context, TaskEntity task}) {
+// Package imports:
+import 'package:built_collection/built_collection.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:invoiceninja_flutter/utils/localization.dart';
+import 'package:memoize/memoize.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/group_model.dart';
+import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
+import 'package:invoiceninja_flutter/utils/formatting.dart';
+
+InvoiceItemEntity convertTaskToInvoiceItem({
+  required BuildContext context,
+  required TaskEntity task,
+  bool includeProjectHeader = false,
+}) {
   final state = StoreProvider.of<AppState>(context).state;
-  final project = state.projectState.map[task.projectId];
+  final project = state.projectState.get(task.projectId);
   final client = state.clientState.get(task.clientId);
   final group = state.groupState.get(client.groupId);
+  final localization = AppLocalization.of(context)!;
+  final company = state.company;
 
-  var notes = task.description;
-  final dates = <String>{};
+  var notes = '';
+  final dates = <String, double>{};
 
-  if (state.company.invoiceTaskDatelog || state.company.invoiceTaskTimelog) {
-    if (notes.trim().isNotEmpty) {
-      notes += '\n\n';
+  var lineBreak = '';
+  if (company.markdownEnabled) {
+    lineBreak += '<br/>';
+  }
+  lineBreak += '\n';
+
+  if (company.invoiceTaskProjectHeader &&
+      project.isOld &&
+      includeProjectHeader) {
+    if (state.company.markdownEnabled) {
+      notes += '## ${project.name}\n';
+    } else {
+      notes += '<div class="project-header">${project.name}</div>\n';
     }
+  }
+
+  notes += task.description;
+
+  if (company.invoiceTaskDatelog ||
+      company.invoiceTaskTimelog ||
+      company.invoiceTaskHours) {
+    if (notes.trim().isNotEmpty) {
+      notes += '\n';
+    }
+    notes += '<div class="task-time-details">\n';
+
     task
         .getTaskTimes()
-        .where((time) => time.startDate != null && time.endDate != null)
+        .where(
+          (time) =>
+              time.startDate != null && time.endDate != null && time.isBillable,
+        )
         .forEach((time) {
-      if (state.company.invoiceTaskDatelog &&
-          state.company.invoiceTaskTimelog) {
-        final start = formatDate(time.startDate.toIso8601String(), context,
-            showTime: true);
-        final end = formatDate(time.endDate.toIso8601String(), context,
-            showTime: true, showDate: false, showSeconds: true);
-        notes += '### $start - $end\n';
-      } else if (state.company.invoiceTaskDatelog) {
-        final date = formatDate(time.startDate.toIso8601String(), context,
-            showTime: false);
-        dates.add(date);
-      } else {
-        final start = formatDate(time.startDate.toIso8601String(), context,
-            showTime: true, showDate: false);
-        final end = formatDate(time.endDate.toIso8601String(), context,
-            showTime: true, showDate: false, showSeconds: true);
-        notes += '### $start - $end\n';
-      }
-    });
+          final hours = round(time.duration.inSeconds / 3600, 3);
+          final duration = formatNumber(
+            hours,
+            context,
+            formatNumberType: FormatNumberType.double,
+          );
+          final hoursStr = hours == 1
+              ? ' • 1 ${localization.hour}'
+              : ' • $duration ${localization.hours}';
 
-    if (state.company.invoiceTaskDatelog && !state.company.invoiceTaskTimelog) {
-      notes += '\n' + dates.join('\n');
+          if (company.invoiceTaskDatelog && company.invoiceTaskTimelog) {
+            final start = formatDate(
+              time.startDate!.toIso8601String(),
+              context,
+              showTime: true,
+            );
+            final end = formatDate(
+              time.endDate!.toIso8601String(),
+              context,
+              showTime: true,
+              showDate: false,
+              showSeconds: true,
+            );
+            notes += '$start - $end';
+            if (company.invoiceTaskHours) {
+              notes += hoursStr;
+            }
+            notes += lineBreak;
+            if (time.description.isNotEmpty &&
+                company.invoiceTaskItemDescription) {
+              notes += time.description + lineBreak;
+            }
+          } else if (company.invoiceTaskDatelog) {
+            final date = formatDate(
+              time.startDate!.toIso8601String(),
+              context,
+              showTime: false,
+            );
+            if (dates.containsKey(date)) {
+              dates[date] = dates[date]! + hours;
+            } else {
+              dates[date] = hours;
+            }
+          } else if (company.invoiceTaskTimelog) {
+            final start = formatDate(
+              time.startDate!.toIso8601String(),
+              context,
+              showTime: true,
+              showDate: false,
+            );
+            final end = formatDate(
+              time.endDate!.toIso8601String(),
+              context,
+              showTime: true,
+              showDate: false,
+              showSeconds: true,
+            );
+            notes += '$start - $end';
+            if (company.invoiceTaskHours) {
+              notes += hoursStr;
+            }
+            notes += lineBreak;
+            if (time.description.isNotEmpty &&
+                company.invoiceTaskItemDescription) {
+              notes += time.description + lineBreak;
+            }
+          }
+        });
+
+    if (company.invoiceTaskDatelog && !company.invoiceTaskTimelog) {
+      final sortedDates = dates.keys.toList()..sort((a, b) => b.compareTo(a));
+      final datesStr = <String>[];
+      for (var date in sortedDates) {
+        if (company.invoiceTaskHours) {
+          final hours = round(dates[date], 3);
+          final duration = formatNumber(
+            hours,
+            context,
+            formatNumberType: FormatNumberType.double,
+          );
+          final hoursStr = hours == 1
+              ? ' • 1 ${localization.hour}'
+              : ' • $duration ${localization.hours}';
+
+          datesStr.add(date + hoursStr);
+        } else {
+          datesStr.add(date);
+        }
+      }
+
+      if (company.markdownEnabled) {
+        notes += datesStr.join('<br/>\n');
+      } else {
+        notes += datesStr.join('\n');
+      }
     }
 
+    notes += '</div>\n';
     notes = notes.trim();
   }
 
-  return InvoiceItemEntity().rebuild((b) => b
-    ..typeId = InvoiceItemEntity.TYPE_TASK
-    ..taskId = task.id
-    ..notes = notes
-    ..cost = taskRateSelector(
-      company: state.company,
-      project: project,
-      client: client,
-      task: task,
-      group: group,
-    )
-    ..quantity = round(task.calculateDuration().inSeconds / 3600, 3)
-    ..customValue1 = task.customValue1
-    ..customValue2 = task.customValue2
-    ..customValue3 = task.customValue3
-    ..customValue4 = task.customValue4);
+  String? customValue1 = '';
+  String? customValue2 = '';
+  String? customValue3 = '';
+  String? customValue4 = '';
+
+  final fieldLabel1 = company.getCustomFieldLabel(CustomFieldType.task1);
+  final fieldLabel2 = company.getCustomFieldLabel(CustomFieldType.task2);
+  final fieldLabel3 = company.getCustomFieldLabel(CustomFieldType.task3);
+  final fieldLabel4 = company.getCustomFieldLabel(CustomFieldType.task4);
+
+  final customValues = {
+    company.getCustomFieldLabel(CustomFieldType.task1): task.customValue1,
+    company.getCustomFieldLabel(CustomFieldType.task2): task.customValue2,
+    company.getCustomFieldLabel(CustomFieldType.task3): task.customValue3,
+    company.getCustomFieldLabel(CustomFieldType.task4): task.customValue4,
+    localization.project: state.projectState.get(task.projectId).name,
+  };
+
+  for (var label in customValues.keys) {
+    final value = customValues[label];
+    if (fieldLabel1.toLowerCase() == label.toLowerCase()) {
+      customValue1 = value;
+    } else if (fieldLabel2.toLowerCase() == label.toLowerCase()) {
+      customValue2 = value;
+    } else if (fieldLabel3.toLowerCase() == label.toLowerCase()) {
+      customValue3 = value;
+    } else if (fieldLabel4.toLowerCase() == label.toLowerCase()) {
+      customValue4 = value;
+    }
+  }
+
+  return InvoiceItemEntity().rebuild(
+    (b) => b
+      ..typeId = InvoiceItemEntity.TYPE_TASK
+      ..taskId = task.id
+      ..productKey =
+          company.invoiceTaskProject && !company.invoiceTaskProjectHeader
+          ? project.name
+          : ''
+      ..notes = notes
+      ..cost = taskRateSelector(
+        company: company,
+        project: project,
+        client: client,
+        task: task,
+        group: group,
+      )
+      ..quantity = round(
+        task.calculateDuration(onlyBillable: true).inSeconds / 3600,
+        3,
+      )
+      ..customValue1 = customValue1
+      ..customValue2 = customValue2
+      ..customValue3 = customValue3
+      ..customValue4 = customValue4,
+  );
 }
 
-var memoizedTaskList = memo5((BuiltMap<String, TaskEntity> taskMap,
-        String clientId,
-        BuiltMap<String, UserEntity> userMap,
-        BuiltMap<String, ClientEntity> clientMap,
-        BuiltMap<String, ProjectEntity> projectMap) =>
-    taskList(taskMap, clientId, userMap, clientMap, projectMap));
-
-List<String> taskList(
+var memoizedTaskList = memo5(
+  (
     BuiltMap<String, TaskEntity> taskMap,
-    String clientId,
+    String? clientId,
     BuiltMap<String, UserEntity> userMap,
     BuiltMap<String, ClientEntity> clientMap,
-    BuiltMap<String, ProjectEntity> projectMap) {
+    BuiltMap<String, ProjectEntity> projectMap,
+  ) => taskList(taskMap, clientId, userMap, clientMap, projectMap),
+);
+
+List<String?> taskList(
+  BuiltMap<String, TaskEntity> taskMap,
+  String? clientId,
+  BuiltMap<String, UserEntity> userMap,
+  BuiltMap<String, ClientEntity> clientMap,
+  BuiltMap<String, ProjectEntity> projectMap,
+) {
   final list = taskMap.keys.where((taskId) {
     final task = taskMap[taskId];
     if ((clientId ?? '').isNotEmpty &&
-        (task.clientId ?? '').isNotEmpty &&
+        task!.clientId.isNotEmpty &&
         task.clientId != clientId) {
       return false;
     }
-    return task.isActive && task.isStopped && !task.isInvoiced;
+    return task!.isActive && task.isStopped && !task.isInvoiced;
   }).toList();
 
-  list.sort((idA, idB) =>
-      taskMap[idA].listDisplayName.compareTo(taskMap[idB].listDisplayName));
+  list.sort(
+    (idA, idB) =>
+        taskMap[idA]!.listDisplayName.compareTo(taskMap[idB]!.listDisplayName),
+  );
 
   return list;
 }
 
-var memoizedDropdownTaskList = memo7((
-  BuiltMap<String, TaskEntity> taskMap,
-  BuiltList<String> taskList,
-  BuiltMap<String, UserEntity> userMap,
-  BuiltMap<String, ClientEntity> clientMap,
-  BuiltMap<String, InvoiceEntity> invoiceMap,
-  BuiltMap<String, ProjectEntity> projectMap,
-  BuiltMap<String, TaskStatusEntity> taskStatusMap,
-) =>
-    dropdownTasksSelector(
-      taskMap,
-      taskList,
-      userMap,
-      clientMap,
-      invoiceMap,
-      projectMap,
-      taskStatusMap,
-    ));
+var memoizedDropdownTaskList = memo7(
+  (
+    BuiltMap<String, TaskEntity> taskMap,
+    BuiltList<String> taskList,
+    BuiltMap<String, UserEntity> userMap,
+    BuiltMap<String, ClientEntity> clientMap,
+    BuiltMap<String, InvoiceEntity> invoiceMap,
+    BuiltMap<String, ProjectEntity> projectMap,
+    BuiltMap<String, TaskStatusEntity> taskStatusMap,
+  ) => dropdownTasksSelector(
+    taskMap,
+    taskList,
+    userMap,
+    clientMap,
+    invoiceMap,
+    projectMap,
+    taskStatusMap,
+  ),
+);
 
 List<String> dropdownTasksSelector(
   BuiltMap<String, TaskEntity> taskMap,
@@ -128,11 +285,11 @@ List<String> dropdownTasksSelector(
   BuiltMap<String, ProjectEntity> projectMap,
   BuiltMap<String, TaskStatusEntity> taskStatusMap,
 ) {
-  final list = taskList.where((taskId) => taskMap[taskId].isActive).toList();
+  final list = taskList.where((taskId) => taskMap[taskId]!.isActive).toList();
 
   list.sort((taskAId, taskBId) {
-    final taskA = taskMap[taskAId];
-    final taskB = taskMap[taskBId];
+    final taskA = taskMap[taskAId]!;
+    final taskB = taskMap[taskBId]!;
     return taskA.compareTo(
       taskB,
       TaskFields.updatedAt,
@@ -148,19 +305,8 @@ List<String> dropdownTasksSelector(
   return list;
 }
 
-var memoizedKanbanTaskList = memo9((SelectionState selectionState,
-        BuiltMap<String, TaskEntity> taskMap,
-        BuiltMap<String, ClientEntity> clientMap,
-        BuiltMap<String, UserEntity> userMap,
-        BuiltMap<String, ProjectEntity> projectMap,
-        BuiltMap<String, InvoiceEntity> invoiceMap,
-        BuiltMap<String, TaskStatusEntity> taskStatusMap,
-        BuiltList<String> taskList,
-        ListUIState taskListState) =>
-    kanbanTasksSelector(selectionState, taskMap, clientMap, userMap, projectMap,
-        invoiceMap, taskStatusMap, taskList, taskListState));
-
-List<String> kanbanTasksSelector(
+var memoizedKanbanTaskList = memo9(
+  (
     SelectionState selectionState,
     BuiltMap<String, TaskEntity> taskMap,
     BuiltMap<String, ClientEntity> clientMap,
@@ -169,12 +315,36 @@ List<String> kanbanTasksSelector(
     BuiltMap<String, InvoiceEntity> invoiceMap,
     BuiltMap<String, TaskStatusEntity> taskStatusMap,
     BuiltList<String> taskList,
-    ListUIState taskListState) {
+    ListUIState taskListState,
+  ) => kanbanTasksSelector(
+    selectionState,
+    taskMap,
+    clientMap,
+    userMap,
+    projectMap,
+    invoiceMap,
+    taskStatusMap,
+    taskList,
+    taskListState,
+  ),
+);
+
+List<String> kanbanTasksSelector(
+  SelectionState selectionState,
+  BuiltMap<String, TaskEntity> taskMap,
+  BuiltMap<String, ClientEntity> clientMap,
+  BuiltMap<String, UserEntity> userMap,
+  BuiltMap<String, ProjectEntity> projectMap,
+  BuiltMap<String, InvoiceEntity> invoiceMap,
+  BuiltMap<String, TaskStatusEntity> taskStatusMap,
+  BuiltList<String> taskList,
+  ListUIState taskListState,
+) {
   final filterEntityId = selectionState.filterEntityId;
   final filterEntityType = selectionState.filterEntityType;
 
   final list = taskList.where((taskId) {
-    final task = taskMap[taskId];
+    final task = taskMap[taskId]!;
     final client = clientMap[task.clientId] ?? ClientEntity(id: task.clientId);
 
     if (!client.isActive &&
@@ -190,8 +360,8 @@ List<String> kanbanTasksSelector(
   }).toList();
 
   list.sort((taskAId, taskBId) {
-    final taskA = taskMap[taskAId];
-    final taskB = taskMap[taskBId];
+    final taskA = taskMap[taskAId]!;
+    final taskB = taskMap[taskBId]!;
     return taskA.compareTo(
       taskB,
       taskListState.sortField,
@@ -207,7 +377,31 @@ List<String> kanbanTasksSelector(
   return list;
 }
 
-var memoizedFilteredTaskList = memo9((
+var memoizedFilteredTaskList = memo9(
+  (
+    SelectionState selectionState,
+    BuiltMap<String, TaskEntity> taskMap,
+    BuiltMap<String, ClientEntity> clientMap,
+    BuiltMap<String, UserEntity> userMap,
+    BuiltMap<String, ProjectEntity> projectMap,
+    BuiltMap<String, InvoiceEntity> invoiceMap,
+    BuiltMap<String, TaskStatusEntity> taskStatusMap,
+    BuiltList<String> taskList,
+    ListUIState taskListState,
+  ) => filteredTasksSelector(
+    selectionState,
+    taskMap,
+    clientMap,
+    userMap,
+    projectMap,
+    invoiceMap,
+    taskStatusMap,
+    taskList,
+    taskListState,
+  ),
+);
+
+List<String> filteredTasksSelector(
   SelectionState selectionState,
   BuiltMap<String, TaskEntity> taskMap,
   BuiltMap<String, ClientEntity> clientMap,
@@ -217,34 +411,12 @@ var memoizedFilteredTaskList = memo9((
   BuiltMap<String, TaskStatusEntity> taskStatusMap,
   BuiltList<String> taskList,
   ListUIState taskListState,
-) =>
-    filteredTasksSelector(
-      selectionState,
-      taskMap,
-      clientMap,
-      userMap,
-      projectMap,
-      invoiceMap,
-      taskStatusMap,
-      taskList,
-      taskListState,
-    ));
-
-List<String> filteredTasksSelector(
-    SelectionState selectionState,
-    BuiltMap<String, TaskEntity> taskMap,
-    BuiltMap<String, ClientEntity> clientMap,
-    BuiltMap<String, UserEntity> userMap,
-    BuiltMap<String, ProjectEntity> projectMap,
-    BuiltMap<String, InvoiceEntity> invoiceMap,
-    BuiltMap<String, TaskStatusEntity> taskStatusMap,
-    BuiltList<String> taskList,
-    ListUIState taskListState) {
+) {
   final filterEntityId = selectionState.filterEntityId;
   final filterEntityType = selectionState.filterEntityType;
 
   final list = taskList.where((taskId) {
-    final task = taskMap[taskId];
+    final task = taskMap[taskId]!;
     final client = clientMap[task.clientId] ?? ClientEntity(id: task.clientId);
     final project =
         projectMap[task.projectId] ?? ProjectEntity(id: task.projectId);
@@ -259,8 +431,8 @@ List<String> filteredTasksSelector(
     }
 
     if (!task.matchesFilter(taskListState.filter) &&
-        !client.matchesName(taskListState.filter) &&
-        !project.matchesName(taskListState.filter)) {
+        !client.matchesNameOrEmail(taskListState.filter) &&
+        !project.matchesName(taskListState.filter!)) {
       return false;
     }
 
@@ -291,9 +463,7 @@ List<String> filteredTasksSelector(
           client.groupId != filterEntityId) {
         return false;
       }
-    } else if (task.clientId != null && !client.isActive) {
-      return false;
-    } else if (task.projectId != null && !project.isActive) {
+    } else if (!client.isActive) {
       return false;
     }
 
@@ -315,8 +485,8 @@ List<String> filteredTasksSelector(
   }).toList();
 
   list.sort((taskAId, taskBId) {
-    final taskA = taskMap[taskAId];
-    final taskB = taskMap[taskBId];
+    final taskA = taskMap[taskAId]!;
+    final taskB = taskMap[taskBId]!;
     return taskA.compareTo(
       taskB,
       taskListState.sortField,
@@ -332,12 +502,12 @@ List<String> filteredTasksSelector(
   return list;
 }
 
-double taskRateSelector({
-  @required CompanyEntity company,
-  @required ProjectEntity project,
-  @required ClientEntity client,
-  @required TaskEntity task,
-  @required GroupEntity group,
+double? taskRateSelector({
+  required CompanyEntity? company,
+  required ProjectEntity? project,
+  required ClientEntity? client,
+  required TaskEntity? task,
+  required GroupEntity? group,
 }) {
   if (task != null && task.rate > 0) {
     return task.rate;
@@ -355,11 +525,14 @@ double taskRateSelector({
 }
 
 var memoizedTaskStatsForClient = memo2(
-    (String clientId, BuiltMap<String, TaskEntity> taskMap) =>
-        taskStatsForClient(clientId, taskMap));
+  (String clientId, BuiltMap<String, TaskEntity> taskMap) =>
+      taskStatsForClient(clientId, taskMap),
+);
 
 EntityStats taskStatsForClient(
-    String clientId, BuiltMap<String, TaskEntity> taskMap) {
+  String clientId,
+  BuiltMap<String, TaskEntity> taskMap,
+) {
   int countActive = 0;
   int countArchived = 0;
   taskMap.forEach((taskId, task) {
@@ -375,14 +548,15 @@ EntityStats taskStatsForClient(
   return EntityStats(countActive: countActive, countArchived: countArchived);
 }
 
-var memoizedTaskStatsForProject = memo2((
-  String projectId,
-  BuiltMap<String, TaskEntity> taskMap,
-) =>
-    taskStatsForProject(projectId, taskMap));
+var memoizedTaskStatsForProject = memo2(
+  (String projectId, BuiltMap<String, TaskEntity> taskMap) =>
+      taskStatsForProject(projectId, taskMap),
+);
 
 EntityStats taskStatsForProject(
-    String projectId, BuiltMap<String, TaskEntity> taskMap) {
+  String projectId,
+  BuiltMap<String, TaskEntity> taskMap,
+) {
   int countActive = 0;
   int countArchived = 0;
   taskMap.forEach((taskId, task) {
@@ -398,14 +572,15 @@ EntityStats taskStatsForProject(
   return EntityStats(countActive: countActive, countArchived: countArchived);
 }
 
-var memoizedTaskStatsForUser = memo2((
-  String userId,
-  BuiltMap<String, TaskEntity> taskMap,
-) =>
-    taskStatsForProject(userId, taskMap));
+var memoizedTaskStatsForUser = memo2(
+  (String userId, BuiltMap<String, TaskEntity> taskMap) =>
+      taskStatsForProject(userId, taskMap),
+);
 
 EntityStats taskStatsForUser(
-    String userId, BuiltMap<String, TaskEntity> taskMap) {
+  String userId,
+  BuiltMap<String, TaskEntity> taskMap,
+) {
   int countActive = 0;
   int countArchived = 0;
   taskMap.forEach((taskId, task) {
@@ -420,6 +595,3 @@ EntityStats taskStatsForUser(
 
   return EntityStats(countActive: countActive, countArchived: countArchived);
 }
-
-bool hasTaskChanges(TaskEntity task, BuiltMap<String, TaskEntity> taskMap) =>
-    task.isNew ? task.isChanged : task != taskMap[task.id];

@@ -1,17 +1,21 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
+
+// Package imports:
 import 'package:redux/redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/data/repositories/design_repository.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
+import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/design/design_actions.dart';
 import 'package:invoiceninja_flutter/redux/ui/ui_actions.dart';
 import 'package:invoiceninja_flutter/ui/design/design_screen.dart';
 import 'package:invoiceninja_flutter/ui/design/edit/design_edit_vm.dart';
 import 'package:invoiceninja_flutter/ui/design/view/design_view_vm.dart';
-import 'package:invoiceninja_flutter/redux/design/design_actions.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:invoiceninja_flutter/data/repositories/design_repository.dart';
-
-import 'package:invoiceninja_flutter/main_app.dart';
 
 List<Middleware<AppState>> createStoreDesignsMiddleware([
   DesignRepository repository = const DesignRepository(),
@@ -41,36 +45,39 @@ List<Middleware<AppState>> createStoreDesignsMiddleware([
 
 Middleware<AppState> _editDesign() {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as EditDesign;
+    final action = dynamicAction as EditDesign?;
 
     next(action);
 
     store.dispatch(UpdateCurrentRoute(DesignEditScreen.route));
 
     if (store.state.prefState.isMobile) {
-      navigatorKey.currentState.pushNamed(DesignEditScreen.route);
+      navigatorKey.currentState!.pushNamed(DesignEditScreen.route);
     }
   };
 }
 
 Middleware<AppState> _viewDesign() {
-  return (Store<AppState> store, dynamic dynamicAction,
-      NextDispatcher next) async {
-    final action = dynamicAction as ViewDesign;
+  return (
+    Store<AppState> store,
+    dynamic dynamicAction,
+    NextDispatcher next,
+  ) async {
+    final action = dynamicAction as ViewDesign?;
 
     next(action);
 
     store.dispatch(UpdateCurrentRoute(DesignViewScreen.route));
 
     if (store.state.prefState.isMobile) {
-      navigatorKey.currentState.pushNamed(DesignViewScreen.route);
+      navigatorKey.currentState!.pushNamed(DesignViewScreen.route);
     }
   };
 }
 
 Middleware<AppState> _viewDesignList() {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as ViewDesignList;
+    final action = dynamicAction as ViewDesignList?;
 
     next(action);
 
@@ -81,8 +88,10 @@ Middleware<AppState> _viewDesignList() {
     store.dispatch(UpdateCurrentRoute(DesignScreen.route));
 
     if (store.state.prefState.isMobile) {
-      navigatorKey.currentState.pushNamedAndRemoveUntil(
-          DesignScreen.route, (Route<dynamic> route) => false);
+      navigatorKey.currentState!.pushNamedAndRemoveUntil(
+        DesignScreen.route,
+        (Route<dynamic> route) => false,
+      );
     }
   };
 }
@@ -90,23 +99,24 @@ Middleware<AppState> _viewDesignList() {
 Middleware<AppState> _archiveDesign(DesignRepository repository) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
     final action = dynamicAction as ArchiveDesignsRequest;
-    final prevDesigns =
-        action.designIds.map((id) => store.state.designState.map[id]).toList();
+    final prevDesigns = action.designIds
+        .map((id) => store.state.designState.map[id])
+        .toList();
     repository
         .bulkAction(
-            store.state.credentials, action.designIds, EntityAction.archive)
+          store.state.credentials,
+          action.designIds,
+          EntityAction.archive,
+        )
         .then((List<DesignEntity> designs) {
-      store.dispatch(ArchiveDesignsSuccess(designs));
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(ArchiveDesignsFailure(prevDesigns));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          store.dispatch(ArchiveDesignsSuccess(designs));
+          action.completer.complete(null);
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(ArchiveDesignsFailure(prevDesigns));
+          action.completer.completeError(error);
+        });
 
     next(action);
   };
@@ -115,23 +125,24 @@ Middleware<AppState> _archiveDesign(DesignRepository repository) {
 Middleware<AppState> _deleteDesign(DesignRepository repository) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
     final action = dynamicAction as DeleteDesignsRequest;
-    final prevDesigns =
-        action.designIds.map((id) => store.state.designState.map[id]).toList();
+    final prevDesigns = action.designIds
+        .map((id) => store.state.designState.map[id])
+        .toList();
     repository
         .bulkAction(
-            store.state.credentials, action.designIds, EntityAction.delete)
+          store.state.credentials,
+          action.designIds,
+          EntityAction.delete,
+        )
         .then((List<DesignEntity> designs) {
-      store.dispatch(DeleteDesignsSuccess(designs));
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(DeleteDesignsFailure(prevDesigns));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          store.dispatch(DeleteDesignsSuccess(designs));
+          action.completer.complete(null);
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(DeleteDesignsFailure(prevDesigns));
+          action.completer.completeError(error);
+        });
 
     next(action);
   };
@@ -140,23 +151,24 @@ Middleware<AppState> _deleteDesign(DesignRepository repository) {
 Middleware<AppState> _restoreDesign(DesignRepository repository) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
     final action = dynamicAction as RestoreDesignsRequest;
-    final prevDesigns =
-        action.designIds.map((id) => store.state.designState.map[id]).toList();
+    final prevDesigns = action.designIds
+        .map((id) => store.state.designState.map[id])
+        .toList();
     repository
         .bulkAction(
-            store.state.credentials, action.designIds, EntityAction.restore)
+          store.state.credentials,
+          action.designIds,
+          EntityAction.restore,
+        )
         .then((List<DesignEntity> designs) {
-      store.dispatch(RestoreDesignsSuccess(designs));
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(RestoreDesignsFailure(prevDesigns));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          store.dispatch(RestoreDesignsSuccess(designs));
+          action.completer.complete(null);
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(RestoreDesignsFailure(prevDesigns));
+          action.completer.completeError(error);
+        });
 
     next(action);
   };
@@ -166,20 +178,21 @@ Middleware<AppState> _saveDesign(DesignRepository repository) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
     final action = dynamicAction as SaveDesignRequest;
     repository
-        .saveData(store.state.credentials, action.design)
+        .saveData(store.state.credentials, action.design!)
         .then((DesignEntity design) {
-      if (action.design.isNew) {
-        store.dispatch(AddDesignSuccess(design));
-      } else {
-        store.dispatch(SaveDesignSuccess(design));
-      }
+          if (action.design!.isNew) {
+            store.dispatch(AddDesignSuccess(design));
+          } else {
+            store.dispatch(SaveDesignSuccess(design));
+          }
 
-      action.completer.complete(design);
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(SaveDesignFailure(error));
-      action.completer.completeError(error);
-    });
+          action.completer!.complete(design);
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(SaveDesignFailure(error));
+          action.completer!.completeError(error);
+        });
 
     next(action);
   };
@@ -191,19 +204,22 @@ Middleware<AppState> _loadDesign(DesignRepository repository) {
     final AppState state = store.state;
 
     store.dispatch(LoadDesignRequest());
-    repository.loadItem(state.credentials, action.designId).then((design) {
-      store.dispatch(LoadDesignSuccess(design));
+    repository
+        .loadItem(state.credentials, action.designId)
+        .then((design) {
+          store.dispatch(LoadDesignSuccess(design));
 
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(LoadDesignFailure(error));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          if (action.completer != null) {
+            action.completer!.complete(null);
+          }
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(LoadDesignFailure(error));
+          if (action.completer != null) {
+            action.completer!.completeError(error);
+          }
+        });
 
     next(action);
   };
@@ -211,28 +227,31 @@ Middleware<AppState> _loadDesign(DesignRepository repository) {
 
 Middleware<AppState> _loadDesigns(DesignRepository repository) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as LoadDesigns;
+    final action = dynamicAction as LoadDesigns?;
     final AppState state = store.state;
 
     store.dispatch(LoadDesignsRequest());
-    repository.loadList(state.credentials).then((data) {
-      store.dispatch(LoadDesignsSuccess(data));
+    repository
+        .loadList(state.credentials)
+        .then((data) {
+          store.dispatch(LoadDesignsSuccess(data));
 
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-      /*
+          if (action!.completer != null) {
+            action.completer!.complete(null);
+          }
+          /*
       if (state.productState.isStale) {
         store.dispatch(LoadProducts());
       }
       */
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(LoadDesignsFailure(error));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(LoadDesignsFailure(error));
+          if (action!.completer != null) {
+            action.completer!.completeError(error);
+          }
+        });
 
     next(action);
   };

@@ -1,7 +1,9 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:invoiceninja_flutter/data/models/entities.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
@@ -11,9 +13,9 @@ part 'expense_category_model.g.dart';
 abstract class ExpenseCategoryListResponse
     implements
         Built<ExpenseCategoryListResponse, ExpenseCategoryListResponseBuilder> {
-  factory ExpenseCategoryListResponse(
-          [void updates(ExpenseCategoryListResponseBuilder b)]) =
-      _$ExpenseCategoryListResponse;
+  factory ExpenseCategoryListResponse([
+    void updates(ExpenseCategoryListResponseBuilder b),
+  ]) = _$ExpenseCategoryListResponse;
 
   ExpenseCategoryListResponse._();
 
@@ -30,9 +32,9 @@ abstract class ExpenseCategoryListResponse
 abstract class ExpenseCategoryItemResponse
     implements
         Built<ExpenseCategoryItemResponse, ExpenseCategoryItemResponseBuilder> {
-  factory ExpenseCategoryItemResponse(
-          [void updates(ExpenseCategoryItemResponseBuilder b)]) =
-      _$ExpenseCategoryItemResponse;
+  factory ExpenseCategoryItemResponse([
+    void updates(ExpenseCategoryItemResponseBuilder b),
+  ]) = _$ExpenseCategoryItemResponse;
 
   ExpenseCategoryItemResponse._();
 
@@ -53,7 +55,7 @@ class ExpenseCategoryFields {
 abstract class ExpenseCategoryEntity extends Object
     with BaseEntity, SelectableEntity
     implements Built<ExpenseCategoryEntity, ExpenseCategoryEntityBuilder> {
-  factory ExpenseCategoryEntity({String id, AppState state}) {
+  factory ExpenseCategoryEntity({String? id, AppState? state}) {
     return _$ExpenseCategoryEntity._(
       id: id ?? BaseEntity.nextId,
       isChanged: false,
@@ -80,16 +82,17 @@ abstract class ExpenseCategoryEntity extends Object
   int get hashCode;
 
   @override
-  List<EntityAction> getActions(
-      {UserCompanyEntity userCompany,
-      ClientEntity client,
-      bool includeEdit = false,
-      bool includePreview = false,
-      bool multiselect = false}) {
-    final actions = <EntityAction>[];
+  List<EntityAction?> getActions({
+    UserCompanyEntity? userCompany,
+    ClientEntity? client,
+    bool includeEdit = false,
+    bool includePreview = false,
+    bool multiselect = false,
+  }) {
+    final actions = <EntityAction?>[];
 
-    if (!isDeleted && !multiselect) {
-      if (includeEdit && userCompany.canEditEntity(this)) {
+    if (!isDeleted! && !multiselect) {
+      if (includeEdit && userCompany!.canEditEntity(this)) {
         actions.add(EntityAction.edit);
       }
 
@@ -102,7 +105,7 @@ abstract class ExpenseCategoryEntity extends Object
   }
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     if (filter == null || filter.isEmpty) {
       return true;
     }
@@ -116,7 +119,7 @@ abstract class ExpenseCategoryEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     if (filter == null || filter.isEmpty) {
       return null;
     }
@@ -130,7 +133,7 @@ abstract class ExpenseCategoryEntity extends Object
   }
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   @override
   FormatNumberType get listDisplayAmountType => FormatNumberType.money;
@@ -139,25 +142,29 @@ abstract class ExpenseCategoryEntity extends Object
 
   String get color;
 
-  int compareTo(
-      {ExpenseCategoryEntity expenseCategory,
-      String sortField,
-      bool sortAscending}) {
+  int compareTo({
+    ExpenseCategoryEntity? expenseCategory,
+    String? sortField,
+    required bool sortAscending,
+  }) {
     int response = 0;
-    final ExpenseCategoryEntity categoryA =
-        sortAscending ? this : expenseCategory;
-    final ExpenseCategoryEntity categoryB =
-        sortAscending ? expenseCategory : this;
+    final ExpenseCategoryEntity? categoryA = sortAscending
+        ? this
+        : expenseCategory;
+    final ExpenseCategoryEntity? categoryB = sortAscending
+        ? expenseCategory
+        : this;
 
     switch (sortField) {
       case ExpenseCategoryFields.name:
-        response = categoryA.name
-            .toLowerCase()
-            .compareTo(categoryB.name.toLowerCase());
+        response = categoryA!.name.toLowerCase().compareTo(
+          categoryB!.name.toLowerCase(),
+        );
         break;
       default:
         print(
-            '## ERROR: sort by expoense_category.$sortField is not implemented');
+          '## ERROR: sort by expoense_category.$sortField is not implemented',
+        );
         break;
     }
 

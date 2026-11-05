@@ -1,11 +1,16 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:redux/redux.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 extension ContextHelper on BuildContext {
-  AppLocalization get localization {
+  AppLocalization? get localization {
     return AppLocalization.of(this);
   }
 
@@ -19,7 +24,7 @@ extension ContextHelper on BuildContext {
 }
 
 extension ListHelper<T> on List<T> {
-  T get firstOrNull => isEmpty ? null : first;
+  T? get firstOrNull => isEmpty ? null : first;
 
-  T get lastOrNull => isEmpty ? null : last;
+  T? get lastOrNull => isEmpty ? null : last;
 }

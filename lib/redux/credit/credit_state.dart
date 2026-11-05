@@ -1,11 +1,15 @@
+// Dart imports:
 import 'dart:async';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:built_collection/built_collection.dart';
-import 'package:invoiceninja_flutter/data/models/credit_model.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
 
 part 'credit_state.g.dart';
@@ -22,7 +26,7 @@ abstract class CreditState implements Built<CreditState, CreditStateBuilder> {
 
   InvoiceEntity get(String creditId) {
     if (map.containsKey(creditId)) {
-      return map[creditId];
+      return map[creditId]!;
     } else {
       return InvoiceEntity(id: creditId, entityType: EntityType.credit);
     }
@@ -43,9 +47,11 @@ abstract class CreditState implements Built<CreditState, CreditStateBuilder> {
       value: (dynamic item) => item,
     );
 
-    return rebuild((b) => b
-      ..map.addAll(map)
-      ..list.replace((map.keys.toList() + list.toList()).toSet().toList()));
+    return rebuild(
+      (b) => b
+        ..map.addAll(map)
+        ..list.replace((map.keys.toList() + list.toList()).toSet().toList()),
+    );
   }
 
   static Serializer<CreditState> get serializer => _$creditStateSerializer;
@@ -54,10 +60,12 @@ abstract class CreditState implements Built<CreditState, CreditStateBuilder> {
 abstract class CreditUIState extends Object
     with EntityUIState
     implements Built<CreditUIState, CreditUIStateBuilder> {
-  factory CreditUIState(PrefStateSortField sortField) {
+  factory CreditUIState(PrefStateSortField? sortField) {
     return _$CreditUIState._(
-      listUIState: ListUIState(sortField?.field ?? CreditFields.number,
-          sortAscending: sortField?.ascending ?? false),
+      listUIState: ListUIState(
+        sortField?.field ?? CreditFields.number,
+        sortAscending: sortField?.ascending ?? false,
+      ),
       editing: InvoiceEntity(),
       selectedId: '',
       tabIndex: 0,
@@ -70,22 +78,19 @@ abstract class CreditUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  InvoiceEntity get editing;
+  InvoiceEntity? get editing;
 
-  @nullable
   @BuiltValueField(serialize: false)
-  int get editingItemIndex;
+  int? get editingItemIndex;
 
-  @nullable
   @BuiltValueField(serialize: false)
-  String get historyActivityId;
+  String? get historyActivityId;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<CreditUIState> get serializer => _$creditUIStateSerializer;
 }

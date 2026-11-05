@@ -1,10 +1,16 @@
+// Dart imports:
 import 'dart:math';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:intl/intl.dart';
-import 'package:intl/number_symbols_data.dart';
 import 'package:intl/number_symbols.dart';
+import 'package:intl/number_symbols_data.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/group_model.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
@@ -13,12 +19,12 @@ import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/company/company_selectors.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
-double round(double value, int precision) {
+double round(double? value, int precision) {
   if (value == null || value.isNaN) {
     return 0;
   }
 
-  final int fac = pow(10, precision);
+  final int fac = pow(10, precision) as int;
   double result = value * fac;
 
   // Workaround for floating point issues:
@@ -31,7 +37,7 @@ double round(double value, int precision) {
   return result.round() / fac;
 }
 
-int parseInt(String value, {bool zeroIsNull = false}) {
+int? parseInt(String value, {bool zeroIsNull = false}) {
   value = value.replaceAll(RegExp(r'[^0-9\.\-]'), '');
 
   final intValue = int.tryParse(value) ?? 0;
@@ -39,16 +45,16 @@ int parseInt(String value, {bool zeroIsNull = false}) {
   return (intValue == 0 && zeroIsNull) ? null : intValue;
 }
 
-double parseDouble(String value, {bool zeroIsNull = false}) {
+double? parseDouble(String? value, {bool zeroIsNull = false}) {
   // check for comma as decimal separator
-  final state = StoreProvider.of<AppState>(navigatorKey.currentContext).state;
+  final state = StoreProvider.of<AppState>(navigatorKey.currentContext!).state;
 
-  if (state.company.useCommaAsDecimalPlace && value.contains(',')) {
+  if (state.company.useCommaAsDecimalPlace && value!.contains(',')) {
     value = value.replaceAll('.', '');
     value = value.replaceAll(',', '.');
   }
 
-  value = value.replaceAll(RegExp(r'[^0-9\.\-]'), '');
+  value = value!.replaceAll(RegExp(r'[^0-9\.\-]'), '');
 
   final doubleValue = double.tryParse(value) ?? 0.0;
 
@@ -71,22 +77,25 @@ String formatSize(int size) {
       : '${round(size / 1000, 0).toInt()} KB';
 }
 
-String formatNumber(
-  double value,
-  BuildContext context, {
-  String clientId,
-  String currencyId,
-  FormatNumberType formatNumberType = FormatNumberType.money,
-  bool showCurrencyCode,
+String? formatNumber(
+  double? value,
+  BuildContext? context, {
+  String? clientId,
+  String? vendorId,
+  String? currencyId,
+  FormatNumberType? formatNumberType = FormatNumberType.money,
+  bool? showCurrencyCode,
   bool zeroIsNull = false,
   bool roundToPrecision = true,
 }) {
-  if ((zeroIsNull ||
-          formatNumberType == FormatNumberType.inputMoney ||
-          formatNumberType == FormatNumberType.inputAmount) &&
-      value == 0) {
+  if (zeroIsNull && value == 0) {
     return null;
-  } else if (value == null) {
+  } else if (value == null ||
+      (value == 0 &&
+          ([
+            FormatNumberType.inputMoney,
+            FormatNumberType.inputAmount,
+          ].contains(formatNumberType)))) {
     return '';
   }
 
@@ -94,15 +103,18 @@ String formatNumber(
     return formatDuration(Duration(seconds: value.toInt()));
   }
 
-  final state = StoreProvider.of<AppState>(context).state;
+  final state = StoreProvider.of<AppState>(context!).state;
   final CompanyEntity company = state.company;
-  final ClientEntity client = state.clientState.map[clientId];
-  final GroupEntity group = state.groupState.map[client?.groupId];
+  final ClientEntity? client = state.clientState.map[clientId];
+  final VendorEntity? vendor = state.vendorState.map[vendorId];
+  final GroupEntity? group = state.groupState.map[client?.groupId];
 
-  String countryId;
+  String? countryId;
 
-  if ((client?.countryId ?? '').isNotEmpty && client.hasNameSet) {
+  if ((client?.countryId ?? '').isNotEmpty && client!.hasNameSet) {
     countryId = client.countryId;
+  } else if ((vendor?.countryId ?? '').isNotEmpty && vendor!.hasNameSet) {
+    countryId = vendor.countryId;
   } else {
     countryId = company.settings.countryId;
   }
@@ -113,21 +125,25 @@ String formatNumber(
     // do nothing
   } else if (client != null && client.hasCurrency) {
     currencyId = client.currencyId;
+  } else if (vendor != null && vendor.hasCurrency) {
+    currencyId = vendor.currencyId;
   } else if (group != null && group.hasCurrency) {
     currencyId = group.currencyId;
   } else {
     currencyId = company.currencyId;
   }
 
-  final CurrencyEntity currency = state.staticState.currencyMap[currencyId];
-  final CurrencyEntity companyCurrency =
+  final CurrencyEntity? currency = state.staticState.currencyMap[currencyId];
+  final CurrencyEntity? companyCurrency =
       state.staticState.currencyMap[company.currencyId];
 
   final CountryEntity country =
       state.staticState.countryMap[countryId] ?? CountryEntity();
+  /*
   final CountryEntity companyCountry =
       state.staticState.countryMap[company.settings.countryId] ??
           CountryEntity();
+  */
 
   if (currency == null) {
     return '';
@@ -139,16 +155,15 @@ String formatNumber(
 
   String thousandSeparator = currency.thousandSeparator;
   String decimalSeparator = currency.decimalSeparator;
-  bool swapCurrencySymbol = companyCurrency.swapCurrencySymbol;
+  bool swapCurrencySymbol = companyCurrency!.swapCurrencySymbol;
 
   if (currency.id == kCurrencyEuro) {
-    swapCurrencySymbol = companyCountry.swapCurrencySymbol;
-    if (country.thousandSeparator != null &&
-        country.thousandSeparator.isNotEmpty) {
+    //swapCurrencySymbol = companyCountry.swapCurrencySymbol;
+    swapCurrencySymbol = country.swapCurrencySymbol;
+    if (country.thousandSeparator.isNotEmpty) {
       thousandSeparator = country.thousandSeparator;
     }
-    if (country.decimalSeparator != null &&
-        country.decimalSeparator.isNotEmpty) {
+    if (country.decimalSeparator.isNotEmpty) {
       decimalSeparator = country.decimalSeparator;
     }
   }
@@ -184,8 +199,8 @@ String formatNumber(
     SCIENTIFIC_PATTERN: '',
   );
 
-  NumberFormat formatter;
-  String formatted;
+  late NumberFormat formatter;
+  String? formatted;
 
   if (formatNumberType == FormatNumberType.int) {
     return NumberFormat('#,##0', 'custom').format(value);
@@ -212,11 +227,18 @@ String formatNumber(
       formatter = NumberFormat('#,##0.0####', 'custom');
     } else if (currency.precision == 2) {
       formatter = NumberFormat('#,##0.00###', 'custom');
-    } else if (currency.precision == 3) {
+    } else {
       formatter = NumberFormat('#,##0.000##', 'custom');
     }
 
     formatted = formatter.format(value < 0 ? value * -1 : value);
+
+    // Ugly workaround to prevent showing negative zero values
+    if (formatted == '-0.00') {
+      formatted = '0.00';
+    } else if (formatted == '-0,00') {
+      formatted = '0,00';
+    }
   }
 
   final prefix = value < 0 ? '-' : '';
@@ -248,7 +270,11 @@ String formatURL(String url) {
 }
 
 String formatAddress(
-    {dynamic object, bool isShipping = false, String delimiter = '\n'}) {
+  AppState appState, {
+  dynamic object,
+  bool isShipping = false,
+  String delimiter = '\n',
+}) {
   var str = '';
 
   final String address1 =
@@ -259,6 +285,8 @@ String formatAddress(
   final String state = (isShipping ? object.shippingState : object.state) ?? '';
   final String postalCode =
       (isShipping ? object.shippingPostalCode : object.postalCode) ?? '';
+  final String countryId =
+      (isShipping ? object.shippingCountryId : object.countryId) ?? '';
 
   if (address1.isNotEmpty) {
     str += address1 + delimiter;
@@ -279,31 +307,41 @@ String formatAddress(
     str += postalCode;
   }
 
+  if (countryId.isNotEmpty &&
+      countryId != appState.company.settings.countryId) {
+    if (str.isNotEmpty) {
+      str += delimiter;
+    }
+
+    str += appState.staticState.countryMap[countryId]?.name ?? '';
+  }
+
   return str;
 }
 
-String convertDateTimeToSqlDate([DateTime date]) {
+String convertDateTimeToSqlDate([DateTime? date]) {
   date = date ?? DateTime.now();
   return date.toIso8601String().split('T').first;
 }
 
-DateTime convertSqlDateToDateTime([String date]) {
+DateTime convertSqlDateToDateTime([String? date]) {
   date = date ?? convertDateTimeToSqlDate();
   final parts = date.split('-');
   return DateTime.utc(
-    parseInt(parts[0]),
-    parseInt(parts[1]),
-    parseInt(parts[2]),
+    parseInt(parts[0])!,
+    parseInt(parts[1])!,
+    parseInt(parts[2])!,
   );
 }
 
-DateTime convertTimestampToDate(int timestamp) =>
-    DateTime.fromMillisecondsSinceEpoch((timestamp ?? 0) * 1000);
+DateTime convertTimestampToDate(int? timestamp) =>
+    DateTime.fromMillisecondsSinceEpoch((timestamp ?? 0) * 1000, isUtc: true);
 
-String convertTimestampToDateString(int timestamp) =>
-    convertTimestampToDate(timestamp).toIso8601String();
+String convertTimestampToDateString(int? timestamp) => (timestamp ?? 0) == 0
+    ? ''
+    : convertTimestampToDate(timestamp).toIso8601String();
 
-String formatDuration(Duration duration, {bool showSeconds = true}) {
+String formatDuration(Duration? duration, {bool showSeconds = true}) {
   final time = duration.toString().split('.')[0];
 
   if (showSeconds) {
@@ -314,34 +352,43 @@ String formatDuration(Duration duration, {bool showSeconds = true}) {
   }
 }
 
-DateTime convertTimeOfDayToDateTime(TimeOfDay timeOfDay, [DateTime dateTime]) {
+DateTime convertTimeOfDayToDateTime(
+  TimeOfDay? timeOfDay, [
+  DateTime? dateTime,
+]) {
   dateTime ??= DateTime.now();
-  return DateTime(dateTime.year, dateTime.month, dateTime.day,
-          timeOfDay?.hour ?? 0, timeOfDay?.minute ?? 0)
-      .toUtc();
+  return DateTime(
+    dateTime.year,
+    dateTime.month,
+    dateTime.day,
+    timeOfDay?.hour ?? 0,
+    timeOfDay?.minute ?? 0,
+  ).toUtc();
 }
 
-TimeOfDay convertDateTimeToTimeOfDay(DateTime dateTime) =>
+TimeOfDay convertDateTimeToTimeOfDay(DateTime? dateTime) =>
     TimeOfDay(hour: dateTime?.hour ?? 0, minute: dateTime?.minute ?? 0);
 
 String formatDateRange(String startDate, String endDate, BuildContext context) {
   final today = DateTime.now();
 
-  final startDateTime = DateTime.tryParse(startDate).toLocal();
-  final startFormatter =
-      DateFormat(today.year == startDateTime.year ? 'MMM d' : 'MMM d, yyy');
+  final startDateTime = DateTime.tryParse(startDate)!.toLocal();
+  final startFormatter = DateFormat(
+    today.year == startDateTime.year ? 'MMM d' : 'MMM d, yyy',
+  );
   final startDateTimeString = startFormatter.format(startDateTime);
 
-  final endDateTime = DateTime.tryParse(endDate).toLocal();
-  final endFormatter =
-      DateFormat(today.year == endDateTime.year ? 'MMM d' : 'MMM d, yyy');
+  final endDateTime = DateTime.tryParse(endDate)!.toLocal();
+  final endFormatter = DateFormat(
+    today.year == endDateTime.year ? 'MMM d' : 'MMM d, yyy',
+  );
   final endDateTimeString = endFormatter.format(endDateTime);
 
   return '$startDateTimeString - $endDateTimeString';
 }
 
 String parseDate(String value, BuildContext context) {
-  if (value == null || value.isEmpty) {
+  if (value.isEmpty) {
     return '';
   }
 
@@ -353,14 +400,14 @@ String parseDate(String value, BuildContext context) {
       ? company.settings.dateFormatId
       : kDefaultDateFormat;
 
-  final format = dateFormats[dateFormatId].format;
+  final format = dateFormats[dateFormatId]!.format;
   final formatter = DateFormat(format, localeSelector(state));
 
   return convertDateTimeToSqlDate(formatter.parse(value));
 }
 
-DateTime parseTime(String value, BuildContext context) {
-  if (value == null || value.isEmpty) {
+DateTime? parseTime(String value, BuildContext context) {
+  if (value.isEmpty) {
     return null;
   }
 
@@ -372,65 +419,76 @@ DateTime parseTime(String value, BuildContext context) {
   String format;
 
   format = showSeconds
-      ? enableMilitaryTime
-          ? 'H:mm:ss'
-          : 'h:mm:ss a'
-      : enableMilitaryTime
-          ? 'H:mm'
-          : 'h:mm a';
+      ? enableMilitaryTime!
+            ? 'H:mm:ss'
+            : 'h:mm:ss a'
+      : enableMilitaryTime!
+      ? 'H:mm'
+      : 'h:mm a';
 
   final formatter = DateFormat('y-M-D ' + format, localeSelector(state));
   return formatter.parse('2000-01-01 ' + value);
 }
 
-String formatDate(String value, BuildContext context,
-    {bool showDate = true, bool showTime = false, bool showSeconds = true}) {
+String formatDate(
+  String? value,
+  BuildContext? context, {
+  bool showDate = true,
+  bool showTime = false,
+  bool showSeconds = true,
+}) {
   if (value == null || value.isEmpty) {
     return '';
   }
 
-  final state = StoreProvider.of<AppState>(context).state;
-  final CompanyEntity company = state.company;
+  final state = StoreProvider.of<AppState>(context!).state;
+  final CompanyEntity? company = state.company;
+  var formattedValue = '';
 
   if (showTime) {
     String format;
     if (!showDate) {
       format = showSeconds
-          ? company.settings.enableMilitaryTime
-              ? 'H:mm:ss'
-              : 'h:mm:ss a'
-          : company.settings.enableMilitaryTime
-              ? 'H:mm'
-              : 'h:mm a';
+          ? company!.settings.enableMilitaryTime!
+                ? 'H:mm:ss'
+                : 'h:mm:ss a'
+          : company!.settings.enableMilitaryTime!
+          ? 'H:mm'
+          : 'h:mm a';
     } else {
       final dateFormats = state.staticState.dateFormatMap;
-      final dateFormatId = (company.settings.dateFormatId ?? '').isNotEmpty
+      final dateFormatId = (company!.settings.dateFormatId ?? '').isNotEmpty
           ? company.settings.dateFormatId
           : kDefaultDateFormat;
-      format = dateFormats[dateFormatId].format;
-      format += ' ' +
+      format = dateFormats[dateFormatId]!.format;
+      format +=
+          ' ' +
           (showSeconds
-              ? company.settings.enableMilitaryTime
-                  ? 'H:mm:ss'
-                  : 'h:mm:ss a'
-              : company.settings.enableMilitaryTime
-                  ? 'H:mm'
-                  : 'h:mm a');
+              ? company.settings.enableMilitaryTime!
+                    ? 'H:mm:ss'
+                    : 'h:mm:ss a'
+              : company.settings.enableMilitaryTime!
+              ? 'H:mm'
+              : 'h:mm a');
     }
     final formatter = DateFormat(format, localeSelector(state));
-    final parsed = DateTime.tryParse(value);
-    return parsed == null ? '' : formatter.format(parsed.toLocal());
+    final parsed = DateTime.tryParse(value.endsWith('Z') ? value : value + 'Z');
+    formattedValue = parsed == null ? '' : formatter.format(parsed.toLocal());
   } else {
     final dateFormats = state.staticState.dateFormatMap;
     final formatter = DateFormat(
-        dateFormats[company.settings.dateFormatId].format,
-        localeSelector(state));
+      dateFormats[company!.settings.dateFormatId]!.format,
+      localeSelector(state),
+    );
     final parsed = DateTime.tryParse(value);
-    return parsed == null ? '' : formatter.format(parsed);
+    formattedValue = parsed == null ? '' : formatter.format(parsed);
   }
+
+  // Fix double periods in dates in foreign languages #527
+  return formattedValue.replaceFirst('..', '.');
 }
 
-String formatApiUrl(String url) {
+String formatApiUrl(String? url) {
   url = cleanApiUrl(url);
 
   if (url.isEmpty) {
@@ -440,23 +498,25 @@ String formatApiUrl(String url) {
   return url + '/api/v1';
 }
 
-String cleanApiUrl(String url) => (url ?? '')
+String cleanApiUrl(String? url) => (url ?? '')
     .trim()
     .replaceFirst(RegExp(r'/api/v1'), '')
     .replaceFirst(RegExp(r'/$'), '');
 
-String formatCustomValue({String value, String field, BuildContext context}) {
+String? formatCustomValue({
+  String? value,
+  String? field,
+  required BuildContext context,
+}) {
   final localization = AppLocalization.of(context);
   final state = StoreProvider.of<AppState>(context).state;
   final CompanyEntity company = state.company;
 
   switch (company.getCustomFieldType(field)) {
     case kFieldTypeSwitch:
-      return value == 'yes' ? localization.yes : localization.no;
-      break;
+      return value == 'yes' ? localization!.yes : localization!.no;
     case kFieldTypeDate:
       return formatDate(value, context);
-      break;
     default:
       return value;
   }

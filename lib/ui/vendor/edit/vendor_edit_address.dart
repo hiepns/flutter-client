@@ -1,19 +1,20 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
+import 'package:invoiceninja_flutter/redux/static/static_selectors.dart';
 import 'package:invoiceninja_flutter/ui/app/entity_dropdown.dart';
 import 'package:invoiceninja_flutter/ui/app/form_card.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/decorated_form_field.dart';
 import 'package:invoiceninja_flutter/ui/vendor/edit/vendor_edit_vm.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:invoiceninja_flutter/redux/static/static_selectors.dart';
 
 class VendorEditAddress extends StatefulWidget {
-  const VendorEditAddress({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const VendorEditAddress({Key? key, required this.viewModel})
+    : super(key: key);
 
   final VendorEditVM viewModel;
 
@@ -41,8 +42,9 @@ class VendorEditAddressState extends State<VendorEditAddress> {
       _postalCodeController,
     ];
 
-    _controllers
-        .forEach((dynamic controller) => controller.removeListener(_onChanged));
+    _controllers.forEach(
+      (dynamic controller) => controller.removeListener(_onChanged),
+    );
 
     final vendor = widget.viewModel.vendor;
     _address1Controller.text = vendor.address1;
@@ -51,8 +53,9 @@ class VendorEditAddressState extends State<VendorEditAddress> {
     _stateController.text = vendor.state;
     _postalCodeController.text = vendor.postalCode;
 
-    _controllers
-        .forEach((dynamic controller) => controller.addListener(_onChanged));
+    _controllers.forEach(
+      (dynamic controller) => controller.addListener(_onChanged),
+    );
 
     super.didChangeDependencies();
   }
@@ -68,12 +71,14 @@ class VendorEditAddressState extends State<VendorEditAddress> {
   }
 
   void _onChanged() {
-    final vendor = widget.viewModel.vendor.rebuild((b) => b
-      ..address1 = _address1Controller.text.trim()
-      ..address2 = _address2Controller.text.trim()
-      ..city = _cityController.text.trim()
-      ..state = _stateController.text.trim()
-      ..postalCode = _postalCodeController.text.trim());
+    final vendor = widget.viewModel.vendor.rebuild(
+      (b) => b
+        ..address1 = _address1Controller.text.trim()
+        ..address2 = _address2Controller.text.trim()
+        ..city = _cityController.text.trim()
+        ..state = _stateController.text.trim()
+        ..postalCode = _postalCodeController.text.trim(),
+    );
     if (vendor != widget.viewModel.vendor) {
       _debouncer.run(() {
         widget.viewModel.onChanged(vendor);
@@ -83,11 +88,12 @@ class VendorEditAddressState extends State<VendorEditAddress> {
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final viewModel = widget.viewModel;
     final vendor = viewModel.vendor;
-    final isFullscreen =
-        viewModel.state.prefState.isEditorFullScreen(EntityType.vendor);
+    final isFullscreen = viewModel.state.prefState.isEditorFullScreen(
+      EntityType.vendor,
+    );
 
     return FormCard(
       isLast: true,
@@ -103,36 +109,42 @@ class VendorEditAddressState extends State<VendorEditAddress> {
           controller: _address1Controller,
           label: localization.address1,
           onSavePressed: viewModel.onSavePressed,
+          keyboardType: TextInputType.streetAddress,
         ),
         DecoratedFormField(
           controller: _address2Controller,
           label: localization.address2,
           onSavePressed: viewModel.onSavePressed,
+          keyboardType: TextInputType.text,
         ),
         DecoratedFormField(
           controller: _cityController,
           label: localization.city,
           onSavePressed: viewModel.onSavePressed,
+          keyboardType: TextInputType.text,
         ),
         DecoratedFormField(
           controller: _stateController,
           label: localization.state,
           onSavePressed: viewModel.onSavePressed,
+          keyboardType: TextInputType.text,
         ),
         DecoratedFormField(
           controller: _postalCodeController,
           label: localization.postalCode,
           onSavePressed: viewModel.onSavePressed,
+          keyboardType: TextInputType.text,
         ),
         EntityDropdown(
-          key: ValueKey('__country_${vendor.countryId}__'),
           entityType: EntityType.country,
-          entityList:
-              memoizedCountryList(viewModel.state.staticState.countryMap),
+          entityList: memoizedCountryList(
+            viewModel.state.staticState.countryMap,
+          ),
           labelText: localization.country,
           entityId: vendor.countryId,
-          onSelected: (SelectableEntity country) => viewModel
-              .onChanged(vendor.rebuild((b) => b..countryId = country?.id)),
+          onSelected: (SelectableEntity? country) => viewModel.onChanged(
+            vendor.rebuild((b) => b..countryId = country?.id),
+          ),
         ),
       ],
     );

@@ -1,10 +1,17 @@
+// Dart imports:
 import 'dart:async';
-import 'package:built_collection/built_collection.dart';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
@@ -14,33 +21,29 @@ import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class ViewTokenList implements PersistUI {
-  ViewTokenList({
-    this.force = false,
-  });
+  ViewTokenList({this.force = false});
 
   final bool force;
 }
 
 class ViewToken implements PersistUI, PersistPrefs {
-  ViewToken({
-    @required this.tokenId,
-    this.force = false,
-  });
+  ViewToken({required this.tokenId, this.force = false});
 
-  final String tokenId;
+  final String? tokenId;
   final bool force;
 }
 
 class EditToken implements PersistUI, PersistPrefs {
-  EditToken(
-      {@required this.token,
-      this.completer,
-      this.cancelCompleter,
-      this.force = false});
+  EditToken({
+    required this.token,
+    this.completer,
+    this.cancelCompleter,
+    this.force = false,
+  });
 
   final TokenEntity token;
-  final Completer completer;
-  final Completer cancelCompleter;
+  final Completer? completer;
+  final Completer? cancelCompleter;
   final bool force;
 }
 
@@ -53,21 +56,21 @@ class UpdateToken implements PersistUI {
 class LoadToken {
   LoadToken({this.completer, this.tokenId});
 
-  final Completer completer;
-  final String tokenId;
+  final Completer? completer;
+  final String? tokenId;
 }
 
 class LoadTokenActivity {
   LoadTokenActivity({this.completer, this.tokenId});
 
-  final Completer completer;
-  final String tokenId;
+  final Completer? completer;
+  final String? tokenId;
 }
 
 class LoadTokens {
   LoadTokens({this.completer});
 
-  final Completer completer;
+  final Completer? completer;
 }
 
 class LoadTokenRequest implements StartLoading {}
@@ -120,16 +123,16 @@ class LoadTokensSuccess implements StopLoading {
 
 class SaveTokenRequest implements StartSaving {
   SaveTokenRequest({
-    @required this.completer,
-    @required this.token,
-    @required this.password,
-    @required this.idToken,
+    required this.completer,
+    required this.token,
+    required this.password,
+    required this.idToken,
   });
 
   final Completer completer;
-  final TokenEntity token;
-  final String password;
-  final String idToken;
+  final TokenEntity? token;
+  final String? password;
+  final String? idToken;
 }
 
 class SaveTokenSuccess
@@ -168,7 +171,7 @@ class ArchiveTokensSuccess implements StopSaving, PersistData {
 class ArchiveTokensFailure implements StopSaving {
   ArchiveTokensFailure(this.tokens);
 
-  final List<TokenEntity> tokens;
+  final List<TokenEntity?> tokens;
 }
 
 class DeleteTokensRequest implements StartSaving {
@@ -187,7 +190,7 @@ class DeleteTokensSuccess implements StopSaving, PersistData {
 class DeleteTokensFailure implements StopSaving {
   DeleteTokensFailure(this.tokens);
 
-  final List<TokenEntity> tokens;
+  final List<TokenEntity?> tokens;
 }
 
 class RestoreTokensRequest implements StartSaving {
@@ -206,13 +209,13 @@ class RestoreTokensSuccess implements StopSaving, PersistData {
 class RestoreTokensFailure implements StopSaving {
   RestoreTokensFailure(this.tokens);
 
-  final List<TokenEntity> tokens;
+  final List<TokenEntity?> tokens;
 }
 
 class FilterTokens implements PersistUI {
   FilterTokens(this.filter);
 
-  final String filter;
+  final String? filter;
 }
 
 class SortTokens implements PersistUI, PersistPrefs {
@@ -252,12 +255,15 @@ class FilterTokensByCustom4 implements PersistUI {
 }
 
 void handleTokenAction(
-    BuildContext context, List<BaseEntity> tokens, EntityAction action) {
+  BuildContext? context,
+  List<BaseEntity> tokens,
+  EntityAction? action,
+) {
   if (tokens.isEmpty) {
     return;
   }
 
-  final store = StoreProvider.of<AppState>(context);
+  final store = StoreProvider.of<AppState>(context!);
   final localization = AppLocalization.of(context);
   final token = tokens.first as TokenEntity;
   final tokenIds = tokens.map((token) => token.id).toList();
@@ -265,34 +271,40 @@ void handleTokenAction(
   switch (action) {
     case EntityAction.copy:
       Clipboard.setData(ClipboardData(text: token.token));
-      showToast(localization.copiedToClipboard.replaceFirst(':value ', ''));
+      showToast(localization!.copiedToClipboard.replaceFirst(':value ', ''));
       break;
     case EntityAction.edit:
-      editEntity(context: context, entity: token);
+      editEntity(entity: token);
       break;
     case EntityAction.restore:
       final message = tokenIds.length > 1
-          ? localization.restoredTokens
-              .replaceFirst(':value', tokenIds.length.toString())
-          : localization.restoredToken;
-      store.dispatch(RestoreTokensRequest(
-          snackBarCompleter<Null>(context, message), tokenIds));
+          ? localization!.restoredTokens
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', tokenIds.length.toString())
+          : localization!.restoredToken;
+      store.dispatch(
+        RestoreTokensRequest(snackBarCompleter<Null>(message), tokenIds),
+      );
       break;
     case EntityAction.archive:
       final message = tokenIds.length > 1
-          ? localization.archivedTokens
-              .replaceFirst(':value', tokenIds.length.toString())
-          : localization.archivedToken;
-      store.dispatch(ArchiveTokensRequest(
-          snackBarCompleter<Null>(context, message), tokenIds));
+          ? localization!.archivedTokens
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', tokenIds.length.toString())
+          : localization!.archivedToken;
+      store.dispatch(
+        ArchiveTokensRequest(snackBarCompleter<Null>(message), tokenIds),
+      );
       break;
     case EntityAction.delete:
       final message = tokenIds.length > 1
-          ? localization.deletedTokens
-              .replaceFirst(':value', tokenIds.length.toString())
-          : localization.deletedToken;
-      store.dispatch(DeleteTokensRequest(
-          snackBarCompleter<Null>(context, message), tokenIds));
+          ? localization!.deletedTokens
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', tokenIds.length.toString())
+          : localization!.deletedToken;
+      store.dispatch(
+        DeleteTokensRequest(snackBarCompleter<Null>(message), tokenIds),
+      );
       break;
     case EntityAction.toggleMultiselect:
       if (!store.state.tokenListState.isInMultiselect()) {
@@ -312,9 +324,7 @@ void handleTokenAction(
       }
       break;
     case EntityAction.more:
-      showEntityActionsDialog(
-        entities: [token],
-      );
+      showEntityActionsDialog(entities: [token]);
       break;
   }
 }
@@ -324,15 +334,15 @@ class StartTokenMultiselect {
 }
 
 class AddToTokenMultiselect {
-  AddToTokenMultiselect({@required this.entity});
+  AddToTokenMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class RemoveFromTokenMultiselect {
-  RemoveFromTokenMultiselect({@required this.entity});
+  RemoveFromTokenMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class ClearTokenMultiselect {

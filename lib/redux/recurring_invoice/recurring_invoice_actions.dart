@@ -1,8 +1,20 @@
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:built_collection/built_collection.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:http/http.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
+import 'package:invoiceninja_flutter/redux/document/document_actions.dart';
+import 'package:invoiceninja_flutter/ui/app/forms/decorated_form_field.dart';
+import 'package:invoiceninja_flutter/utils/formatting.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
@@ -11,61 +23,57 @@ import 'package:invoiceninja_flutter/ui/app/entities/entity_actions_dialog.dart'
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/dialogs.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ViewRecurringInvoiceList implements PersistUI {
-  ViewRecurringInvoiceList({
-    this.force = false,
-  });
+  ViewRecurringInvoiceList({this.force = false, this.page = 0});
 
   final bool force;
+  final int? page;
 }
 
 class ViewRecurringInvoice implements PersistUI, PersistPrefs {
-  ViewRecurringInvoice({
-    @required this.recurringInvoiceId,
-    this.force = false,
-  });
+  ViewRecurringInvoice({required this.recurringInvoiceId, this.force = false});
 
-  final String recurringInvoiceId;
+  final String? recurringInvoiceId;
   final bool force;
 }
 
 class EditRecurringInvoice implements PersistUI, PersistPrefs {
-  EditRecurringInvoice(
-      {@required this.recurringInvoice,
-      this.completer,
-      this.cancelCompleter,
-      this.itemIndex,
-      this.force = false});
+  EditRecurringInvoice({
+    required this.recurringInvoice,
+    this.completer,
+    this.cancelCompleter,
+    this.itemIndex,
+    this.force = false,
+  });
 
   final InvoiceEntity recurringInvoice;
-  final int itemIndex;
-  final Completer completer;
-  final Completer cancelCompleter;
+  final int? itemIndex;
+  final Completer? completer;
+  final Completer? cancelCompleter;
   final bool force;
 }
 
 class ShowEmailRecurringInvoice {
   ShowEmailRecurringInvoice({this.invoice, this.context, this.completer});
 
-  final InvoiceEntity invoice;
-  final BuildContext context;
-  final Completer completer;
+  final InvoiceEntity? invoice;
+  final BuildContext? context;
+  final Completer? completer;
 }
 
 class ShowPdfRecurringInvoice {
   ShowPdfRecurringInvoice({this.invoice, this.context, this.activityId});
 
-  final InvoiceEntity invoice;
-  final BuildContext context;
-  final String activityId;
+  final InvoiceEntity? invoice;
+  final BuildContext? context;
+  final String? activityId;
 }
 
 class EditRecurringInvoiceItem implements PersistUI {
   EditRecurringInvoiceItem([this.itemIndex]);
 
-  final int itemIndex;
+  final int? itemIndex;
 }
 
 class UpdateRecurringInvoice implements PersistUI {
@@ -77,27 +85,28 @@ class UpdateRecurringInvoice implements PersistUI {
 class UpdateRecurringInvoiceClient implements PersistUI {
   UpdateRecurringInvoiceClient({this.client});
 
-  final ClientEntity client;
+  final ClientEntity? client;
 }
 
 class LoadRecurringInvoice {
   LoadRecurringInvoice({this.completer, this.recurringInvoiceId});
 
-  final Completer completer;
-  final String recurringInvoiceId;
+  final Completer? completer;
+  final String? recurringInvoiceId;
 }
 
 class LoadRecurringInvoiceActivity {
   LoadRecurringInvoiceActivity({this.completer, this.recurringInvoiceId});
 
-  final Completer completer;
-  final String recurringInvoiceId;
+  final Completer? completer;
+  final String? recurringInvoiceId;
 }
 
 class LoadRecurringInvoices {
-  LoadRecurringInvoices({this.completer});
+  LoadRecurringInvoices({this.completer, this.page = 1});
 
-  final Completer completer;
+  final Completer? completer;
+  final int page;
 }
 
 class LoadRecurringInvoiceRequest implements StartLoading {}
@@ -151,14 +160,14 @@ class LoadRecurringInvoicesSuccess implements StopLoading {
 class AddRecurringInvoiceContact implements PersistUI {
   AddRecurringInvoiceContact({this.contact, this.invitation});
 
-  final ContactEntity contact;
-  final InvitationEntity invitation;
+  final ClientContactEntity? contact;
+  final InvitationEntity? invitation;
 }
 
 class RemoveRecurringInvoiceContact implements PersistUI {
   RemoveRecurringInvoiceContact({this.invitation});
 
-  final InvitationEntity invitation;
+  final InvitationEntity? invitation;
 }
 
 class SaveRecurringInvoiceRequest implements StartSaving {
@@ -168,9 +177,9 @@ class SaveRecurringInvoiceRequest implements StartSaving {
     this.action,
   });
 
-  final Completer completer;
-  final InvoiceEntity recurringInvoice;
-  final EntityAction action;
+  final Completer? completer;
+  final InvoiceEntity? recurringInvoice;
+  final EntityAction? action;
 }
 
 class SaveRecurringInvoiceSuccess
@@ -187,19 +196,17 @@ class AddRecurringInvoiceSuccess implements StopSaving, PersistData, PersistUI {
 }
 
 class AddRecurringInvoiceItem implements PersistUI {
-  AddRecurringInvoiceItem({this.invoiceItem});
+  AddRecurringInvoiceItem({this.invoiceItem, this.index});
 
-  final InvoiceItemEntity invoiceItem;
+  final int? index;
+  final InvoiceItemEntity? invoiceItem;
 }
 
 class MoveRecurringInvoiceItem implements PersistUI {
-  MoveRecurringInvoiceItem({
-    this.oldIndex,
-    this.newIndex,
-  });
+  MoveRecurringInvoiceItem({this.oldIndex, this.newIndex});
 
-  final int oldIndex;
-  final int newIndex;
+  final int? oldIndex;
+  final int? newIndex;
 }
 
 class AddRecurringInvoiceItems implements PersistUI {
@@ -209,7 +216,7 @@ class AddRecurringInvoiceItems implements PersistUI {
 }
 
 class UpdateRecurringInvoiceItem implements PersistUI {
-  UpdateRecurringInvoiceItem({this.index, this.item});
+  UpdateRecurringInvoiceItem({required this.index, required this.item});
 
   final int index;
   final InvoiceItemEntity item;
@@ -228,18 +235,23 @@ class SaveRecurringInvoiceFailure implements StopSaving {
 }
 
 class EmailRecurringInvoiceRequest implements StartSaving {
-  EmailRecurringInvoiceRequest(
-      {this.completer, this.invoiceId, this.template, this.subject, this.body});
+  EmailRecurringInvoiceRequest({
+    this.completer,
+    this.invoiceId,
+    this.template,
+    this.subject,
+    this.body,
+  });
 
-  final Completer completer;
-  final String invoiceId;
-  final EmailTemplate template;
-  final String subject;
-  final String body;
+  final Completer? completer;
+  final String? invoiceId;
+  final EmailTemplate? template;
+  final String? subject;
+  final String? body;
 }
 
 class EmailRecurringInvoiceSuccess implements StopSaving, PersistData {
-  EmailRecurringInvoiceSuccess({@required this.invoice});
+  EmailRecurringInvoiceSuccess({required this.invoice});
 
   final InvoiceEntity invoice;
 }
@@ -266,6 +278,72 @@ class ArchiveRecurringInvoicesSuccess implements StopSaving, PersistData {
 class ArchiveRecurringInvoicesFailure implements StopSaving {
   ArchiveRecurringInvoicesFailure(this.recurringInvoices);
 
+  final List<InvoiceEntity?> recurringInvoices;
+}
+
+class SendNowRecurringInvoicesRequest implements StartSaving {
+  SendNowRecurringInvoicesRequest(this.completer, this.recurringInvoiceIds);
+
+  final Completer completer;
+  final List<String> recurringInvoiceIds;
+}
+
+class SendNowRecurringInvoicesSuccess implements StopSaving, PersistData {
+  SendNowRecurringInvoicesSuccess(this.recurringInvoices);
+
+  final List<InvoiceEntity> recurringInvoices;
+}
+
+class SendNowRecurringInvoicesFailure implements StopSaving {
+  SendNowRecurringInvoicesFailure(this.recurringInvoices);
+
+  final List<InvoiceEntity> recurringInvoices;
+}
+
+class UpdatePricesRecurringInvoicesRequest implements StartSaving {
+  UpdatePricesRecurringInvoicesRequest({
+    this.completer,
+    this.recurringInvoiceIds,
+  });
+
+  final Completer? completer;
+  final List<String>? recurringInvoiceIds;
+}
+
+class UpdatePricesRecurringInvoicesSuccess implements StopSaving, PersistData {
+  UpdatePricesRecurringInvoicesSuccess(this.recurringInvoices);
+
+  final List<InvoiceEntity> recurringInvoices;
+}
+
+class UpdatePricesRecurringInvoicesFailure implements StopSaving {
+  UpdatePricesRecurringInvoicesFailure(this.recurringInvoices);
+
+  final List<InvoiceEntity> recurringInvoices;
+}
+
+class IncreasePricesRecurringInvoicesRequest implements StartSaving {
+  IncreasePricesRecurringInvoicesRequest({
+    this.completer,
+    required this.recurringInvoiceIds,
+    required this.percentageIncrease,
+  });
+
+  final Completer? completer;
+  final double percentageIncrease;
+  final List<String> recurringInvoiceIds;
+}
+
+class IncreasePricesRecurringInvoicesSuccess
+    implements StopSaving, PersistData {
+  IncreasePricesRecurringInvoicesSuccess(this.recurringInvoices);
+
+  final List<InvoiceEntity> recurringInvoices;
+}
+
+class IncreasePricesRecurringInvoicesFailure implements StopSaving {
+  IncreasePricesRecurringInvoicesFailure(this.recurringInvoices);
+
   final List<InvoiceEntity> recurringInvoices;
 }
 
@@ -285,7 +363,7 @@ class DeleteRecurringInvoicesSuccess implements StopSaving, PersistData {
 class DeleteRecurringInvoicesFailure implements StopSaving {
   DeleteRecurringInvoicesFailure(this.recurringInvoices);
 
-  final List<InvoiceEntity> recurringInvoices;
+  final List<InvoiceEntity?> recurringInvoices;
 }
 
 class RestoreRecurringInvoicesRequest implements StartSaving {
@@ -304,13 +382,13 @@ class RestoreRecurringInvoicesSuccess implements StopSaving, PersistData {
 class RestoreRecurringInvoicesFailure implements StopSaving {
   RestoreRecurringInvoicesFailure(this.recurringInvoices);
 
-  final List<InvoiceEntity> recurringInvoices;
+  final List<InvoiceEntity?> recurringInvoices;
 }
 
 class FilterRecurringInvoices implements PersistUI {
   FilterRecurringInvoices(this.filter);
 
-  final String filter;
+  final String? filter;
 }
 
 class SortRecurringInvoices implements PersistUI, PersistPrefs {
@@ -334,7 +412,7 @@ class FilterRecurringInvoicesByStatus implements PersistUI {
 class FilterRecurringInvoiceDropdown {
   FilterRecurringInvoiceDropdown(this.filter);
 
-  final String filter;
+  final String? filter;
 }
 
 class FilterRecurringInvoicesByCustom1 implements PersistUI {
@@ -363,13 +441,15 @@ class FilterRecurringInvoicesByCustom4 implements PersistUI {
 
 class SaveRecurringInvoiceDocumentRequest implements StartSaving {
   SaveRecurringInvoiceDocumentRequest({
-    @required this.completer,
-    @required this.multipartFile,
-    @required this.invoice,
+    required this.isPrivate,
+    required this.completer,
+    required this.multipartFiles,
+    required this.invoice,
   });
 
+  final bool isPrivate;
   final Completer completer;
-  final MultipartFile multipartFile;
+  final List<MultipartFile> multipartFiles;
   final InvoiceEntity invoice;
 }
 
@@ -389,8 +469,8 @@ class SaveRecurringInvoiceDocumentFailure implements StopSaving {
 class StartRecurringInvoicesRequest implements StartSaving {
   StartRecurringInvoicesRequest({this.completer, this.invoiceIds});
 
-  final Completer completer;
-  final List<String> invoiceIds;
+  final Completer? completer;
+  final List<String>? invoiceIds;
 }
 
 class StartRecurringInvoicesSuccess
@@ -409,8 +489,8 @@ class StartRecurringInvoicesFailure implements StopSaving {
 class StopRecurringInvoicesRequest implements StartSaving {
   StopRecurringInvoicesRequest({this.completer, this.invoiceIds});
 
-  final Completer completer;
-  final List<String> invoiceIds;
+  final Completer? completer;
+  final List<String>? invoiceIds;
 }
 
 class StopRecurringInvoicesSuccess
@@ -426,107 +506,214 @@ class StopRecurringInvoicesFailure implements StopSaving {
   final Object error;
 }
 
-void handleRecurringInvoiceAction(BuildContext context,
-    List<BaseEntity> recurringInvoices, EntityAction action) async {
+void handleRecurringInvoiceAction(
+  BuildContext? context,
+  List<BaseEntity> recurringInvoices,
+  EntityAction? action,
+) async {
   if (recurringInvoices.isEmpty) {
     return;
   }
 
-  final store = StoreProvider.of<AppState>(context);
+  final store = StoreProvider.of<AppState>(context!);
   final state = store.state;
   final localization = AppLocalization.of(context);
   final recurringInvoice = recurringInvoices.first as InvoiceEntity;
-  final recurringInvoiceIds =
-      recurringInvoices.map((recurringInvoice) => recurringInvoice.id).toList();
+  final recurringInvoiceIds = recurringInvoices
+      .map((recurringInvoice) => recurringInvoice.id)
+      .toList();
+  final client = state.clientState.get(recurringInvoice.clientId);
 
   switch (action) {
     case EntityAction.edit:
-      editEntity(context: context, entity: recurringInvoice);
+      editEntity(entity: recurringInvoice);
       break;
     case EntityAction.viewPdf:
       store.dispatch(
-          ShowPdfRecurringInvoice(invoice: recurringInvoice, context: context));
+        ShowPdfRecurringInvoice(invoice: recurringInvoice, context: context),
+      );
       break;
-    case EntityAction.clientPortal:
-      if (await canLaunch(recurringInvoice.invitationSilentLink)) {
-        await launch(recurringInvoice.invitationSilentLink,
-            forceSafariVC: false, forceWebView: false);
+    case EntityAction.updatePrices:
+      confirmCallback(
+        context: context,
+        message: localization!.updatePrices,
+        callback: (_) {
+          store.dispatch(
+            UpdatePricesRecurringInvoicesRequest(
+              completer: snackBarCompleter<Null>(localization.updatedPrices),
+              recurringInvoiceIds: recurringInvoiceIds,
+            ),
+          );
+        },
+      );
+      break;
+    case EntityAction.increasePrices:
+      final amount = await showDialog<double>(
+        context: context,
+        builder: (context) {
+          double? _amount = 0.0;
+          return AlertDialog(
+            title: Text(localization!.increasePrices),
+            content: DecoratedFormField(
+              autofocus: true,
+              label: localization.percent,
+              onChanged: (value) => _amount = parseDouble(value),
+              initialValue: '',
+              keyboardType: TextInputType.numberWithOptions(
+                decimal: true,
+                signed: true,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(0.0),
+                child: Text(localization.cancel.toUpperCase()),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(_amount),
+                child: Text(localization.submit.toUpperCase()),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (amount != null && amount != 0) {
+        store.dispatch(
+          IncreasePricesRecurringInvoicesRequest(
+            completer: snackBarCompleter<Null>(localization!.updatedPrices),
+            recurringInvoiceIds: recurringInvoiceIds,
+            percentageIncrease: amount,
+          ),
+        );
       }
       break;
-    case EntityAction.cloneToOther:
-      cloneToDialog(context: context, invoice: recurringInvoice);
+    case EntityAction.clientPortal:
+      var link = recurringInvoice.invitationSilentLink;
+      if (link.isNotEmpty) {
+        if (!link.contains('?')) {
+          link += '?';
+        }
+        link += '&client_hash=${client.clientHash}';
+        launchUrl(Uri.parse(link));
+      }
       break;
+    case EntityAction.cloneToPurchaseOrder:
+      final designId = getDesignIdForVendorByEntity(
+        state: state,
+        vendorId: recurringInvoice.vendorId,
+        entityType: EntityType.purchaseOrder,
+      );
+      createEntity(
+        entity: recurringInvoice.clone.rebuild(
+          (b) => b
+            ..entityType = EntityType.purchaseOrder
+            ..designId = designId,
+        ),
+      );
+      break;
+    case EntityAction.cloneToOther:
+      cloneToDialog(invoice: recurringInvoice);
+      break;
+    case EntityAction.clone:
     case EntityAction.cloneToRecurring:
-      createEntity(context: context, entity: recurringInvoice.clone);
+      createEntity(entity: recurringInvoice.clone);
       break;
     case EntityAction.cloneToInvoice:
       createEntity(
-          context: context,
-          entity: recurringInvoice.clone
-              .rebuild((b) => b..entityType = EntityType.invoice));
+        entity: recurringInvoice.clone.rebuild(
+          (b) => b..entityType = EntityType.invoice,
+        ),
+      );
       break;
     case EntityAction.cloneToQuote:
       final designId = getDesignIdForClientByEntity(
-          state: state,
-          clientId: recurringInvoice.clientId,
-          entityType: EntityType.invoice);
+        state: state,
+        clientId: recurringInvoice.clientId,
+        entityType: EntityType.invoice,
+      );
       createEntity(
-          context: context,
-          entity: recurringInvoice.clone.rebuild((b) => b
+        entity: recurringInvoice.clone.rebuild(
+          (b) => b
             ..entityType = EntityType.quote
-            ..designId = designId));
+            ..designId = designId,
+        ),
+      );
       break;
     case EntityAction.cloneToCredit:
       final designId = getDesignIdForClientByEntity(
-          state: state,
-          clientId: recurringInvoice.clientId,
-          entityType: EntityType.credit);
+        state: state,
+        clientId: recurringInvoice.clientId,
+        entityType: EntityType.credit,
+      );
       createEntity(
-          context: context,
-          entity: recurringInvoice.clone.rebuild((b) => b
+        entity: recurringInvoice.clone.rebuild(
+          (b) => b
             ..entityType = EntityType.credit
-            ..designId = designId));
+            ..designId = designId,
+        ),
+      );
       break;
     case EntityAction.start:
-      store.dispatch(StartRecurringInvoicesRequest(
-        completer: snackBarCompleter<Null>(
-            context,
-            (recurringInvoice.lastSentDate ?? '').isEmpty
-                ? localization.startedRecurringInvoice
-                : localization.resumedRecurringInvoice),
-        invoiceIds: recurringInvoiceIds,
-      ));
+      store.dispatch(
+        StartRecurringInvoicesRequest(
+          completer: snackBarCompleter<Null>(
+            recurringInvoice.lastSentDate.isEmpty
+                ? localization!.startedRecurringInvoice
+                : localization!.resumedRecurringInvoice,
+          ),
+          invoiceIds: recurringInvoiceIds,
+        ),
+      );
       break;
     case EntityAction.stop:
-      store.dispatch(StopRecurringInvoicesRequest(
-        completer: snackBarCompleter<Null>(
-            context, localization.stoppedRecurringInvoice),
-        invoiceIds: recurringInvoiceIds,
-      ));
+      store.dispatch(
+        StopRecurringInvoicesRequest(
+          completer: snackBarCompleter<Null>(
+            localization!.stoppedRecurringInvoice,
+          ),
+          invoiceIds: recurringInvoiceIds,
+        ),
+      );
       break;
     case EntityAction.restore:
       final message = recurringInvoiceIds.length > 1
-          ? localization.restoredRecurringInvoices
-              .replaceFirst(':value', recurringInvoiceIds.length.toString())
-          : localization.restoredRecurringInvoice;
-      store.dispatch(RestoreRecurringInvoicesRequest(
-          snackBarCompleter<Null>(context, message), recurringInvoiceIds));
+          ? localization!.restoredRecurringInvoices
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', recurringInvoiceIds.length.toString())
+          : localization!.restoredRecurringInvoice;
+      store.dispatch(
+        RestoreRecurringInvoicesRequest(
+          snackBarCompleter<Null>(message),
+          recurringInvoiceIds,
+        ),
+      );
       break;
     case EntityAction.archive:
       final message = recurringInvoiceIds.length > 1
-          ? localization.archivedRecurringInvoices
-              .replaceFirst(':value', recurringInvoiceIds.length.toString())
-          : localization.archivedRecurringInvoice;
-      store.dispatch(ArchiveRecurringInvoicesRequest(
-          snackBarCompleter<Null>(context, message), recurringInvoiceIds));
+          ? localization!.archivedRecurringInvoices
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', recurringInvoiceIds.length.toString())
+          : localization!.archivedRecurringInvoice;
+      store.dispatch(
+        ArchiveRecurringInvoicesRequest(
+          snackBarCompleter<Null>(message),
+          recurringInvoiceIds,
+        ),
+      );
       break;
     case EntityAction.delete:
       final message = recurringInvoiceIds.length > 1
-          ? localization.deletedRecurringInvoices
-              .replaceFirst(':value', recurringInvoiceIds.length.toString())
-          : localization.deletedRecurringInvoice;
-      store.dispatch(DeleteRecurringInvoicesRequest(
-          snackBarCompleter<Null>(context, message), recurringInvoiceIds));
+          ? localization!.deletedRecurringInvoices
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', recurringInvoiceIds.length.toString())
+          : localization!.deletedRecurringInvoice;
+      store.dispatch(
+        DeleteRecurringInvoicesRequest(
+          snackBarCompleter<Null>(message),
+          recurringInvoiceIds,
+        ),
+      );
       break;
     case EntityAction.toggleMultiselect:
       if (!store.state.recurringInvoiceListState.isInMultiselect()) {
@@ -538,21 +725,81 @@ void handleRecurringInvoiceAction(BuildContext context,
       }
 
       for (final recurringInvoice in recurringInvoices) {
-        if (!store.state.recurringInvoiceListState
-            .isSelected(recurringInvoice.id)) {
+        if (!store.state.recurringInvoiceListState.isSelected(
+          recurringInvoice.id,
+        )) {
           store.dispatch(
-              AddToRecurringInvoiceMultiselect(entity: recurringInvoice));
+            AddToRecurringInvoiceMultiselect(entity: recurringInvoice),
+          );
         } else {
           store.dispatch(
-              RemoveFromRecurringInvoiceMultiselect(entity: recurringInvoice));
+            RemoveFromRecurringInvoiceMultiselect(entity: recurringInvoice),
+          );
         }
       }
       break;
     case EntityAction.more:
-      showEntityActionsDialog(
-        entities: [recurringInvoice],
+      showEntityActionsDialog(entities: [recurringInvoice]);
+      break;
+    case EntityAction.documents:
+      final documentIds = <String>[];
+      for (var invoice in recurringInvoices) {
+        for (var document in (invoice as InvoiceEntity).documents) {
+          documentIds.add(document.id);
+        }
+      }
+      if (documentIds.isEmpty) {
+        showMessageDialog(message: localization!.noDocumentsToDownload);
+      } else {
+        store.dispatch(
+          DownloadDocumentsRequest(
+            documentIds: documentIds,
+            completer: snackBarCompleter<Null>(localization!.exportedData),
+          ),
+        );
+      }
+      break;
+    case EntityAction.sendNow:
+      store.dispatch(
+        SendNowRecurringInvoicesRequest(
+          snackBarCompleter<Null>(
+            recurringInvoiceIds.length == 1
+                ? localization!.emailedInvoice
+                : localization!.emailedInvoice,
+          ),
+          recurringInvoiceIds,
+        ),
       );
       break;
+    case EntityAction.runTemplate:
+      showDialog<void>(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: false,
+        builder: (context) => RunTemplateDialog(
+          entityType: EntityType.recurringInvoice,
+          entities: recurringInvoices,
+        ),
+      );
+      break;
+    case EntityAction.addComment:
+      final addedComment = await showDialog<bool>(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: false,
+        builder: (context) => AddCommentDialog(
+          entityType: EntityType.recurringInvoice,
+          entityId: recurringInvoice.id,
+        ),
+      );
+      if (addedComment == true) {
+        store.dispatch(
+          LoadRecurringInvoice(recurringInvoiceId: recurringInvoice.id),
+        );
+      }
+      break;
+    default:
+      print(
+        '## Error: action $action not handled in recurring_invoice_actions',
+      );
   }
 }
 
@@ -561,15 +808,15 @@ class StartRecurringInvoiceMultiselect {
 }
 
 class AddToRecurringInvoiceMultiselect {
-  AddToRecurringInvoiceMultiselect({@required this.entity});
+  AddToRecurringInvoiceMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class RemoveFromRecurringInvoiceMultiselect {
-  RemoveFromRecurringInvoiceMultiselect({@required this.entity});
+  RemoveFromRecurringInvoiceMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class ClearRecurringInvoiceMultiselect {
@@ -579,5 +826,5 @@ class ClearRecurringInvoiceMultiselect {
 class UpdateRecurringInvoiceTab implements PersistUI {
   UpdateRecurringInvoiceTab({this.tabIndex});
 
-  final int tabIndex;
+  final int? tabIndex;
 }

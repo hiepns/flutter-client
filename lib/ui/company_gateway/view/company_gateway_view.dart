@@ -1,8 +1,12 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+
+// Package imports:
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/redux/company_gateway/company_gateway_selectors.dart';
@@ -19,13 +23,12 @@ import 'package:invoiceninja_flutter/ui/company_gateway/view/company_gateway_vie
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class CompanyGatewayView extends StatefulWidget {
   const CompanyGatewayView({
-    Key key,
-    @required this.viewModel,
-    @required this.isFilter,
+    Key? key,
+    required this.viewModel,
+    required this.isFilter,
   }) : super(key: key);
 
   final CompanyGatewayViewVM viewModel;
@@ -37,7 +40,7 @@ class CompanyGatewayView extends StatefulWidget {
 
 class _CompanyGatewayViewState extends State<CompanyGatewayView>
     with SingleTickerProviderStateMixin {
-  TabController _controller;
+  TabController? _controller;
 
   @override
   void initState() {
@@ -47,13 +50,13 @@ class _CompanyGatewayViewState extends State<CompanyGatewayView>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller!.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final viewModel = widget.viewModel;
     final companyGateway = viewModel.companyGateway;
 
@@ -64,12 +67,8 @@ class _CompanyGatewayViewState extends State<CompanyGatewayView>
       appBarBottom: TabBar(
         controller: _controller,
         tabs: [
-          Tab(
-            text: localization.overview,
-          ),
-          Tab(
-            text: localization.systemLogs,
-          ),
+          Tab(text: localization.overview),
+          Tab(text: localization.systemLogs),
         ],
       ),
       body: TabBarView(
@@ -78,11 +77,14 @@ class _CompanyGatewayViewState extends State<CompanyGatewayView>
           RefreshIndicator(
             onRefresh: () => viewModel.onRefreshed(context),
             child: _CompanyGatewayOverview(
-                viewModel: widget.viewModel, isFilter: widget.isFilter),
+              viewModel: widget.viewModel,
+              isFilter: widget.isFilter,
+            ),
           ),
           RefreshIndicator(
-              onRefresh: () => viewModel.onRefreshed(context),
-              child: _CompanyGatewaySystemLog(viewModel: widget.viewModel)),
+            onRefresh: () => viewModel.onRefreshed(context),
+            child: _CompanyGatewaySystemLog(viewModel: widget.viewModel),
+          ),
         ],
       ),
     );
@@ -91,9 +93,9 @@ class _CompanyGatewayViewState extends State<CompanyGatewayView>
 
 class _CompanyGatewayOverview extends StatelessWidget {
   const _CompanyGatewayOverview({
-    Key key,
-    @required this.viewModel,
-    @required this.isFilter,
+    Key? key,
+    required this.viewModel,
+    required this.isFilter,
   }) : super(key: key);
 
   final bool isFilter;
@@ -103,10 +105,12 @@ class _CompanyGatewayOverview extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = viewModel.state;
     final companyGateway = viewModel.companyGateway;
-    final gateway = state.staticState.gatewayMap[companyGateway.gatewayId];
-    final localization = AppLocalization.of(context);
+    final gateway = state.staticState.gatewayMap[companyGateway.gatewayId]!;
+    final localization = AppLocalization.of(context)!;
     final processed = memoizedCalculateCompanyGatewayProcessed(
-        companyGateway.id, viewModel.state.paymentState.map);
+      companyGateway.id,
+      viewModel.state.paymentState.map,
+    );
     final webhookUrl =
         '${state.account.defaultUrl}/payment_webhook/${state.company.companyKey}/${companyGateway.id}';
 
@@ -114,27 +118,33 @@ class _CompanyGatewayOverview extends StatelessWidget {
     for (var gatewayTypeId in kGatewayTypes.keys) {
       final Map<String, String> fields = {};
       if (companyGateway.feesAndLimitsMap.containsKey(gatewayTypeId)) {
-        final settings =
-            companyGateway.getSettingsForGatewayTypeId(gatewayTypeId);
+        final settings = companyGateway.getSettingsForGatewayTypeId(
+          gatewayTypeId,
+        );
         if (settings.feeAmount != 0) {
           fields[localization.feeAmount] =
-              formatNumber(settings.feeAmount, context);
+              formatNumber(settings.feeAmount, context) ?? '';
         }
         if (settings.feePercent != 0) {
-          fields[localization.feePercent] = formatNumber(
-              settings.feePercent, context,
-              formatNumberType: FormatNumberType.percent);
+          fields[localization.feePercent] =
+              formatNumber(
+                settings.feePercent,
+                context,
+                formatNumberType: FormatNumberType.percent,
+              ) ??
+              '';
         }
         if (settings.feeCap != 0) {
-          fields[localization.feeCap] = formatNumber(settings.feeCap, context);
+          fields[localization.feeCap] =
+              formatNumber(settings.feeCap, context) ?? '';
         }
         if (settings.minLimit != -1) {
           fields[localization.minLimit] =
-              formatNumber(settings.minLimit, context);
+              formatNumber(settings.minLimit, context) ?? '';
         }
         if (settings.maxLimit != -1) {
           fields[localization.maxLimit] =
-              formatNumber(settings.maxLimit, context);
+              formatNumber(settings.maxLimit, context) ?? '';
         }
         if (fields.isNotEmpty) {
           allFields[gatewayTypeId] = fields;
@@ -142,106 +152,121 @@ class _CompanyGatewayOverview extends StatelessWidget {
       }
     }
 
-    return ScrollableListView(children: <Widget>[
-      EntityHeader(
+    return ScrollableListView(
+      children: <Widget>[
+        EntityHeader(
           entity: companyGateway,
           label: localization.processed,
-          value: formatNumber(processed, context)),
-      ListDivider(),
-      if ([kGatewayStripe, kGatewayStripeConnect].contains(gateway.id)) ...[
+          value: formatNumber(processed, context),
+        ),
+        ListDivider(),
         Padding(
           padding: const EdgeInsets.only(left: 16, bottom: 20, right: 16),
           child: Row(
             children: [
               Expanded(
                 child: AppButton(
-                  iconData: isDesktop(context) ? MdiIcons.import : null,
-                  label: localization.importCustomers.toUpperCase(),
-                  onPressed: () => viewModel.onStripeImportPressed(context),
+                  iconData: isDesktop(context) ? MdiIcons.shieldCheck : null,
+                  label: localization.checkCredentials.toUpperCase(),
+                  onPressed: () => viewModel.onCheckCredentialsPressed(context),
                 ),
               ),
               SizedBox(width: kTableColumnGap),
               Expanded(
                 child: AppButton(
-                  iconData:
-                      isDesktop(context) ? MdiIcons.checkCircleOutline : null,
-                  label: localization.verifyCustomers.toUpperCase(),
-                  onPressed: () => viewModel.onStripeVerifyPressed(context),
+                  iconData: isDesktop(context) ? MdiIcons.import : null,
+                  label: localization.importCustomers.toUpperCase(),
+                  onPressed: () => viewModel.onImportCustomersPressed(context),
                 ),
               ),
+              if ([
+                kGatewayStripe,
+                kGatewayStripeConnect,
+              ].contains(gateway.id)) ...[
+                SizedBox(width: kTableColumnGap),
+                Expanded(
+                  child: AppButton(
+                    iconData: isDesktop(context)
+                        ? MdiIcons.checkCircleOutline
+                        : null,
+                    label: localization.verifyCustomers.toUpperCase(),
+                    onPressed: () => viewModel.onStripeVerifyPressed(context),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
         ListDivider(),
-      ],
-      if (gateway.supportedEvents().isNotEmpty) ...[
-        ListTile(
-          contentPadding: const EdgeInsets.all(22),
-          title: Text(localization.webhookUrl),
-          subtitle: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                webhookUrl,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                '\n${localization.supportedEvents}:\n${gateway.supportedEvents().map((e) => ' - $e').join('\n')}',
-              ),
-            ],
+        if (gateway.supportedEvents().isNotEmpty) ...[
+          ListTile(
+            contentPadding: const EdgeInsets.all(22),
+            title: Text(localization.webhookUrl),
+            subtitle: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(webhookUrl, maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(
+                  '\n${localization.supportedEvents}:\n${gateway.supportedEvents().map((e) => ' - $e').join('\n')}',
+                ),
+              ],
+            ),
+            trailing: Icon(Icons.content_copy),
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: webhookUrl));
+              showToast(
+                localization.copiedToClipboard.replaceFirst(
+                  ':value ',
+                  webhookUrl,
+                ),
+              );
+            },
           ),
-          trailing: Icon(Icons.content_copy),
-          onTap: () {
-            Clipboard.setData(ClipboardData(text: webhookUrl));
-            showToast(localization.copiedToClipboard
-                .replaceFirst(':value ', webhookUrl));
-          },
-        ),
-        ListDivider(),
-      ],
-      if (gateway?.supportsTokenBilling == true) ...[
+          ListDivider(),
+        ],
+        if (gateway.supportsTokenBilling == true) ...[
+          EntitiesListTile(
+            hideNew: true,
+            entity: companyGateway,
+            isFilter: isFilter,
+            entityType: EntityType.client,
+            title: localization.clients,
+            subtitle: memoizedClientStatsForCompanyGateway(
+              companyGateway.id,
+              state.clientState.map,
+            ).present(localization.active, localization.archived),
+          ),
+        ],
         EntitiesListTile(
           hideNew: true,
           entity: companyGateway,
           isFilter: isFilter,
-          entityType: EntityType.client,
-          title: localization.clients,
-          subtitle: memoizedClientStatsForCompanyGateway(
-                  companyGateway.id, state.clientState.map)
-              .present(localization.active, localization.archived),
+          entityType: EntityType.payment,
+          title: localization.payments,
+          subtitle: memoizedPaymentStatsForCompanyGateway(
+            companyGateway.id,
+            state.paymentState.map,
+          ).present(localization.active, localization.archived),
         ),
-      ],
-      EntitiesListTile(
-        hideNew: true,
-        entity: companyGateway,
-        isFilter: isFilter,
-        entityType: EntityType.payment,
-        title: localization.payments,
-        subtitle: memoizedPaymentStatsForCompanyGateway(
-                companyGateway.id, state.paymentState.map)
-            .present(localization.active, localization.archived),
-      ),
-      for (var entry in allFields.entries) ...[
-        Padding(
-          padding: const EdgeInsets.only(top: 20, left: 20),
-          child: Text(
-            localization.lookup(kGatewayTypes[entry.key]),
-            style: Theme.of(context).textTheme.headline6,
+        for (var entry in allFields.entries) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 20, left: 20),
+            child: Text(
+              localization.lookup(kGatewayTypes[entry.key]),
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
           ),
-        ),
-        FieldGrid(entry.value),
-      ]
-    ]);
+          FieldGrid(entry.value),
+        ],
+      ],
+    );
   }
 }
 
 class _CompanyGatewaySystemLog extends StatefulWidget {
-  const _CompanyGatewaySystemLog({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const _CompanyGatewaySystemLog({Key? key, required this.viewModel})
+    : super(key: key);
 
   final CompanyGatewayViewVM viewModel;
 
@@ -267,8 +292,6 @@ class __CompanyGatewaySystemLogState extends State<_CompanyGatewaySystemLog> {
       return LoadingIndicator();
     }
 
-    return SystemLogViewer(
-      systemLogs: companyGateway.systemLogs,
-    );
+    return SystemLogViewer(systemLogs: companyGateway.systemLogs);
   }
 }

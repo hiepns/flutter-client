@@ -1,15 +1,18 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 
 part 'payment_type_model.g.dart';
 
 abstract class PaymentTypeListResponse
     implements Built<PaymentTypeListResponse, PaymentTypeListResponseBuilder> {
-  factory PaymentTypeListResponse(
-          [void updates(PaymentTypeListResponseBuilder b)]) =
-      _$PaymentTypeListResponse;
+  factory PaymentTypeListResponse([
+    void updates(PaymentTypeListResponseBuilder b),
+  ]) = _$PaymentTypeListResponse;
   PaymentTypeListResponse._();
 
   @override
@@ -24,9 +27,9 @@ abstract class PaymentTypeListResponse
 
 abstract class PaymentTypeItemResponse
     implements Built<PaymentTypeItemResponse, PaymentTypeItemResponseBuilder> {
-  factory PaymentTypeItemResponse(
-          [void updates(PaymentTypeItemResponseBuilder b)]) =
-      _$PaymentTypeItemResponse;
+  factory PaymentTypeItemResponse([
+    void updates(PaymentTypeItemResponseBuilder b),
+  ]) = _$PaymentTypeItemResponse;
   PaymentTypeItemResponse._();
 
   @override
@@ -48,10 +51,7 @@ abstract class PaymentTypeEntity extends Object
     with SelectableEntity
     implements Built<PaymentTypeEntity, PaymentTypeEntityBuilder> {
   factory PaymentTypeEntity() {
-    return _$PaymentTypeEntity._(
-      id: '',
-      name: '',
-    );
+    return _$PaymentTypeEntity._(id: '', name: '');
   }
   PaymentTypeEntity._();
 
@@ -62,7 +62,7 @@ abstract class PaymentTypeEntity extends Object
   String get name;
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     if (filter == null || filter.isEmpty) {
       return true;
     }
@@ -77,7 +77,7 @@ abstract class PaymentTypeEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     if (filter == null || filter.isEmpty) {
       return null;
     }
@@ -91,7 +91,7 @@ abstract class PaymentTypeEntity extends Object
   String get listDisplayName => name;
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   static Serializer<PaymentTypeEntity> get serializer =>
       _$paymentTypeEntitySerializer;

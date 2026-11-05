@@ -1,8 +1,12 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/task/task_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/buttons/bottom_buttons.dart';
 import 'package:invoiceninja_flutter/ui/app/view_scaffold.dart';
@@ -13,10 +17,10 @@ import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class TaskView extends StatefulWidget {
   const TaskView({
-    Key key,
-    @required this.viewModel,
-    @required this.isFilter,
-    @required this.tabIndex,
+    Key? key,
+    required this.viewModel,
+    required this.isFilter,
+    required this.tabIndex,
   }) : super(key: key);
 
   final TaskViewVM viewModel;
@@ -29,7 +33,7 @@ class TaskView extends StatefulWidget {
 
 class _TaskViewState extends State<TaskView>
     with SingleTickerProviderStateMixin {
-  TabController _controller;
+  TabController? _controller;
 
   @override
   void initState() {
@@ -37,10 +41,11 @@ class _TaskViewState extends State<TaskView>
 
     final state = widget.viewModel.state;
     _controller = TabController(
-        vsync: this,
-        length: 2,
-        initialIndex: widget.isFilter ? 0 : state.taskUIState.tabIndex);
-    _controller.addListener(_onTabChanged);
+      vsync: this,
+      length: 2,
+      initialIndex: widget.isFilter ? 0 : state.taskUIState.tabIndex,
+    );
+    _controller!.addListener(_onTabChanged);
   }
 
   void _onTabChanged() {
@@ -49,7 +54,7 @@ class _TaskViewState extends State<TaskView>
     }
 
     final store = StoreProvider.of<AppState>(context);
-    store.dispatch(UpdateTaskTab(tabIndex: _controller.index));
+    store.dispatch(UpdateTaskTab(tabIndex: _controller!.index));
   }
 
   @override
@@ -57,14 +62,14 @@ class _TaskViewState extends State<TaskView>
     super.didUpdateWidget(oldWidget);
 
     if (oldWidget.tabIndex != widget.tabIndex) {
-      _controller.index = widget.tabIndex;
+      _controller!.index = widget.tabIndex;
     }
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_onTabChanged);
-    _controller.dispose();
+    _controller!.removeListener(_onTabChanged);
+    _controller!.dispose();
     super.dispose();
   }
 
@@ -74,78 +79,76 @@ class _TaskViewState extends State<TaskView>
     final task = viewModel.task;
     final localization = AppLocalization.of(context);
     final documents = task.documents;
+    final state = viewModel.state;
+    final company = state.company;
 
     return ViewScaffold(
       isFilter: widget.isFilter,
       entity: task,
-      appBarBottom: TabBar(
-        controller: _controller,
-        isScrollable: false,
-        tabs: [
-          Tab(
-            text: localization.overview,
-          ),
-          Tab(
-            text: documents.isEmpty
-                ? localization.documents
-                : '${localization.documents} (${documents.length})',
-          ),
-        ],
-      ),
-      body: Builder(builder: (context) {
-        return Column(
-          children: <Widget>[
-            Expanded(
-              child: TabBarView(
-                controller: _controller,
-                children: <Widget>[
-                  RefreshIndicator(
-                    onRefresh: () => viewModel.onRefreshed(context),
-                    child: TaskOverview(
-                      viewModel: viewModel,
-                      isFilter: widget.isFilter,
-                    ),
-                  ),
-                  RefreshIndicator(
-                    onRefresh: () => viewModel.onRefreshed(context),
-                    child: TaskViewDocuments(
-                      viewModel: viewModel,
-                      key: ValueKey(viewModel.task.id),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            BottomButtons(
-              entity: task,
-              action1: task.isRunning
-                  ? EntityAction.stop
-                  : task.getTaskTimes().isEmpty
-                      ? EntityAction.start
-                      : EntityAction.resume,
-              action2: task.isInvoiced
-                  ? EntityAction.archive
-                  : EntityAction.invoiceTask,
-              action1Enabled: !task.isInvoiced,
-            ),
-          ],
-        );
-      }),
-      floatingActionButton: Builder(builder: (BuildContext context) {
-        return task.isInvoiced || task.isDeleted
-            ? SizedBox()
-            : FloatingActionButton(
-                heroTag: 'task_view_fab',
-                backgroundColor: Theme.of(context).primaryColorDark,
-                onPressed: () => viewModel.onFabPressed(context),
-                child: Icon(
-                  task.isRunning ? Icons.stop : Icons.play_arrow,
-                  color: Colors.white,
+      isEditable: !state.company.invoiceTaskLock || !task.isInvoiced,
+      appBarBottom: company.isModuleEnabled(EntityType.document)
+          ? TabBar(
+              controller: _controller,
+              isScrollable: false,
+              tabs: [
+                Tab(text: localization!.overview),
+                Tab(
+                  text: documents.isEmpty
+                      ? localization.documents
+                      : '${localization.documents} (${documents.length})',
                 ),
-                tooltip:
-                    task.isRunning ? localization.stop : localization.start,
-              );
-      }),
+              ],
+            )
+          : null,
+      body: Builder(
+        builder: (context) {
+          return Column(
+            children: <Widget>[
+              Expanded(
+                child: company.isModuleEnabled(EntityType.document)
+                    ? TabBarView(
+                        controller: _controller,
+                        children: <Widget>[
+                          RefreshIndicator(
+                            onRefresh: () => viewModel.onRefreshed(context),
+                            child: TaskOverview(
+                              viewModel: viewModel,
+                              isFilter: widget.isFilter,
+                            ),
+                          ),
+                          RefreshIndicator(
+                            onRefresh: () => viewModel.onRefreshed(context),
+                            child: TaskViewDocuments(
+                              viewModel: viewModel,
+                              key: ValueKey(viewModel.task.id),
+                            ),
+                          ),
+                        ],
+                      )
+                    : RefreshIndicator(
+                        onRefresh: () => viewModel.onRefreshed(context),
+                        child: TaskOverview(
+                          viewModel: viewModel,
+                          isFilter: widget.isFilter,
+                        ),
+                      ),
+              ),
+              BottomButtons(
+                entity: task,
+                action1: task.isRunning
+                    ? EntityAction.stop
+                    : task.getTaskTimes().isEmpty
+                    ? EntityAction.start
+                    : EntityAction.resume,
+                action2: task.isInvoiced
+                    ? EntityAction.archive
+                    : EntityAction.invoiceTask,
+                action1Enabled: !task.isInvoiced,
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

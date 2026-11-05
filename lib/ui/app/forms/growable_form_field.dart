@@ -1,18 +1,22 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/ui/app/forms/decorated_form_field.dart';
 
 class GrowableFormField extends StatefulWidget {
   const GrowableFormField({
-    Key key,
-    @required this.initialValue,
-    @required this.onChanged,
+    Key? key,
+    required this.initialValue,
+    required this.onChanged,
     this.autofocus = false,
+    this.label,
   }) : super(key: key);
 
   final String initialValue;
   final ValueChanged<String> onChanged;
   final bool autofocus;
+  final String? label;
 
   @override
   _GrowableFormFieldState createState() => _GrowableFormFieldState();
@@ -45,6 +49,7 @@ class _GrowableFormFieldState extends State<GrowableFormField> {
   @override
   Widget build(BuildContext context) {
     return DecoratedFormField(
+      label: widget.label,
       autofocus: widget.autofocus,
       focusNode: _focusNode,
       initialValue: widget.initialValue,

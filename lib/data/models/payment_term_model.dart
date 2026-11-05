@@ -1,6 +1,9 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/utils/strings.dart';
@@ -9,9 +12,9 @@ part 'payment_term_model.g.dart';
 
 abstract class PaymentTermListResponse
     implements Built<PaymentTermListResponse, PaymentTermListResponseBuilder> {
-  factory PaymentTermListResponse(
-          [void updates(PaymentTermListResponseBuilder b)]) =
-      _$PaymentTermListResponse;
+  factory PaymentTermListResponse([
+    void updates(PaymentTermListResponseBuilder b),
+  ]) = _$PaymentTermListResponse;
 
   PaymentTermListResponse._();
 
@@ -27,9 +30,9 @@ abstract class PaymentTermListResponse
 
 abstract class PaymentTermItemResponse
     implements Built<PaymentTermItemResponse, PaymentTermItemResponseBuilder> {
-  factory PaymentTermItemResponse(
-          [void updates(PaymentTermItemResponseBuilder b)]) =
-      _$PaymentTermItemResponse;
+  factory PaymentTermItemResponse([
+    void updates(PaymentTermItemResponseBuilder b),
+  ]) = _$PaymentTermItemResponse;
 
   PaymentTermItemResponse._();
 
@@ -51,7 +54,7 @@ class PaymentTermFields {
 abstract class PaymentTermEntity extends Object
     with BaseEntity, SelectableEntity
     implements Built<PaymentTermEntity, PaymentTermEntityBuilder> {
-  factory PaymentTermEntity({String id, AppState state}) {
+  factory PaymentTermEntity({String? id, AppState? state}) {
     return _$PaymentTermEntity._(
       id: id ?? BaseEntity.nextId,
       isChanged: false,
@@ -93,22 +96,19 @@ abstract class PaymentTermEntity extends Object
   @BuiltValueField(wireName: 'num_days')
   int get numDays;
 
-  int compareTo(PaymentTermEntity paymentTerm, String sortField,
-          bool sortAscending) =>
-      numDays.compareTo(paymentTerm.numDays);
+  int compareTo(
+    PaymentTermEntity paymentTerm,
+    String sortField,
+    bool sortAscending,
+  ) => numDays.compareTo(paymentTerm.numDays);
 
   @override
-  bool matchesFilter(String filter) {
-    return matchesStrings(
-      haystacks: [
-        '$numDays',
-      ],
-      needle: filter,
-    );
+  bool matchesFilter(String? filter) {
+    return matchesStrings(haystacks: ['$numDays'], needle: filter);
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     return matchesStringsValue(
       haystacks: [
         //

@@ -6,9 +6,8 @@ part of 'quote_state.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-Serializer<QuoteState> _$quoteStateSerializer = new _$QuoteStateSerializer();
-Serializer<QuoteUIState> _$quoteUIStateSerializer =
-    new _$QuoteUIStateSerializer();
+Serializer<QuoteState> _$quoteStateSerializer = _$QuoteStateSerializer();
+Serializer<QuoteUIState> _$quoteUIStateSerializer = _$QuoteUIStateSerializer();
 
 class _$QuoteStateSerializer implements StructuredSerializer<QuoteState> {
   @override
@@ -17,45 +16,67 @@ class _$QuoteStateSerializer implements StructuredSerializer<QuoteState> {
   final String wireName = 'QuoteState';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, QuoteState object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    QuoteState object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'map',
-      serializers.serialize(object.map,
-          specifiedType: const FullType(BuiltMap,
-              const [const FullType(String), const FullType(InvoiceEntity)])),
+      serializers.serialize(
+        object.map,
+        specifiedType: const FullType(BuiltMap, const [
+          const FullType(String),
+          const FullType(InvoiceEntity),
+        ]),
+      ),
       'list',
-      serializers.serialize(object.list,
-          specifiedType:
-              const FullType(BuiltList, const [const FullType(String)])),
+      serializers.serialize(
+        object.list,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(String),
+        ]),
+      ),
     ];
 
     return result;
   }
 
   @override
-  QuoteState deserialize(Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new QuoteStateBuilder();
+  QuoteState deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = QuoteStateBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'map':
-          result.map.replace(serializers.deserialize(value,
+          result.map.replace(
+            serializers.deserialize(
+              value,
               specifiedType: const FullType(BuiltMap, const [
                 const FullType(String),
-                const FullType(InvoiceEntity)
-              ])));
+                const FullType(InvoiceEntity),
+              ]),
+            )!,
+          );
           break;
         case 'list':
-          result.list.replace(serializers.deserialize(value,
-                  specifiedType:
-                      const FullType(BuiltList, const [const FullType(String)]))
-              as BuiltList<Object>);
+          result.list.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(String),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
       }
     }
@@ -71,71 +92,93 @@ class _$QuoteUIStateSerializer implements StructuredSerializer<QuoteUIState> {
   final String wireName = 'QuoteUIState';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, QuoteUIState object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    QuoteUIState object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'listUIState',
-      serializers.serialize(object.listUIState,
-          specifiedType: const FullType(ListUIState)),
+      serializers.serialize(
+        object.listUIState,
+        specifiedType: const FullType(ListUIState),
+      ),
       'tabIndex',
-      serializers.serialize(object.tabIndex,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.tabIndex,
+        specifiedType: const FullType(int),
+      ),
     ];
-    Object value;
+    Object? value;
     value = object.editing;
     if (value != null) {
       result
         ..add('editing')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(InvoiceEntity)));
+        ..add(
+          serializers.serialize(
+            value,
+            specifiedType: const FullType(InvoiceEntity),
+          ),
+        );
     }
     value = object.selectedId;
     if (value != null) {
       result
         ..add('selectedId')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
-    }
-    value = object.forceSelected;
-    if (value != null) {
-      result
-        ..add('forceSelected')
         ..add(
-            serializers.serialize(value, specifiedType: const FullType(bool)));
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     return result;
   }
 
   @override
-  QuoteUIState deserialize(Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new QuoteUIStateBuilder();
+  QuoteUIState deserialize(
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = QuoteUIStateBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'editing':
-          result.editing.replace(serializers.deserialize(value,
-              specifiedType: const FullType(InvoiceEntity)) as InvoiceEntity);
+          result.editing.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(InvoiceEntity),
+                )!
+                as InvoiceEntity,
+          );
           break;
         case 'listUIState':
-          result.listUIState.replace(serializers.deserialize(value,
-              specifiedType: const FullType(ListUIState)) as ListUIState);
+          result.listUIState.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(ListUIState),
+                )!
+                as ListUIState,
+          );
           break;
         case 'selectedId':
-          result.selectedId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
-          break;
-        case 'forceSelected':
-          result.forceSelected = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+          result.selectedId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'tabIndex':
-          result.tabIndex = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+          result.tabIndex =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
       }
     }
@@ -150,20 +193,16 @@ class _$QuoteState extends QuoteState {
   @override
   final BuiltList<String> list;
 
-  factory _$QuoteState([void Function(QuoteStateBuilder) updates]) =>
-      (new QuoteStateBuilder()..update(updates)).build();
+  factory _$QuoteState([void Function(QuoteStateBuilder)? updates]) =>
+      (QuoteStateBuilder()..update(updates))._build();
 
-  _$QuoteState._({this.map, this.list}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(map, 'QuoteState', 'map');
-    BuiltValueNullFieldError.checkNotNull(list, 'QuoteState', 'list');
-  }
-
+  _$QuoteState._({required this.map, required this.list}) : super._();
   @override
   QuoteState rebuild(void Function(QuoteStateBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  QuoteStateBuilder toBuilder() => new QuoteStateBuilder()..replace(this);
+  QuoteStateBuilder toBuilder() => QuoteStateBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -171,15 +210,20 @@ class _$QuoteState extends QuoteState {
     return other is QuoteState && map == other.map && list == other.list;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc($jc(0, map.hashCode), list.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, map.hashCode);
+    _$hash = $jc(_$hash, list.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('QuoteState')
+    return (newBuiltValueToStringHelper(r'QuoteState')
           ..add('map', map)
           ..add('list', list))
         .toString();
@@ -187,16 +231,16 @@ class _$QuoteState extends QuoteState {
 }
 
 class QuoteStateBuilder implements Builder<QuoteState, QuoteStateBuilder> {
-  _$QuoteState _$v;
+  _$QuoteState? _$v;
 
-  MapBuilder<String, InvoiceEntity> _map;
+  MapBuilder<String, InvoiceEntity>? _map;
   MapBuilder<String, InvoiceEntity> get map =>
-      _$this._map ??= new MapBuilder<String, InvoiceEntity>();
-  set map(MapBuilder<String, InvoiceEntity> map) => _$this._map = map;
+      _$this._map ??= MapBuilder<String, InvoiceEntity>();
+  set map(MapBuilder<String, InvoiceEntity>? map) => _$this._map = map;
 
-  ListBuilder<String> _list;
-  ListBuilder<String> get list => _$this._list ??= new ListBuilder<String>();
-  set list(ListBuilder<String> list) => _$this._list = list;
+  ListBuilder<String>? _list;
+  ListBuilder<String> get list => _$this._list ??= ListBuilder<String>();
+  set list(ListBuilder<String>? list) => _$this._list = list;
 
   QuoteStateBuilder();
 
@@ -212,31 +256,34 @@ class QuoteStateBuilder implements Builder<QuoteState, QuoteStateBuilder> {
 
   @override
   void replace(QuoteState other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$QuoteState;
   }
 
   @override
-  void update(void Function(QuoteStateBuilder) updates) {
+  void update(void Function(QuoteStateBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$QuoteState build() {
+  QuoteState build() => _build();
+
+  _$QuoteState _build() {
     _$QuoteState _$result;
     try {
-      _$result =
-          _$v ?? new _$QuoteState._(map: map.build(), list: list.build());
+      _$result = _$v ?? _$QuoteState._(map: map.build(), list: list.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'map';
         map.build();
         _$failedField = 'list';
         list.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'QuoteState', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'QuoteState',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -247,49 +294,44 @@ class QuoteStateBuilder implements Builder<QuoteState, QuoteStateBuilder> {
 
 class _$QuoteUIState extends QuoteUIState {
   @override
-  final InvoiceEntity editing;
+  final InvoiceEntity? editing;
   @override
-  final int editingItemIndex;
+  final int? editingItemIndex;
   @override
-  final String historyActivityId;
+  final String? historyActivityId;
   @override
   final ListUIState listUIState;
   @override
-  final String selectedId;
+  final String? selectedId;
   @override
-  final bool forceSelected;
+  final bool? forceSelected;
   @override
   final int tabIndex;
   @override
-  final Completer<SelectableEntity> saveCompleter;
+  final Completer<SelectableEntity>? saveCompleter;
   @override
-  final Completer<Null> cancelCompleter;
+  final Completer<Null>? cancelCompleter;
 
-  factory _$QuoteUIState([void Function(QuoteUIStateBuilder) updates]) =>
-      (new QuoteUIStateBuilder()..update(updates)).build();
+  factory _$QuoteUIState([void Function(QuoteUIStateBuilder)? updates]) =>
+      (QuoteUIStateBuilder()..update(updates))._build();
 
-  _$QuoteUIState._(
-      {this.editing,
-      this.editingItemIndex,
-      this.historyActivityId,
-      this.listUIState,
-      this.selectedId,
-      this.forceSelected,
-      this.tabIndex,
-      this.saveCompleter,
-      this.cancelCompleter})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        listUIState, 'QuoteUIState', 'listUIState');
-    BuiltValueNullFieldError.checkNotNull(tabIndex, 'QuoteUIState', 'tabIndex');
-  }
-
+  _$QuoteUIState._({
+    this.editing,
+    this.editingItemIndex,
+    this.historyActivityId,
+    required this.listUIState,
+    this.selectedId,
+    this.forceSelected,
+    required this.tabIndex,
+    this.saveCompleter,
+    this.cancelCompleter,
+  }) : super._();
   @override
   QuoteUIState rebuild(void Function(QuoteUIStateBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  QuoteUIStateBuilder toBuilder() => new QuoteUIStateBuilder()..replace(this);
+  QuoteUIStateBuilder toBuilder() => QuoteUIStateBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -306,30 +348,27 @@ class _$QuoteUIState extends QuoteUIState {
         cancelCompleter == other.cancelCompleter;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(
-        $jc(
-            $jc(
-                $jc(
-                    $jc(
-                        $jc(
-                            $jc(
-                                $jc($jc(0, editing.hashCode),
-                                    editingItemIndex.hashCode),
-                                historyActivityId.hashCode),
-                            listUIState.hashCode),
-                        selectedId.hashCode),
-                    forceSelected.hashCode),
-                tabIndex.hashCode),
-            saveCompleter.hashCode),
-        cancelCompleter.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, editing.hashCode);
+    _$hash = $jc(_$hash, editingItemIndex.hashCode);
+    _$hash = $jc(_$hash, historyActivityId.hashCode);
+    _$hash = $jc(_$hash, listUIState.hashCode);
+    _$hash = $jc(_$hash, selectedId.hashCode);
+    _$hash = $jc(_$hash, forceSelected.hashCode);
+    _$hash = $jc(_$hash, tabIndex.hashCode);
+    _$hash = $jc(_$hash, saveCompleter.hashCode);
+    _$hash = $jc(_$hash, cancelCompleter.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('QuoteUIState')
+    return (newBuiltValueToStringHelper(r'QuoteUIState')
           ..add('editing', editing)
           ..add('editingItemIndex', editingItemIndex)
           ..add('historyActivityId', historyActivityId)
@@ -345,50 +384,50 @@ class _$QuoteUIState extends QuoteUIState {
 
 class QuoteUIStateBuilder
     implements Builder<QuoteUIState, QuoteUIStateBuilder> {
-  _$QuoteUIState _$v;
+  _$QuoteUIState? _$v;
 
-  InvoiceEntityBuilder _editing;
+  InvoiceEntityBuilder? _editing;
   InvoiceEntityBuilder get editing =>
-      _$this._editing ??= new InvoiceEntityBuilder();
-  set editing(InvoiceEntityBuilder editing) => _$this._editing = editing;
+      _$this._editing ??= InvoiceEntityBuilder();
+  set editing(InvoiceEntityBuilder? editing) => _$this._editing = editing;
 
-  int _editingItemIndex;
-  int get editingItemIndex => _$this._editingItemIndex;
-  set editingItemIndex(int editingItemIndex) =>
+  int? _editingItemIndex;
+  int? get editingItemIndex => _$this._editingItemIndex;
+  set editingItemIndex(int? editingItemIndex) =>
       _$this._editingItemIndex = editingItemIndex;
 
-  String _historyActivityId;
-  String get historyActivityId => _$this._historyActivityId;
-  set historyActivityId(String historyActivityId) =>
+  String? _historyActivityId;
+  String? get historyActivityId => _$this._historyActivityId;
+  set historyActivityId(String? historyActivityId) =>
       _$this._historyActivityId = historyActivityId;
 
-  ListUIStateBuilder _listUIState;
+  ListUIStateBuilder? _listUIState;
   ListUIStateBuilder get listUIState =>
-      _$this._listUIState ??= new ListUIStateBuilder();
-  set listUIState(ListUIStateBuilder listUIState) =>
+      _$this._listUIState ??= ListUIStateBuilder();
+  set listUIState(ListUIStateBuilder? listUIState) =>
       _$this._listUIState = listUIState;
 
-  String _selectedId;
-  String get selectedId => _$this._selectedId;
-  set selectedId(String selectedId) => _$this._selectedId = selectedId;
+  String? _selectedId;
+  String? get selectedId => _$this._selectedId;
+  set selectedId(String? selectedId) => _$this._selectedId = selectedId;
 
-  bool _forceSelected;
-  bool get forceSelected => _$this._forceSelected;
-  set forceSelected(bool forceSelected) =>
+  bool? _forceSelected;
+  bool? get forceSelected => _$this._forceSelected;
+  set forceSelected(bool? forceSelected) =>
       _$this._forceSelected = forceSelected;
 
-  int _tabIndex;
-  int get tabIndex => _$this._tabIndex;
-  set tabIndex(int tabIndex) => _$this._tabIndex = tabIndex;
+  int? _tabIndex;
+  int? get tabIndex => _$this._tabIndex;
+  set tabIndex(int? tabIndex) => _$this._tabIndex = tabIndex;
 
-  Completer<SelectableEntity> _saveCompleter;
-  Completer<SelectableEntity> get saveCompleter => _$this._saveCompleter;
-  set saveCompleter(Completer<SelectableEntity> saveCompleter) =>
+  Completer<SelectableEntity>? _saveCompleter;
+  Completer<SelectableEntity>? get saveCompleter => _$this._saveCompleter;
+  set saveCompleter(Completer<SelectableEntity>? saveCompleter) =>
       _$this._saveCompleter = saveCompleter;
 
-  Completer<Null> _cancelCompleter;
-  Completer<Null> get cancelCompleter => _$this._cancelCompleter;
-  set cancelCompleter(Completer<Null> cancelCompleter) =>
+  Completer<Null>? _cancelCompleter;
+  Completer<Null>? get cancelCompleter => _$this._cancelCompleter;
+  set cancelCompleter(Completer<Null>? cancelCompleter) =>
       _$this._cancelCompleter = cancelCompleter;
 
   QuoteUIStateBuilder();
@@ -412,33 +451,39 @@ class QuoteUIStateBuilder
 
   @override
   void replace(QuoteUIState other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$QuoteUIState;
   }
 
   @override
-  void update(void Function(QuoteUIStateBuilder) updates) {
+  void update(void Function(QuoteUIStateBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$QuoteUIState build() {
+  QuoteUIState build() => _build();
+
+  _$QuoteUIState _build() {
     _$QuoteUIState _$result;
     try {
-      _$result = _$v ??
-          new _$QuoteUIState._(
-              editing: _editing?.build(),
-              editingItemIndex: editingItemIndex,
-              historyActivityId: historyActivityId,
-              listUIState: listUIState.build(),
-              selectedId: selectedId,
-              forceSelected: forceSelected,
-              tabIndex: BuiltValueNullFieldError.checkNotNull(
-                  tabIndex, 'QuoteUIState', 'tabIndex'),
-              saveCompleter: saveCompleter,
-              cancelCompleter: cancelCompleter);
+      _$result =
+          _$v ??
+          _$QuoteUIState._(
+            editing: _editing?.build(),
+            editingItemIndex: editingItemIndex,
+            historyActivityId: historyActivityId,
+            listUIState: listUIState.build(),
+            selectedId: selectedId,
+            forceSelected: forceSelected,
+            tabIndex: BuiltValueNullFieldError.checkNotNull(
+              tabIndex,
+              r'QuoteUIState',
+              'tabIndex',
+            ),
+            saveCompleter: saveCompleter,
+            cancelCompleter: cancelCompleter,
+          );
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'editing';
         _editing?.build();
@@ -446,8 +491,11 @@ class QuoteUIStateBuilder
         _$failedField = 'listUIState';
         listUIState.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'QuoteUIState', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'QuoteUIState',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -456,4 +504,4 @@ class QuoteUIStateBuilder
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

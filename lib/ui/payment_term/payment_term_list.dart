@@ -1,5 +1,7 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/ui/app/help_text.dart';
 import 'package:invoiceninja_flutter/ui/app/lists/list_divider.dart';
 import 'package:invoiceninja_flutter/ui/app/loading_indicator.dart';
@@ -10,10 +12,7 @@ import 'package:invoiceninja_flutter/ui/payment_term/payment_term_list_vm.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class PaymentTermList extends StatefulWidget {
-  const PaymentTermList({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const PaymentTermList({Key? key, required this.viewModel}) : super(key: key);
 
   final PaymentTermListVM viewModel;
 
@@ -22,7 +21,7 @@ class PaymentTermList extends StatefulWidget {
 }
 
 class _PaymentTermListState extends State<PaymentTermList> {
-  EntityDataTableSource dataTableSource;
+  EntityDataTableSource? dataTableSource;
 
   @override
   Widget build(BuildContext context) {
@@ -34,26 +33,27 @@ class _PaymentTermListState extends State<PaymentTermList> {
     if (!viewModel.state.isLoaded) {
       return viewModel.isLoading ? LoadingIndicator() : SizedBox();
     } else if (viewModel.paymentTermMap.isEmpty) {
-      return HelpText(AppLocalization.of(context).noRecordsFound);
+      return HelpText(AppLocalization.of(context)!.noRecordsFound);
     }
 
     return RefreshIndicator(
       onRefresh: () => viewModel.onRefreshed(context),
       child: ScrollableListViewBuilder(
-          separatorBuilder: (context, index) => ListDivider(),
-          itemCount: viewModel.paymentTermList.length,
-          itemBuilder: (BuildContext context, index) {
-            final paymentTermId = viewModel.paymentTermList[index];
-            final paymentTerm = viewModel.paymentTermMap[paymentTermId];
+        separatorBuilder: (context, index) => ListDivider(),
+        itemCount: viewModel.paymentTermList.length,
+        itemBuilder: (BuildContext context, index) {
+          final paymentTermId = viewModel.paymentTermList[index];
+          final paymentTerm = viewModel.paymentTermMap[paymentTermId]!;
 
-            return PaymentTermListItem(
-              user: viewModel.state.user,
-              filter: viewModel.filter,
-              paymentTerm: paymentTerm,
-              isChecked:
-                  isInMultiselect && listUIState.isSelected(paymentTerm.id),
-            );
-          }),
+          return PaymentTermListItem(
+            user: viewModel.state.user,
+            filter: viewModel.filter,
+            paymentTerm: paymentTerm,
+            isChecked:
+                isInMultiselect && listUIState.isSelected(paymentTerm.id),
+          );
+        },
+      ),
     );
   }
 }

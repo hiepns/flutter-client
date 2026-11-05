@@ -1,7 +1,36 @@
-import 'package:flutter/foundation.dart';
-import 'package:invoiceninja_flutter/constants.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:invoiceninja_flutter/ui/app/app_title_bar.dart';
+import 'package:invoiceninja_flutter/ui/app/important_message_banner.dart';
+import 'package:invoiceninja_flutter/ui/bank_account/bank_account_screen_vm.dart';
+import 'package:invoiceninja_flutter/ui/bank_account/edit/bank_account_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/bank_account/view/bank_account_view_vm.dart';
+import 'package:invoiceninja_flutter/ui/purchase_order/edit/purchase_order_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/purchase_order/purchase_order_email_vm.dart';
+import 'package:invoiceninja_flutter/ui/purchase_order/purchase_order_pdf_vm.dart';
+import 'package:invoiceninja_flutter/ui/purchase_order/purchase_order_screen.dart';
+import 'package:invoiceninja_flutter/ui/purchase_order/purchase_order_screen_vm.dart';
+import 'package:invoiceninja_flutter/ui/purchase_order/view/purchase_order_view_vm.dart';
+import 'package:invoiceninja_flutter/ui/schedule/edit/schedule_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/schedule/schedule_screen_vm.dart';
+import 'package:invoiceninja_flutter/ui/schedule/view/schedule_view_vm.dart';
+import 'package:invoiceninja_flutter/ui/settings/e_invoice_settings_vm.dart';
+import 'package:invoiceninja_flutter/ui/settings/payment_settings_vm.dart';
+import 'package:invoiceninja_flutter/ui/transaction/edit/transaction_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/transaction/transaction_screen.dart';
+import 'package:invoiceninja_flutter/ui/transaction/transaction_screen_vm.dart';
+import 'package:invoiceninja_flutter/ui/transaction/view/transaction_view_vm.dart';
+import 'package:invoiceninja_flutter/ui/transaction_rule/edit/transaction_rule_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/transaction_rule/transaction_rule_screen_vm.dart';
+import 'package:invoiceninja_flutter/ui/transaction_rule/view/transaction_rule_view_vm.dart';
+import 'package:invoiceninja_flutter/utils/platforms.dart';
+import 'package:redux/redux.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
@@ -10,8 +39,8 @@ import 'package:invoiceninja_flutter/redux/dashboard/dashboard_actions.dart';
 import 'package:invoiceninja_flutter/redux/reports/reports_actions.dart';
 import 'package:invoiceninja_flutter/redux/settings/settings_actions.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
+import 'package:invoiceninja_flutter/ui/app/app_border.dart';
 import 'package:invoiceninja_flutter/ui/app/blank_screen.dart';
-import 'package:invoiceninja_flutter/ui/app/change_layout_banner.dart';
 import 'package:invoiceninja_flutter/ui/app/confirm_email_vm.dart';
 import 'package:invoiceninja_flutter/ui/app/desktop_session_timeout.dart';
 import 'package:invoiceninja_flutter/ui/app/entity_top_filter.dart';
@@ -51,7 +80,6 @@ import 'package:invoiceninja_flutter/ui/reports/reports_screen_vm.dart';
 import 'package:invoiceninja_flutter/ui/settings/account_management_vm.dart';
 import 'package:invoiceninja_flutter/ui/settings/device_settings_vm.dart';
 import 'package:invoiceninja_flutter/ui/settings/expense_settings_vm.dart';
-import 'package:invoiceninja_flutter/ui/settings/online_payments_vm.dart';
 import 'package:invoiceninja_flutter/ui/settings/settings_screen_vm.dart';
 import 'package:invoiceninja_flutter/ui/settings/task_settings_vm.dart';
 import 'package:invoiceninja_flutter/ui/settings/tax_settings_vm.dart';
@@ -67,256 +95,278 @@ import 'package:invoiceninja_flutter/ui/token/view/token_view_vm.dart';
 import 'package:invoiceninja_flutter/ui/webhook/edit/webhook_edit_vm.dart';
 import 'package:invoiceninja_flutter/ui/webhook/view/webhook_view_vm.dart';
 import 'package:invoiceninja_flutter/ui/webhook/webhook_screen_vm.dart';
-import 'package:invoiceninja_flutter/ui/app/app_border.dart';
-import 'package:redux/redux.dart';
 
 class MainScreen extends StatelessWidget {
   static const String route = '/main';
 
   @override
   Widget build(BuildContext context) {
-    return StoreBuilder(builder: (BuildContext context, Store<AppState> store) {
-      final state = store.state;
-      final uiState = state.uiState;
-      final prefState = state.prefState;
-      final subRoute = '/' + uiState.subRoute;
-      String mainRoute = '/' + uiState.mainRoute;
-      Widget screen = BlankScreen();
+    return StoreBuilder(
+      builder: (BuildContext context, Store<AppState> store) {
+        final state = store.state;
+        final uiState = state.uiState;
+        final prefState = state.prefState;
+        final subRoute = '/' + uiState.subRoute;
+        String mainRoute = '/' + uiState.mainRoute;
+        Widget screen = BlankScreen();
 
-      // This can happen if the user's permissions are changed
-      if (state.authState.isAuthenticated && state.companies.isEmpty) {
-        return Container(
-          child: LoadingIndicator(),
-          color: Theme.of(context).cardColor,
-        );
-      } else if (!state.isUserConfirmed) {
-        return ConfirmEmailBuilder();
-      }
-
-      bool showFilterSidebar = false;
-      bool editingFilterEntity = false;
-      if (prefState.isFilterVisible && uiState.filterEntityId != null) {
-        showFilterSidebar = true;
-        if (mainRoute == '/${uiState.filterEntityType}' &&
-            subRoute == '/edit') {
-          // Keep the current entity preview in place
-          mainRoute = '/' + uiState.previousMainRoute;
-          editingFilterEntity = true;
+        // This can happen if the user's permissions are changed
+        if (state.authState.isAuthenticated && state.companies.isEmpty) {
+          return Container(
+            child: LoadingIndicator(),
+            color: Theme.of(context).cardColor,
+          );
+        } else if (!state.isUserConfirmed) {
+          return ConfirmEmailBuilder();
         }
-      }
 
-      switch (mainRoute) {
-        case DashboardScreenBuilder.route:
-          screen = Row(
-            children: <Widget>[
-              Expanded(
-                child: DashboardScreenBuilder(),
-                flex: 5,
-              ),
-              if (prefState.showHistory)
-                AppBorder(
-                  child: HistoryDrawerBuilder(),
-                  isLeft: true,
-                ),
-            ],
-          );
-          break;
-        case ClientScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.client,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case ProductScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.product,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case InvoiceScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.invoice,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case RecurringInvoiceScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.recurringInvoice,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case PaymentScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.payment,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case QuoteScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.quote,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case CreditScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.credit,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case ProjectScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.project,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case TaskScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.task,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case VendorScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.vendor,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case ExpenseScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.expense,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case RecurringExpenseScreen.route:
-          screen = EntityScreens(
-            entityType: EntityType.recurringExpense,
-            editingFilterEntity: editingFilterEntity,
-          );
-          break;
-        case SettingsScreen.route:
-          screen = SettingsScreens();
-          break;
-        case ReportsScreen.route:
-          screen = Row(
-            children: <Widget>[
-              Expanded(
-                child: ReportsScreenBuilder(),
-                flex: 5,
-              ),
-              if (prefState.showHistory)
-                AppBorder(
-                  child: HistoryDrawerBuilder(),
-                  isLeft: true,
-                )
-            ],
-          );
-          break;
-        default:
-          print('## Error: main screen route $mainRoute not defined');
-      }
-
-      return WillPopScope(
-        onWillPop: () async {
-          final state = store.state;
-          final historyList = state.historyList;
-          final isEditing = state.uiState.isEditing;
-          final index = isEditing ? 0 : 1;
-          HistoryRecord history;
-
-          if (state.uiState.isPreviewing) {
-            store.dispatch(PopPreviewStack());
-            return false;
+        bool showFilterSidebar = false;
+        bool editingFilterEntity = false;
+        if (prefState.isFilterVisible && uiState.filterEntityId != null) {
+          showFilterSidebar = true;
+          if (mainRoute == '/${uiState.filterEntityType}' &&
+              subRoute == '/edit') {
+            // Keep the current entity preview in place
+            mainRoute = '/' + uiState.previousMainRoute;
+            editingFilterEntity = true;
           }
+        }
 
-          for (int i = index; i < historyList.length; i++) {
-            final item = historyList[i];
-            if ([
-              EntityType.dashboard,
-              EntityType.reports,
-              EntityType.settings,
-            ].contains(item.entityType)) {
-              history = item;
-              break;
-            } else {
-              if (item.id == null) {
-                continue;
-              }
+        switch (mainRoute) {
+          case DashboardScreenBuilder.route:
+            screen = Row(
+              children: <Widget>[
+                Expanded(child: DashboardScreenBuilder(), flex: 5),
+                if (prefState.showHistory)
+                  AppBorder(child: HistoryDrawerBuilder(), isLeft: true),
+              ],
+            );
+            break;
+          case ClientScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.client,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case ProductScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.product,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case InvoiceScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.invoice,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case RecurringInvoiceScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.recurringInvoice,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case PaymentScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.payment,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case QuoteScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.quote,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case CreditScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.credit,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case PurchaseOrderScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.purchaseOrder,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case ProjectScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.project,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case TaskScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.task,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case VendorScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.vendor,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case ExpenseScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.expense,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case TransactionScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.transaction,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case RecurringExpenseScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.recurringExpense,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case DocumentScreen.route:
+            screen = EntityScreens(
+              entityType: EntityType.document,
+              editingFilterEntity: editingFilterEntity,
+            );
+            break;
+          case SettingsScreen.route:
+            screen = SettingsScreens();
+            break;
+          case ReportsScreen.route:
+            screen = Row(
+              children: <Widget>[
+                Expanded(child: ReportsScreenBuilder(), flex: 5),
+                if (prefState.showHistory)
+                  AppBorder(child: HistoryDrawerBuilder(), isLeft: true),
+              ],
+            );
+            break;
+          default:
+            print('## Error: main screen route $mainRoute not defined');
+        }
 
-              final entity =
-                  state.getEntityMap(item.entityType)[item.id] as BaseEntity;
-              if (entity == null || !entity.isActive) {
-                continue;
-              }
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (_, __) async {
+            final state = store.state;
+            final historyList = state.historyList;
+            final isEditing = state.uiState.isEditing;
+            final index = isEditing ? 0 : 1;
+            HistoryRecord? history;
 
-              history = item;
-              break;
+            if (state.uiState.isPreviewing) {
+              store.dispatch(PopPreviewStack());
             }
-          }
 
-          if (!isEditing) {
-            store.dispatch(PopLastHistory());
-          }
+            for (int i = index; i < historyList.length; i++) {
+              final item = historyList[i];
+              if ([
+                EntityType.dashboard,
+                EntityType.reports,
+                EntityType.settings,
+              ].contains(item.entityType)) {
+                history = item;
+                break;
+              } else if (item.id == null) {
+                history = item;
+              } else {
+                final entity =
+                    state.getEntityMap(item.entityType)![item.id]
+                        as BaseEntity?;
+                if (entity == null || !entity.isActive) {
+                  continue;
+                }
 
-          if (history == null) {
-            store.dispatch(ViewDashboard());
-            return false;
-          }
+                history = item;
+                break;
+              }
+            }
 
-          switch (history.entityType) {
-            case EntityType.dashboard:
+            if (!isEditing) {
+              store.dispatch(PopLastHistory());
+            }
+
+            if (history == null) {
               store.dispatch(ViewDashboard());
-              break;
-            case EntityType.reports:
-              store.dispatch(ViewReports());
-              break;
-            case EntityType.settings:
-              store.dispatch(ViewSettings(
-                section: history.id,
-                company: state.company,
-              ));
-              break;
-            default:
-              viewEntityById(
-                entityId: history.id,
-                entityType: history.entityType,
-              );
-          }
-
-          return false;
-        },
-        child: DesktopSessionTimeout(
-          child: SafeArea(
-            child: FocusTraversalGroup(
-              policy: ReadingOrderTraversalPolicy(),
-              child: ChangeLayoutBanner(
-                appLayout: prefState.appLayout,
-                suggestedLayout: AppLayout.desktop,
-                child: Row(children: <Widget>[
-                  if (prefState.showMenu) MenuDrawerBuilder(),
-                  Expanded(
-                      child: AppBorder(
-                    child: screen,
-                    isLeft: prefState.showMenu &&
-                        (!state.isFullScreen || showFilterSidebar),
-                  )),
-                ]),
+            } else {
+              switch (history.entityType) {
+                case EntityType.dashboard:
+                  store.dispatch(ViewDashboard());
+                  break;
+                case EntityType.reports:
+                  store.dispatch(ViewReports());
+                  break;
+                case EntityType.settings:
+                  store.dispatch(
+                    ViewSettings(
+                      section: history.id,
+                      company: state.company,
+                      user: state.user,
+                      tabIndex: 0,
+                    ),
+                  );
+                  break;
+                default:
+                  if ((history.id ?? '').isEmpty) {
+                    viewEntitiesByType(
+                      entityType: history.entityType,
+                      page: history.page,
+                    );
+                  } else {
+                    viewEntityById(
+                      entityId: history.id,
+                      entityType: history.entityType,
+                      showError: false,
+                    );
+                  }
+              }
+            }
+          },
+          child: DesktopSessionTimeout(
+            child: SafeArea(
+              child: FocusTraversalGroup(
+                policy: ReadingOrderTraversalPolicy(),
+                child: Column(
+                  children: [
+                    if (isWindows()) AppTitleBar(),
+                    Expanded(
+                      child: ImportantMessageBanner(
+                        appLayout: prefState.appLayout,
+                        suggestedLayout: AppLayout.desktop,
+                        child: Row(
+                          children: <Widget>[
+                            if (prefState.showMenu) MenuDrawerBuilder(),
+                            Expanded(
+                              child: AppBorder(
+                                child: screen,
+                                isLeft:
+                                    prefState.showMenu &&
+                                    (!state.isFullScreen || showFilterSidebar),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
 class EntityScreens extends StatelessWidget {
-  const EntityScreens({
-    @required this.entityType,
-    this.editingFilterEntity,
-  });
+  const EntityScreens({required this.entityType, this.editingFilterEntity});
 
   final EntityType entityType;
-  final bool editingFilterEntity;
+  final bool? editingFilterEntity;
 
   @override
   Widget build(BuildContext context) {
@@ -336,7 +386,7 @@ class EntityScreens extends StatelessWidget {
       isPreviewShown = true;
     } else if (mainRoute == '/task' &&
         prefState.showKanban &&
-        state.taskUIState.selectedId.isEmpty) {
+        state.taskUIState.selectedId!.isEmpty) {
       isPreviewShown = false;
     }
 
@@ -349,7 +399,7 @@ class EntityScreens extends StatelessWidget {
       listFlex += 1;
     }
 
-    Widget child;
+    Widget? child;
 
     // TODO rmeove this once full width project editor is
     if (state.uiState.isEditing &&
@@ -362,22 +412,29 @@ class EntityScreens extends StatelessWidget {
           child = isPdf
               ? InvoicePdfScreen()
               : isEmail
-                  ? InvoiceEmailScreen()
-                  : InvoiceEditScreen();
+              ? InvoiceEmailScreen()
+              : InvoiceEditScreen();
           break;
         case QuoteScreen.route:
           child = isPdf
               ? QuotePdfScreen()
               : isEmail
-                  ? QuoteEmailScreen()
-                  : QuoteEditScreen();
+              ? QuoteEmailScreen()
+              : QuoteEditScreen();
           break;
         case CreditScreen.route:
           child = isPdf
               ? CreditPdfScreen()
               : isEmail
-                  ? CreditEmailScreen()
-                  : CreditEditScreen();
+              ? CreditEmailScreen()
+              : CreditEditScreen();
+          break;
+        case PurchaseOrderScreen.route:
+          child = isPdf
+              ? PurchaseOrderPdfScreen()
+              : isEmail
+              ? PurchaseOrderEmailScreen()
+              : PurchaseOrderEditScreen();
           break;
         case RecurringInvoiceScreen.route:
           child = isPdf
@@ -410,8 +467,9 @@ class EntityScreens extends StatelessWidget {
           }
       }
     } else if (subRoute == 'edit') {
-      final editEntityType =
-          editingFilterEntity ? uiState.filterEntityType : entityType;
+      final editEntityType = editingFilterEntity!
+          ? uiState.filterEntityType
+          : entityType;
       switch (editEntityType) {
         case EntityType.client:
           child = ClientEditScreen();
@@ -434,6 +492,9 @@ class EntityScreens extends StatelessWidget {
         case EntityType.credit:
           child = CreditEditScreen();
           break;
+        case EntityType.purchaseOrder:
+          child = PurchaseOrderEditScreen();
+          break;
         case EntityType.project:
           child = ProjectEditScreen();
           break;
@@ -449,17 +510,27 @@ class EntityScreens extends StatelessWidget {
         case EntityType.recurringExpense:
           child = RecurringExpenseEditScreen();
           break;
+        case EntityType.transaction:
+          child = TransactionEditScreen();
+          break;
+        case EntityType.document:
+          child = DocumentEditScreen();
+          break;
+        default:
+          print('## Edit screen not defined for $entityType');
+          break;
       }
     } else {
       final previewStack = uiState.previewStack;
-      final previewEntityType =
-          previewStack.isEmpty ? entityType : previewStack.last;
-      final entityUIState = state.getUIState(previewEntityType);
+      final previewEntityType = previewStack.isEmpty
+          ? entityType
+          : previewStack.last;
+      final entityUIState = state.getUIState(previewEntityType)!;
 
       if ((entityUIState.selectedId ?? '').isEmpty ||
           !state
-              .getEntityMap(previewEntityType)
-              .containsKey(entityUIState.selectedId)) {
+              .getEntityMap(previewEntityType)!
+              .containsKey(entityUIState.selectedId!)) {
         child = BlankScreen();
       } else {
         switch (previewEntityType) {
@@ -484,6 +555,9 @@ class EntityScreens extends StatelessWidget {
           case EntityType.credit:
             child = CreditViewScreen();
             break;
+          case EntityType.purchaseOrder:
+            child = PurchaseOrderViewScreen();
+            break;
           case EntityType.project:
             child = ProjectViewScreen();
             break;
@@ -502,7 +576,7 @@ class EntityScreens extends StatelessWidget {
           case EntityType.group:
             child = GroupViewScreen();
             break;
-          case EntityType.subscription:
+          case EntityType.paymentLink:
             child = SubscriptionViewScreen();
             break;
           case EntityType.companyGateway:
@@ -517,103 +591,104 @@ class EntityScreens extends StatelessWidget {
           case EntityType.recurringExpense:
             child = RecurringExpenseViewScreen();
             break;
+          case EntityType.transaction:
+            child = TransactionViewScreen();
+            break;
+          case EntityType.bankAccount:
+            child = BankAccountViewScreen();
+            break;
+          case EntityType.transactionRule:
+            child = TransactionRuleViewScreen();
+            break;
+          case EntityType.document:
+            child = DocumentViewScreen();
+            break;
           default:
             print('## View screen not defined for $previewEntityType');
         }
       }
     }
 
-    Widget leftFilterChild;
+    Widget? leftFilterChild;
     Widget topFilterChild;
 
     if (uiState.filterEntityType != null) {
       if (prefState.isFilterVisible) {
         switch (uiState.filterEntityType) {
           case EntityType.client:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? ClientEditScreen()
-                : ClientViewScreen(isFilter: true);
+            leftFilterChild = ClientViewScreen(isFilter: true);
             break;
           case EntityType.invoice:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? InvoiceViewScreen()
-                : InvoiceViewScreen(isFilter: true);
+            leftFilterChild = InvoiceViewScreen(isFilter: true);
             break;
           case EntityType.quote:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? QuoteViewScreen()
-                : QuoteViewScreen(isFilter: true);
+            leftFilterChild = QuoteViewScreen(isFilter: true);
             break;
           case EntityType.credit:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? CreditViewScreen()
-                : CreditViewScreen(isFilter: true);
+            leftFilterChild = CreditViewScreen(isFilter: true);
+            break;
+          case EntityType.purchaseOrder:
+            leftFilterChild = PurchaseOrderViewScreen(isFilter: true);
             break;
           case EntityType.payment:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? PaymentEditScreen()
-                : PaymentViewScreen(isFilter: true);
+            leftFilterChild = PaymentViewScreen(isFilter: true);
             break;
           case EntityType.user:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? UserEditScreen()
-                : UserViewScreen(isFilter: true);
+            leftFilterChild = UserViewScreen(isFilter: true);
             break;
           case EntityType.group:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? GroupEditScreen()
-                : GroupViewScreen(isFilter: true);
+            leftFilterChild = GroupViewScreen(isFilter: true);
             break;
-          case EntityType.subscription:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? SubscriptionEditScreen()
-                : SubscriptionViewScreen(isFilter: true);
+          case EntityType.paymentLink:
+            leftFilterChild = SubscriptionViewScreen(isFilter: true);
             break;
           case EntityType.companyGateway:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? CompanyGatewayEditScreen()
-                : CompanyGatewayViewScreen(isFilter: true);
+            leftFilterChild = CompanyGatewayViewScreen(isFilter: true);
             break;
           case EntityType.recurringInvoice:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? RecurringInvoiceEditScreen()
-                : RecurringInvoiceViewScreen(isFilter: true);
+            leftFilterChild = RecurringInvoiceViewScreen(isFilter: true);
             break;
           case EntityType.expenseCategory:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? ExpenseCategoryEditScreen()
-                : ExpenseCategoryViewScreen(isFilter: true);
+            leftFilterChild = ExpenseCategoryViewScreen(isFilter: true);
             break;
           case EntityType.taskStatus:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? TaskStatusEditScreen()
-                : TaskStatusViewScreen(isFilter: true);
+            leftFilterChild = TaskStatusViewScreen(isFilter: true);
             break;
           case EntityType.vendor:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? VendorEditScreen()
-                : VendorViewScreen(isFilter: true);
+            leftFilterChild = VendorViewScreen(isFilter: true);
             break;
           case EntityType.project:
-            leftFilterChild = editingFilterEntity && !uiState.isEditing
-                ? ProjectEditScreen()
-                : ProjectViewScreen(isFilter: true);
+            leftFilterChild = ProjectViewScreen(isFilter: true);
             break;
           case EntityType.design:
             leftFilterChild = DesignViewScreen(isFilter: true);
             break;
+          case EntityType.transaction:
+            leftFilterChild = TransactionViewScreen(isFilter: true);
+            break;
+          case EntityType.expense:
+            leftFilterChild = ExpenseViewScreen(isFilter: true);
+            break;
+          case EntityType.bankAccount:
+            leftFilterChild = BankAccountViewScreen(isFilter: true);
+            break;
+          case EntityType.transactionRule:
+            leftFilterChild = TransactionRuleViewScreen(isFilter: true);
+            break;
+          case EntityType.recurringExpense:
+            leftFilterChild = RecurringExpenseViewScreen(isFilter: true);
+            break;
           default:
             print(
-                'Error: filter view not implemented for ${uiState.filterEntityType}');
+              'Error: filter view not implemented for ${uiState.filterEntityType}',
+            );
         }
       }
     }
 
-    topFilterChild = EntityTopFilter(
-      show: uiState.filterEntityType != null,
-    );
+    topFilterChild = EntityTopFilter(show: uiState.filterEntityType != null);
 
-    Widget listWidget;
+    Widget? listWidget;
     if (!isFullScreen) {
       switch (entityType) {
         case EntityType.client:
@@ -637,6 +712,9 @@ class EntityScreens extends StatelessWidget {
         case EntityType.credit:
           listWidget = CreditScreenBuilder();
           break;
+        case EntityType.purchaseOrder:
+          listWidget = PurchaseOrderScreenBuilder();
+          break;
         case EntityType.project:
           listWidget = ProjectScreenBuilder();
           break;
@@ -652,6 +730,12 @@ class EntityScreens extends StatelessWidget {
         case EntityType.recurringExpense:
           listWidget = RecurringExpenseScreenBuilder();
           break;
+        case EntityType.transaction:
+          listWidget = TransactionScreenBuilder();
+          break;
+        case EntityType.document:
+          listWidget = DocumentScreenBuilder();
+          break;
         default:
           print('## ERROR: list widget not implemented for $entityType');
           break;
@@ -661,27 +745,28 @@ class EntityScreens extends StatelessWidget {
     return Row(
       children: <Widget>[
         if (leftFilterChild != null)
-          Expanded(
-            child: leftFilterChild,
-            flex: previewFlex,
-          ),
+          Expanded(child: leftFilterChild, flex: previewFlex),
         if (!isFullScreen)
           Expanded(
             child: ClipRRect(
               child: AppBorder(
                 isLeft: leftFilterChild != null,
-                child: topFilterChild == null
+                child: prefState.isFilterVisible
                     ? listWidget
                     : Column(
                         children: [
-                          topFilterChild,
+                          if (prefState.isViewerFullScreen(
+                            state.uiState.filterEntityType,
+                          ))
+                            SizedBox(height: 360, child: topFilterChild)
+                          else
+                            topFilterChild,
                           Expanded(
                             child: AppBorder(
-                              isTop: uiState.filterEntityType != null &&
-                                  topFilterChild != null,
+                              isTop: uiState.filterEntityType != null,
                               child: listWidget,
                             ),
-                          )
+                          ),
                         ],
                       ),
               ),
@@ -691,26 +776,10 @@ class EntityScreens extends StatelessWidget {
         if ((prefState.isModuleList && mainRoute != '/task') || isPreviewShown)
           Expanded(
             flex: isFullScreen ? (listFlex + previewFlex) : previewFlex,
-            child: AppBorder(
-              child: Column(
-                children: [
-                  if (isFullScreen) topFilterChild,
-                  Expanded(
-                    child: AppBorder(
-                      child: child,
-                      isTop: isFullScreen && uiState.filterEntityType != null,
-                    ),
-                  ),
-                ],
-              ),
-              isLeft: true,
-            ),
+            child: AppBorder(isLeft: true, child: child),
           ),
         if (prefState.showHistory)
-          AppBorder(
-            child: HistoryDrawerBuilder(),
-            isLeft: true,
-          ),
+          AppBorder(child: HistoryDrawerBuilder(), isLeft: true),
       ],
     );
   }
@@ -745,8 +814,8 @@ class SettingsScreens extends StatelessWidget {
       case kSettingsLocalization:
         screen = LocalizationScreen();
         break;
-      case kSettingsOnlinePayments:
-        screen = OnlinePaymentsScreen();
+      case kSettingsPaymentSettings:
+        screen = PaymentsSettingsScreen();
         break;
       case kSettingsCompanyGateways:
         screen = CompanyGatewayScreenBuilder();
@@ -802,13 +871,13 @@ class SettingsScreens extends StatelessWidget {
       case kSettingsGroupSettingsEdit:
         screen = GroupEditScreen();
         break;
-      case kSettingsSubscriptions:
+      case kSettingsPaymentLinks:
         screen = SubscriptionScreenBuilder();
         break;
-      case kSettingsSubscriptionsView:
+      case kSettingsPaymentLinksView:
         screen = SubscriptionViewScreen();
         break;
-      case kSettingsSubscriptionsEdit:
+      case kSettingsPaymentLinksEdit:
         screen = SubscriptionEditScreen();
         break;
       case kSettingsGeneratedNumbers:
@@ -825,9 +894,6 @@ class SettingsScreens extends StatelessWidget {
         break;
       case kSettingsClientPortal:
         screen = ClientPortalScreen();
-        break;
-      case kSettingsBuyNowButtons:
-        screen = BuyNowButtonsScreen();
         break;
       case kSettingsEmailSettings:
         screen = EmailSettingsScreen();
@@ -889,26 +955,50 @@ class SettingsScreens extends StatelessWidget {
       case kSettingsExpenseCategoryEdit:
         screen = ExpenseCategoryEditScreen();
         break;
+      case kSettingsBankAccounts:
+        screen = BankAccountScreenBuilder();
+        break;
+      case kSettingsBankAccountsView:
+        screen = BankAccountViewScreen();
+        break;
+      case kSettingsBankAccountsEdit:
+        screen = BankAccountEditScreen();
+        break;
+      case kSettingsTransactionRules:
+        screen = TransactionRuleScreenBuilder();
+        break;
+      case kSettingsTransactionRulesView:
+        screen = TransactionRuleViewScreen();
+        break;
+      case kSettingsTransactionRulesEdit:
+        screen = TransactionRuleEditScreen();
+        break;
+      case kSettingsSchedules:
+        screen = ScheduleScreenBuilder();
+        break;
+      case kSettingsSchedulesView:
+        screen = ScheduleViewScreen();
+        break;
+      case kSettingsSchedulesEdit:
+        screen = ScheduleEditScreen();
+        break;
+      case kSettingsEInvoiceSettings:
+        screen = EInvoiceSettingsScreen();
+        break;
+      default:
+        print(
+          '## Error: main screen settings route ${uiState.subRoute} not defined',
+        );
     }
 
-    return Row(children: <Widget>[
-      if (!state.isFullScreen)
-        Expanded(
-          child: SettingsScreenBuilder(),
-          flex: 2,
-        ),
-      Expanded(
-        flex: 3,
-        child: AppBorder(
-          child: screen,
-          isLeft: true,
-        ),
-      ),
-      if (prefState.showHistory)
-        AppBorder(
-          child: HistoryDrawerBuilder(),
-          isLeft: true,
-        ),
-    ]);
+    return Row(
+      children: <Widget>[
+        if (!state.isFullScreen)
+          Expanded(child: SettingsScreenBuilder(), flex: 2),
+        Expanded(flex: 3, child: AppBorder(child: screen, isLeft: true)),
+        if (prefState.showHistory)
+          AppBorder(child: HistoryDrawerBuilder(), isLeft: true),
+      ],
+    );
   }
 }

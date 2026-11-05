@@ -1,8 +1,9 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:invoiceninja_flutter/data/models/company_model.dart';
-import 'package:invoiceninja_flutter/data/models/entities.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
@@ -46,8 +47,9 @@ abstract class UserItemResponse
 
 abstract class UserTwoFactorResponse
     implements Built<UserTwoFactorResponse, UserTwoFactorResponseBuilder> {
-  factory UserTwoFactorResponse(
-      [void updates(UserTwoFactorResponseBuilder b)]) = _$UserTwoFactorResponse;
+  factory UserTwoFactorResponse([
+    void updates(UserTwoFactorResponseBuilder b),
+  ]) = _$UserTwoFactorResponse;
 
   UserTwoFactorResponse._();
 
@@ -82,9 +84,9 @@ abstract class UserTwoFactorData
 
 abstract class UserCompanyItemResponse
     implements Built<UserCompanyItemResponse, UserCompanyItemResponseBuilder> {
-  factory UserCompanyItemResponse(
-          [void updates(UserCompanyItemResponseBuilder b)]) =
-      _$UserCompanyItemResponse;
+  factory UserCompanyItemResponse([
+    void updates(UserCompanyItemResponseBuilder b),
+  ]) = _$UserCompanyItemResponse;
 
   UserCompanyItemResponse._();
 
@@ -113,8 +115,11 @@ class UserFields {
 abstract class UserEntity extends Object
     with BaseEntity, SelectableEntity
     implements Built<UserEntity, UserEntityBuilder> {
-  factory UserEntity(
-      {String id, AppState state, UserCompanyEntity userCompany}) {
+  factory UserEntity({
+    String? id,
+    AppState? state,
+    UserCompanyEntity? userCompany,
+  }) {
     return _$UserEntity._(
       id: id ?? BaseEntity.nextId,
       isChanged: false,
@@ -132,19 +137,26 @@ abstract class UserEntity extends Object
       customValue2: '',
       customValue3: '',
       customValue4: '',
-      userCompany: userCompany,
       oauthProvider: '',
       isTwoFactorEnabled: false,
       hasPassword: false,
       lastEmailAddress: '',
       oauthUserToken: '',
       password: '',
+      phoneVerified: false,
+      languageId: '',
+      userCompany: userCompany,
+      userLoggedInNotification: true,
+      referralCode: '',
+      referralMeta: BuiltMap<String, int>(),
     );
   }
 
   UserEntity._();
 
   static const OAUTH_PROVIDER_GOOGLE = 'google';
+  static const OAUTH_PROVIDER_MICROSOFT = 'microsoft';
+  static const OAUTH_PROVIDER_APPLE = 'apple';
 
   @override
   @memoized
@@ -167,9 +179,11 @@ abstract class UserEntity extends Object
 
   String get password;
 
-  @nullable
   @BuiltValueField(wireName: 'email_verified_at')
-  int get emailVerifiedAt;
+  int? get emailVerifiedAt;
+
+  @BuiltValueField(wireName: 'verified_phone_number')
+  bool get phoneVerified;
 
   @BuiltValueField(wireName: 'custom_value1')
   String get customValue1;
@@ -195,14 +209,28 @@ abstract class UserEntity extends Object
   @BuiltValueField(wireName: 'oauth_user_token')
   String get oauthUserToken;
 
-  @nullable
   @BuiltValueField(wireName: 'company_user')
-  UserCompanyEntity get userCompany;
+  UserCompanyEntity? get userCompany;
 
   @BuiltValueField(wireName: 'oauth_provider_id')
   String get oauthProvider;
 
+  @BuiltValueField(wireName: 'language_id')
+  String get languageId;
+
+  @BuiltValueField(wireName: 'user_logged_in_notification')
+  bool get userLoggedInNotification;
+
+  @BuiltValueField(wireName: 'referral_code')
+  String get referralCode;
+
+  @BuiltValueField(wireName: 'referral_meta')
+  BuiltMap<String, int> get referralMeta;
+
   String get fullName => (firstName + ' ' + lastName).trim();
+
+  String get referralUrl =>
+      'https://app.invoicing.co/#/register?rc=$referralCode';
 
   bool canEdit(BaseEntity entity) =>
       entity.createdUserId == id || entity.assignedUserId == id;
@@ -212,24 +240,24 @@ abstract class UserEntity extends Object
     return fullName.isNotEmpty ? fullName : email;
   }
 
-  int compareTo(UserEntity user, String sortField, bool sortAscending) {
+  int compareTo(UserEntity? user, String sortField, bool sortAscending) {
     int response = 0;
-    final UserEntity userA = sortAscending ? this : user;
-    final UserEntity userB = sortAscending ? user : this;
+    final UserEntity? userA = sortAscending ? this : user;
+    final UserEntity? userB = sortAscending ? user : this;
 
     switch (sortField) {
       case UserFields.lastName:
-        response = userA.lastName
-            .toLowerCase()
-            .compareTo(userB.lastName.toLowerCase());
+        response = userA!.lastName.toLowerCase().compareTo(
+          userB!.lastName.toLowerCase(),
+        );
         break;
       case UserFields.firstName:
-        response = userA.firstName
-            .toLowerCase()
-            .compareTo(userB.firstName.toLowerCase());
+        response = userA!.firstName.toLowerCase().compareTo(
+          userB!.firstName.toLowerCase(),
+        );
         break;
       case UserFields.email:
-        response = userA.email.compareTo(userB.email);
+        response = userA!.email.compareTo(userB!.email);
         break;
       default:
         print('## ERROR: sort by user.$sortField is not implemented');
@@ -240,7 +268,7 @@ abstract class UserEntity extends Object
   }
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     return matchesStrings(
       haystacks: [
         firstName,
@@ -257,7 +285,7 @@ abstract class UserEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     return matchesStringsValue(
       haystacks: [
         firstName,
@@ -274,22 +302,23 @@ abstract class UserEntity extends Object
   }
 
   @override
-  List<EntityAction> getActions(
-      {UserCompanyEntity userCompany,
-      ClientEntity client,
-      bool includeEdit = false,
-      bool includePreview = false,
-      bool multiselect = false}) {
-    final actions = <EntityAction>[];
+  List<EntityAction?> getActions({
+    UserCompanyEntity? userCompany,
+    ClientEntity? client,
+    bool includeEdit = false,
+    bool includePreview = false,
+    bool multiselect = false,
+  }) {
+    final actions = <EntityAction?>[];
 
-    if (!isDeleted && !multiselect) {
-      if (includeEdit && userCompany.canEditEntity(this)) {
+    if (!isDeleted! && !multiselect) {
+      if (includeEdit && userCompany!.canEditEntity(this)) {
         actions.add(EntityAction.edit);
       }
     }
 
-    if (userCompany.isAdmin || userCompany.isOwner) {
-      if (!isEmailVerified) {
+    if (userCompany!.isAdmin || userCompany.isOwner) {
+      if (!isDeleted! && !isEmailVerified) {
         actions.add(EntityAction.resendInvite);
       }
 
@@ -304,16 +333,24 @@ abstract class UserEntity extends Object
   }
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   @override
-  FormatNumberType get listDisplayAmountType => null;
+  FormatNumberType? get listDisplayAmountType => null;
+
+  bool get isConnectedToOAuth => isConnectedToGoogle || isConnectedToMicrosoft;
 
   bool get isConnectedToGoogle =>
       oauthProvider == UserEntity.OAUTH_PROVIDER_GOOGLE;
 
-  bool get isConnectedToGmail =>
-      isConnectedToGoogle && oauthUserToken.isNotEmpty;
+  bool get isConnectedToApple =>
+      oauthProvider == UserEntity.OAUTH_PROVIDER_APPLE;
+
+  bool get isConnectedToMicrosoft =>
+      oauthProvider == UserEntity.OAUTH_PROVIDER_MICROSOFT;
+
+  bool get isConnectedToEmail =>
+      isConnectedToOAuth && oauthUserToken.isNotEmpty;
 
   bool get isEmailVerified => emailVerifiedAt != null;
 
@@ -321,9 +358,14 @@ abstract class UserEntity extends Object
   static void _initializeBuilder(UserEntityBuilder builder) => builder
     ..isTwoFactorEnabled = false
     ..hasPassword = false
+    ..phoneVerified = false
     ..password = ''
     ..lastEmailAddress = ''
-    ..oauthUserToken = '';
+    ..oauthUserToken = ''
+    ..languageId = ''
+    ..userLoggedInNotification = true
+    ..referralCode = ''
+    ..referralMeta.replace(BuiltMap<String, int>());
 
   static Serializer<UserEntity> get serializer => _$userEntitySerializer;
 }

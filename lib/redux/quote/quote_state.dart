@@ -1,8 +1,12 @@
+// Dart imports:
 import 'dart:async';
 
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:built_collection/built_collection.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/invoice_model.dart';
 import 'package:invoiceninja_flutter/data/models/quote_model.dart';
@@ -32,7 +36,7 @@ abstract class QuoteState implements Built<QuoteState, QuoteStateBuilder> {
 
   InvoiceEntity get(String quoteId) {
     if (map.containsKey(quoteId)) {
-      return map[quoteId];
+      return map[quoteId]!;
     } else {
       return InvoiceEntity(id: quoteId, entityType: EntityType.quote);
     }
@@ -45,9 +49,11 @@ abstract class QuoteState implements Built<QuoteState, QuoteStateBuilder> {
       value: (dynamic item) => item,
     );
 
-    return rebuild((b) => b
-      ..map.addAll(map)
-      ..list.replace((map.keys.toList() + list.toList()).toSet().toList()));
+    return rebuild(
+      (b) => b
+        ..map.addAll(map)
+        ..list.replace((map.keys.toList() + list.toList()).toSet().toList()),
+    );
   }
 
   static Serializer<QuoteState> get serializer => _$quoteStateSerializer;
@@ -56,10 +62,12 @@ abstract class QuoteState implements Built<QuoteState, QuoteStateBuilder> {
 abstract class QuoteUIState extends Object
     with EntityUIState
     implements Built<QuoteUIState, QuoteUIStateBuilder> {
-  factory QuoteUIState(PrefStateSortField sortField) {
+  factory QuoteUIState(PrefStateSortField? sortField) {
     return _$QuoteUIState._(
-      listUIState: ListUIState(sortField?.field ?? QuoteFields.number,
-          sortAscending: sortField?.ascending ?? false),
+      listUIState: ListUIState(
+        sortField?.field ?? QuoteFields.number,
+        sortAscending: sortField?.ascending ?? false,
+      ),
       editing: InvoiceEntity(),
       selectedId: '',
       tabIndex: 0,
@@ -72,22 +80,19 @@ abstract class QuoteUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  InvoiceEntity get editing;
+  InvoiceEntity? get editing;
 
-  @nullable
   @BuiltValueField(serialize: false)
-  int get editingItemIndex;
+  int? get editingItemIndex;
 
-  @nullable
   @BuiltValueField(serialize: false)
-  String get historyActivityId;
+  String? get historyActivityId;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<QuoteUIState> get serializer => _$quoteUIStateSerializer;
 }

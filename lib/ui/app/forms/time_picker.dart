@@ -1,14 +1,20 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/decorated_form_field.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 
 class TimePicker extends StatefulWidget {
   const TimePicker({
-    Key key,
-    @required this.onSelected,
-    @required this.selectedDateTime,
+    Key? key,
+    required this.onSelected,
+    required this.selectedDateTime,
     this.isEndTime = false,
     this.labelText,
     this.validator,
@@ -16,10 +22,10 @@ class TimePicker extends StatefulWidget {
     this.allowClearing = false,
   }) : super(key: key);
 
-  final String labelText;
-  final DateTime selectedDateTime;
-  final Function(DateTime) onSelected;
-  final Function validator;
+  final String? labelText;
+  final DateTime? selectedDateTime;
+  final Function(DateTime?) onSelected;
+  final Function? validator;
   final bool autoValidate;
   final bool allowClearing;
   final bool isEndTime;
@@ -31,7 +37,7 @@ class TimePicker extends StatefulWidget {
 class _TimePickerState extends State<TimePicker> {
   final _textController = TextEditingController();
   final _focusNode = FocusNode();
-  String _pendingValue;
+  String? _pendingValue;
 
   @override
   void initState() {
@@ -43,8 +49,11 @@ class _TimePickerState extends State<TimePicker> {
   void didChangeDependencies() {
     if (widget.selectedDateTime != null) {
       final formatted = formatDate(
-          widget.selectedDateTime.toIso8601String(), context,
-          showDate: false, showTime: true);
+        widget.selectedDateTime!.toIso8601String(),
+        context,
+        showDate: false,
+        showTime: true,
+      );
 
       _textController.text = formatted;
     }
@@ -55,8 +64,11 @@ class _TimePickerState extends State<TimePicker> {
   void _onFoucsChanged() {
     if (!_focusNode.hasFocus && widget.selectedDateTime != null) {
       _textController.text = formatDate(
-          widget.selectedDateTime.toIso8601String(), context,
-          showDate: false, showTime: true);
+        widget.selectedDateTime!.toIso8601String(),
+        context,
+        showDate: false,
+        showTime: true,
+      );
 
       setState(() {
         _pendingValue = null;
@@ -79,17 +91,18 @@ class _TimePickerState extends State<TimePicker> {
     final hour = selectedDateTime?.hour ?? now.hour;
     final minute = selectedDateTime?.minute ?? now.minute;
 
-    final TimeOfDay selectedTime = await showTimePicker(
+    final TimeOfDay? selectedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: hour, minute: minute),
-      builder: (BuildContext context, Widget child) {
+      builder: (BuildContext context, Widget? child) {
         final store = StoreProvider.of<AppState>(context);
         final enableMilitaryTime =
             store.state.company.settings.enableMilitaryTime;
         return MediaQuery(
-          data: MediaQuery.of(context)
-              .copyWith(alwaysUse24HourFormat: enableMilitaryTime),
-          child: child,
+          data: MediaQuery.of(
+            context,
+          ).copyWith(alwaysUse24HourFormat: enableMilitaryTime),
+          child: child!,
         );
       },
     );
@@ -97,8 +110,12 @@ class _TimePickerState extends State<TimePicker> {
     if (selectedTime != null) {
       final dateTime = convertTimeOfDayToDateTime(selectedTime);
 
-      _textController.text = formatDate(dateTime.toIso8601String(), context,
-          showTime: true, showDate: false);
+      _textController.text = formatDate(
+        dateTime.toIso8601String(),
+        navigatorKey.currentContext,
+        showTime: true,
+        showDate: false,
+      );
 
       widget.onSelected(dateTime.toLocal());
     }
@@ -108,8 +125,9 @@ class _TimePickerState extends State<TimePicker> {
   Widget build(BuildContext context) {
     return DecoratedFormField(
       focusNode: _focusNode,
-      validator: widget.validator,
+      validator: widget.validator as dynamic Function(String)?,
       controller: _textController,
+      keyboardType: TextInputType.text,
       decoration: InputDecoration(
         labelText: _pendingValue ?? widget.labelText ?? '',
         suffixIcon: widget.allowClearing && widget.selectedDateTime != null
@@ -135,8 +153,10 @@ class _TimePickerState extends State<TimePicker> {
           value = value.replaceAll(RegExp('[^\\d\:]'), '');
           value = value.toLowerCase().replaceAll('.', ':');
 
-          final parts =
-              value.split(':').where((element) => element.isNotEmpty).toList();
+          final parts = value
+              .split(':')
+              .where((element) => element.isNotEmpty)
+              .toList();
           String dateTimeStr = '';
 
           if (parts.length == 1) {
@@ -168,8 +188,8 @@ class _TimePickerState extends State<TimePicker> {
             dateTimeStr += ' PM';
           } else {
             final store = StoreProvider.of<AppState>(context);
-            if (!store.state.company.settings.enableMilitaryTime) {
-              final hour = parseDouble(parts[0]);
+            if (!store.state.company.settings.enableMilitaryTime!) {
+              final hour = parseDouble(parts[0])!;
               if (hour > 12) {
                 final parts = dateTimeStr
                     .split(':')
@@ -199,8 +219,11 @@ class _TimePickerState extends State<TimePicker> {
 
             setState(() {
               _pendingValue = formatDate(
-                  selectedDate.toIso8601String(), context,
-                  showTime: true, showDate: false);
+                selectedDate.toIso8601String(),
+                context,
+                showTime: true,
+                showDate: false,
+              );
             });
           }
         }

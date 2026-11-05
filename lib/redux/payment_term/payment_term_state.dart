@@ -1,11 +1,16 @@
+// Dart imports:
 import 'dart:async';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:built_collection/built_collection.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/data/models/payment_term_model.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
 
 part 'payment_term_state.g.dart';
@@ -36,9 +41,11 @@ abstract class PaymentTermState
       value: (dynamic item) => item,
     );
 
-    return rebuild((b) => b
-      ..map.addAll(map)
-      ..list.replace((map.keys.toList() + list.toList()).toSet().toList()));
+    return rebuild(
+      (b) => b
+        ..map.addAll(map)
+        ..list.replace((map.keys.toList() + list.toList()).toSet().toList()),
+    );
   }
 
   static Serializer<PaymentTermState> get serializer =>
@@ -48,10 +55,12 @@ abstract class PaymentTermState
 abstract class PaymentTermUIState extends Object
     with EntityUIState
     implements Built<PaymentTermUIState, PaymentTermUIStateBuilder> {
-  factory PaymentTermUIState(PrefStateSortField sortField) {
+  factory PaymentTermUIState(PrefStateSortField? sortField) {
     return _$PaymentTermUIState._(
-      listUIState: ListUIState(sortField?.field ?? PaymentTermFields.name,
-          sortAscending: sortField?.ascending),
+      listUIState: ListUIState(
+        sortField?.field ?? PaymentTermFields.name,
+        sortAscending: sortField?.ascending,
+      ),
       editing: PaymentTermEntity(),
       selectedId: '',
       tabIndex: 0,
@@ -64,14 +73,13 @@ abstract class PaymentTermUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  PaymentTermEntity get editing;
+  PaymentTermEntity? get editing;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<PaymentTermUIState> get serializer =>
       _$paymentTermUIStateSerializer;

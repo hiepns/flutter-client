@@ -1,3 +1,5 @@
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -16,6 +18,7 @@ abstract class SystemLogEntity
       log: '',
       typeId: 0,
       userId: '',
+      //history: EmailHistoryEntity(),
     );
   }
 
@@ -26,6 +29,7 @@ abstract class SystemLogEntity
   static const CATEGORY_WEBHOOK = 3;
   static const CATEGORY_PDF = 4;
   static const CATEGORY_SECURITY = 5;
+  static const CATEGORY_LOG = 6;
 
   @override
   @memoized
@@ -56,6 +60,8 @@ abstract class SystemLogEntity
   @BuiltValueField(wireName: 'created_at')
   int get createdAt;
 
+  //EmailHistoryEntity get history;
+
   String get category {
     switch (categoryId) {
       case CATEGORY_PAYMENT:
@@ -68,6 +74,8 @@ abstract class SystemLogEntity
         return 'security';
       case CATEGORY_WEBHOOK:
         return 'webhook';
+      case CATEGORY_LOG:
+        return 'log';
     }
 
     return '';
@@ -97,11 +105,15 @@ abstract class SystemLogEntity
       case 33:
         return 'email_spam_complaint';
       case 34:
-        return 'email_delivery';
+        return 'email_delivered';
+      case 35:
+        return 'email_opened';
       case 40:
         return 'webhook_response';
       case 41:
         return 'webhook_success';
+      case 42:
+        return 'webhook_failure';
       case 50:
         return 'pdf_response';
       case 60:
@@ -141,8 +153,14 @@ abstract class SystemLogEntity
         return 'Mollie';
       case 313:
         return 'eWay';
+      case 314:
+        return 'Forte';
       case 320:
         return 'Square';
+      case 321:
+        return 'GoCardless';
+      case 322:
+        return 'Razorpay';
       case 400:
         return 'quota_exceeded';
       case 401:
@@ -161,11 +179,107 @@ abstract class SystemLogEntity
         return 'login_success';
       case 801:
         return 'login_failure';
+      case 900:
+        return 'unknown';
     }
 
     return 'Unknown $typeId';
   }
 
+  /*
+  // ignore: unused_element
+  static void _initializeBuilder(SystemLogEntityBuilder builder) =>
+      builder..history.replace(EmailHistoryEntity()
+      );
+  */
+
   static Serializer<SystemLogEntity> get serializer =>
       _$systemLogEntitySerializer;
+}
+
+abstract class EmailHistoryEntity
+    implements Built<EmailHistoryEntity, EmailHistoryEntityBuilder> {
+  factory EmailHistoryEntity() {
+    return _$EmailHistoryEntity._(
+      recipients: '',
+      subject: '',
+      entity: '',
+      entityId: '',
+      events: BuiltList<EmailHistoryEventEntity>(),
+    );
+  }
+
+  EmailHistoryEntity._();
+
+  @override
+  @memoized
+  int get hashCode;
+
+  String get recipients;
+
+  String get subject;
+
+  String get entity;
+
+  @BuiltValueField(wireName: 'entity_id')
+  String get entityId;
+
+  BuiltList<EmailHistoryEventEntity> get events;
+
+  // ignore: unused_element
+  static void _initializeBuilder(EmailHistoryEntityBuilder builder) => builder
+    ..recipients = ''
+    ..subject = ''
+    ..entity = ''
+    ..entityId = ''
+    ..events.replace(BuiltList<EmailHistoryEventEntity>());
+
+  static Serializer<EmailHistoryEntity> get serializer =>
+      _$emailHistoryEntitySerializer;
+}
+
+abstract class EmailHistoryEventEntity
+    implements Built<EmailHistoryEventEntity, EmailHistoryEventEntityBuilder> {
+  factory EmailHistoryEventEntity() {
+    return _$EmailHistoryEventEntity._(
+      recipient: '',
+      status: '',
+      deliveryMessage: '',
+      server: '',
+      serverIp: '',
+      date: '',
+    );
+  }
+
+  EmailHistoryEventEntity._();
+
+  @override
+  @memoized
+  int get hashCode;
+
+  String get recipient;
+
+  String get status;
+
+  @BuiltValueField(wireName: 'delivery_message')
+  String get deliveryMessage;
+
+  String get server;
+
+  @BuiltValueField(wireName: 'server_ip')
+  String get serverIp;
+
+  String get date;
+
+  // ignore: unused_element
+  static void _initializeBuilder(EmailHistoryEventEntityBuilder builder) =>
+      builder
+        ..recipient = ''
+        ..status = ''
+        ..deliveryMessage = ''
+        ..server = ''
+        ..serverIp = '';
+
+  static Serializer<EmailHistoryEventEntity> get serializer =>
+      _$emailHistoryEventEntitySerializer;
 }

@@ -1,5 +1,8 @@
+// Package imports:
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 
 part 'font_model.g.dart';
@@ -11,11 +14,8 @@ class FontFields {
 abstract class FontEntity extends Object
     with SelectableEntity
     implements Built<FontEntity, FontEntityBuilder> {
-  factory FontEntity({String id, String name}) {
-    return _$FontEntity._(
-      id: id ?? '',
-      name: name ?? '',
-    );
+  factory FontEntity({String? id, String? name}) {
+    return _$FontEntity._(id: id ?? '', name: name ?? '');
   }
   FontEntity._();
 
@@ -26,7 +26,7 @@ abstract class FontEntity extends Object
   String get name;
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     if (filter == null || filter.isEmpty) {
       return true;
     }
@@ -41,7 +41,7 @@ abstract class FontEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     if (filter == null || filter.isEmpty) {
       return null;
     }
@@ -57,7 +57,7 @@ abstract class FontEntity extends Object
   }
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   static Serializer<FontEntity> get serializer => _$fontEntitySerializer;
 }

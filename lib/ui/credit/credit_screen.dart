@@ -1,23 +1,25 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:invoiceninja_flutter/constants.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/credit/credit_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/app_bottom_bar.dart';
-import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/app/list_filter.dart';
+import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/credit/credit_list_vm.dart';
 import 'package:invoiceninja_flutter/ui/credit/credit_presenter.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-
 import 'credit_screen_vm.dart';
 
 class CreditScreen extends StatelessWidget {
-  const CreditScreen({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const CreditScreen({Key? key, required this.viewModel}) : super(key: key);
 
   static const String route = '/credit';
 
@@ -31,6 +33,39 @@ class CreditScreen extends StatelessWidget {
     final userCompany = state.userCompany;
     final localization = AppLocalization.of(context);
 
+    final statuses = [
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kCreditStatusDraft
+          ..name = localization!.draft,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kCreditStatusSent
+          ..name = localization!.sent,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kCreditStatusViewed
+          ..name = localization!.viewed,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kCreditStatusApplied
+          ..name = localization!.applied,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kCreditStatusPartial
+          ..name = localization!.partial,
+      ),
+      InvoiceStatusEntity().rebuild(
+        (b) => b
+          ..id = kCreditStatusBounced
+          ..name = localization!.bounced,
+      ),
+    ];
+
     return ListScaffold(
       entityType: EntityType.credit,
       onHamburgerLongPress: () => store.dispatch(StartCreditMultiselect()),
@@ -42,6 +77,13 @@ class CreditScreen extends StatelessWidget {
         onFilterChanged: (value) {
           store.dispatch(FilterCredits(value));
         },
+        onSelectedState: (EntityState state, value) {
+          store.dispatch(FilterCreditsByState(state));
+        },
+        onSelectedStatus: (EntityStatus status, value) {
+          store.dispatch(FilterCreditsByStatus(status));
+        },
+        statuses: statuses,
       ),
       onCheckboxPressed: () {
         if (store.state.creditListState.isInMultiselect()) {
@@ -66,6 +108,10 @@ class CreditScreen extends StatelessWidget {
         onSelectedState: (EntityState state, value) {
           store.dispatch(FilterCreditsByState(state));
         },
+        statuses: statuses,
+        onSelectedStatus: (EntityStatus status, value) {
+          store.dispatch(FilterCreditsByStatus(status));
+        },
         onCheckboxPressed: () {
           if (store.state.creditListState.isInMultiselect()) {
             store.dispatch(ClearCreditMultiselect());
@@ -73,14 +119,22 @@ class CreditScreen extends StatelessWidget {
             store.dispatch(StartCreditMultiselect());
           }
         },
-        customValues1: company.getCustomFieldValues(CustomFieldType.invoice1,
-            excludeBlank: true),
-        customValues2: company.getCustomFieldValues(CustomFieldType.invoice2,
-            excludeBlank: true),
-        customValues3: company.getCustomFieldValues(CustomFieldType.invoice3,
-            excludeBlank: true),
-        customValues4: company.getCustomFieldValues(CustomFieldType.invoice4,
-            excludeBlank: true),
+        customValues1: company.getCustomFieldValues(
+          CustomFieldType.invoice1,
+          excludeBlank: true,
+        ),
+        customValues2: company.getCustomFieldValues(
+          CustomFieldType.invoice2,
+          excludeBlank: true,
+        ),
+        customValues3: company.getCustomFieldValues(
+          CustomFieldType.invoice3,
+          excludeBlank: true,
+        ),
+        customValues4: company.getCustomFieldValues(
+          CustomFieldType.invoice4,
+          excludeBlank: true,
+        ),
         onSelectedCustom1: (value) =>
             store.dispatch(FilterCreditsByCustom1(value)),
         onSelectedCustom2: (value) =>
@@ -90,20 +144,20 @@ class CreditScreen extends StatelessWidget {
         onSelectedCustom4: (value) =>
             store.dispatch(FilterCreditsByCustom4(value)),
       ),
-      floatingActionButton: state.prefState.isMenuFloated &&
+      floatingActionButton:
+          state.prefState.isMenuFloated &&
               userCompany.canCreate(EntityType.credit)
           ? FloatingActionButton(
               heroTag: 'credit_fab',
               backgroundColor: Theme.of(context).primaryColorDark,
               onPressed: () {
                 createEntityByType(
-                    context: context, entityType: EntityType.credit);
+                  context: context,
+                  entityType: EntityType.credit,
+                );
               },
-              child: Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-              tooltip: localization.newCredit,
+              child: Icon(Icons.add, color: Colors.white),
+              tooltip: localization!.newCredit,
             )
           : null,
     );

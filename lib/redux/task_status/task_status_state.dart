@@ -1,11 +1,15 @@
+// Dart imports:
 import 'dart:async';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:built_collection/built_collection.dart';
-import 'package:invoiceninja_flutter/data/models/task_status_model.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
 
 part 'task_status_state.g.dart';
@@ -29,7 +33,7 @@ abstract class TaskStatusState
 
   TaskStatusEntity get(String statusId) {
     if (map.containsKey(statusId)) {
-      return map[statusId];
+      return map[statusId]!;
     } else {
       return TaskStatusEntity(id: statusId);
     }
@@ -44,9 +48,11 @@ abstract class TaskStatusState
       value: (dynamic item) => item,
     );
 
-    return rebuild((b) => b
-      ..map.addAll(map)
-      ..list.replace((map.keys.toList() + list.toList()).toSet().toList()));
+    return rebuild(
+      (b) => b
+        ..map.addAll(map)
+        ..list.replace((map.keys.toList() + list.toList()).toSet().toList()),
+    );
   }
 
   static Serializer<TaskStatusState> get serializer =>
@@ -56,10 +62,12 @@ abstract class TaskStatusState
 abstract class TaskStatusUIState extends Object
     with EntityUIState
     implements Built<TaskStatusUIState, TaskStatusUIStateBuilder> {
-  factory TaskStatusUIState(PrefStateSortField sortField) {
+  factory TaskStatusUIState(PrefStateSortField? sortField) {
     return _$TaskStatusUIState._(
-      listUIState: ListUIState(sortField?.field ?? TaskStatusFields.order,
-          sortAscending: sortField?.ascending),
+      listUIState: ListUIState(
+        sortField?.field ?? TaskStatusFields.order,
+        sortAscending: sortField?.ascending,
+      ),
       editing: TaskStatusEntity(),
       selectedId: '',
       tabIndex: 0,
@@ -72,14 +80,13 @@ abstract class TaskStatusUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  TaskStatusEntity get editing;
+  TaskStatusEntity? get editing;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<TaskStatusUIState> get serializer =>
       _$taskStatusUIStateSerializer;

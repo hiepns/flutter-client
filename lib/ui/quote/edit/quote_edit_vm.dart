@@ -1,24 +1,31 @@
+// Dart imports:
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
+import 'package:http/http.dart';
+import 'package:invoiceninja_flutter/utils/localization.dart';
+import 'package:redux/redux.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/quote/quote_actions.dart';
-import 'package:invoiceninja_flutter/redux/quote/quote_selectors.dart';
 import 'package:invoiceninja_flutter/redux/ui/ui_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/dialogs/error_dialog.dart';
 import 'package:invoiceninja_flutter/ui/invoice/edit/invoice_edit_vm.dart';
-import 'package:invoiceninja_flutter/ui/quote/quote_edit.dart';
+import 'package:invoiceninja_flutter/ui/quote/edit/quote_edit.dart';
 import 'package:invoiceninja_flutter/ui/quote/view/quote_view_vm.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
-import 'package:invoiceninja_flutter/main_app.dart';
-import 'package:redux/redux.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 
 class QuoteEditScreen extends StatelessWidget {
-  const QuoteEditScreen({Key key}) : super(key: key);
+  const QuoteEditScreen({Key? key}) : super(key: key);
 
   static const String route = '/quote/edit';
 
@@ -31,7 +38,7 @@ class QuoteEditScreen extends StatelessWidget {
       builder: (context, viewModel) {
         return QuoteEdit(
           viewModel: viewModel,
-          key: ValueKey(viewModel.invoice.updatedAt),
+          key: ValueKey(viewModel.invoice!.updatedAt),
         );
       },
     );
@@ -40,30 +47,32 @@ class QuoteEditScreen extends StatelessWidget {
 
 class QuoteEditVM extends AbstractInvoiceEditVM {
   QuoteEditVM({
-    AppState state,
-    CompanyEntity company,
-    InvoiceEntity invoice,
-    int invoiceItemIndex,
-    InvoiceEntity origInvoice,
-    Function(BuildContext) onSavePressed,
-    Function(List<InvoiceItemEntity>, String, String) onItemsAdded,
-    bool isSaving,
-    Function(BuildContext) onCancelPressed,
+    AppState? state,
+    CompanyEntity? company,
+    InvoiceEntity? invoice,
+    int? invoiceItemIndex,
+    InvoiceEntity? origInvoice,
+    Function(BuildContext, [EntityAction?])? onSavePressed,
+    Function(List<InvoiceItemEntity>, String?, String?)? onItemsAdded,
+    bool? isSaving,
+    Function(BuildContext)? onCancelPressed,
+    Function(BuildContext, List<MultipartFile>, bool?)? onUploadDocument,
   }) : super(
-          state: state,
-          company: company,
-          invoice: invoice,
-          invoiceItemIndex: invoiceItemIndex,
-          origInvoice: origInvoice,
-          onSavePressed: onSavePressed,
-          onItemsAdded: onItemsAdded,
-          isSaving: isSaving,
-          onCancelPressed: onCancelPressed,
-        );
+         state: state,
+         company: company,
+         invoice: invoice,
+         invoiceItemIndex: invoiceItemIndex,
+         origInvoice: origInvoice,
+         onSavePressed: onSavePressed,
+         onItemsAdded: onItemsAdded,
+         isSaving: isSaving,
+         onCancelPressed: onCancelPressed,
+         onUploadDocuments: onUploadDocument,
+       );
 
   factory QuoteEditVM.fromStore(Store<AppState> store) {
     final AppState state = store.state;
-    final quote = state.quoteUIState.editing;
+    final quote = state.quoteUIState.editing!;
 
     return QuoteEditVM(
       state: state,
@@ -72,68 +81,80 @@ class QuoteEditVM extends AbstractInvoiceEditVM {
       invoice: quote,
       invoiceItemIndex: state.quoteUIState.editingItemIndex,
       origInvoice: store.state.quoteState.map[quote.id],
-      onSavePressed: (BuildContext context, [EntityAction action]) {
+      onSavePressed: (BuildContext context, [EntityAction? action]) {
         Debouncer.runOnComplete(() {
-          final quote = store.state.quoteUIState.editing;
+          final quote = store.state.quoteUIState.editing!;
           final localization = navigatorKey.localization;
           final navigator = navigatorKey.currentState;
           if (quote.clientId.isEmpty) {
             showDialog<ErrorDialog>(
-                context: navigatorKey.currentContext,
-                builder: (BuildContext context) {
-                  return ErrorDialog(localization.pleaseSelectAClient);
-                });
+              context: navigatorKey.currentContext!,
+              builder: (BuildContext context) {
+                return ErrorDialog(localization!.pleaseSelectAClient);
+              },
+            );
             return null;
           }
           if (quote.isOld &&
-              !hasQuoteChanges(quote, state.quoteState.map) &&
-              [
-                EntityAction.emailQuote,
-                EntityAction.viewPdf,
-              ].contains(action)) {
+              quote.isChanged != true &&
+              action != null &&
+              action.isClientSide) {
             handleEntityAction(quote, action);
           } else {
             final Completer<InvoiceEntity> completer =
                 Completer<InvoiceEntity>();
-            store.dispatch(SaveQuoteRequest(
-              completer: completer,
-              quote: quote,
-              action: action,
-            ));
-            return completer.future.then((savedQuote) {
-              showToast(quote.isNew
-                  ? localization.createdQuote
-                  : localization.updatedQuote);
+            store.dispatch(
+              SaveQuoteRequest(
+                completer: completer,
+                quote: quote,
+                action: action,
+              ),
+            );
+            return completer.future
+                .then((savedQuote) {
+                  showToast(
+                    quote.isNew
+                        ? localization!.createdQuote
+                        : localization!.updatedQuote,
+                  );
 
-              if (state.prefState.isMobile) {
-                store.dispatch(UpdateCurrentRoute(QuoteViewScreen.route));
-                if (quote.isNew) {
-                  navigator.pushReplacementNamed(QuoteViewScreen.route);
-                } else {
-                  navigator.pop(savedQuote);
-                }
-              } else {
-                viewEntity(entity: savedQuote);
+                  if (state.prefState.isMobile) {
+                    store.dispatch(UpdateCurrentRoute(QuoteViewScreen.route));
+                    if (quote.isNew) {
+                      navigator!.pushReplacementNamed(QuoteViewScreen.route);
+                    } else {
+                      navigator!.pop(savedQuote);
+                    }
+                  } else {
+                    if (!state.prefState.isPreviewVisible) {
+                      store.dispatch(TogglePreviewSidebar());
+                    }
 
-                if (state.prefState.isEditorFullScreen(EntityType.invoice)) {
-                  editEntity(
-                      context: navigatorKey.currentContext, entity: savedQuote);
-                }
-              }
+                    viewEntity(entity: savedQuote);
 
-              if ([
-                EntityAction.emailQuote,
-                EntityAction.viewPdf,
-              ].contains(action)) {
-                handleEntityAction(savedQuote, action);
-              }
-            }).catchError((Object error) {
-              showDialog<ErrorDialog>(
-                  context: navigatorKey.currentContext,
-                  builder: (BuildContext context) {
-                    return ErrorDialog(error);
-                  });
-            });
+                    if (state.prefState.isEditorFullScreen(
+                          EntityType.invoice,
+                        ) &&
+                        state.prefState.editAfterSaving) {
+                      editEntity(entity: savedQuote);
+                    }
+                  }
+
+                  if (action != null && action.isClientSide) {
+                    handleEntityAction(savedQuote, action);
+                  } else if (action != null && action.requiresSecondRequest) {
+                    handleEntityAction(savedQuote, action);
+                    viewEntity(entity: savedQuote, force: true);
+                  }
+                })
+                .catchError((Object error) {
+                  showDialog<ErrorDialog>(
+                    context: navigatorKey.currentContext!,
+                    builder: (BuildContext context) {
+                      return ErrorDialog(error);
+                    },
+                  );
+                });
           }
         });
       },
@@ -147,10 +168,42 @@ class QuoteEditVM extends AbstractInvoiceEditVM {
         if (['pdf', 'email'].contains(state.uiState.previousSubRoute)) {
           viewEntitiesByType(entityType: EntityType.quote);
         } else {
-          createEntity(context: context, entity: InvoiceEntity(), force: true);
+          createEntity(entity: InvoiceEntity(), force: true);
           store.dispatch(UpdateCurrentRoute(state.uiState.previousRoute));
         }
       },
+      onUploadDocument:
+          (
+            BuildContext context,
+            List<MultipartFile> multipartFile,
+            bool? isPrivate,
+          ) {
+            final completer = Completer<List<DocumentEntity>>();
+            store.dispatch(
+              SaveQuoteDocumentRequest(
+                isPrivate: isPrivate,
+                multipartFile: multipartFile,
+                quote: quote,
+                completer: completer,
+              ),
+            );
+            completer.future
+                .then((client) {
+                  showToast(
+                    AppLocalization.of(
+                      navigatorKey.currentContext!,
+                    )!.uploadedDocument,
+                  );
+                })
+                .catchError((Object error) {
+                  showDialog<ErrorDialog>(
+                    context: navigatorKey.currentContext!,
+                    builder: (BuildContext context) {
+                      return ErrorDialog(error);
+                    },
+                  );
+                });
+          },
     );
   }
 }

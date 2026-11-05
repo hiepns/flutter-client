@@ -1,7 +1,14 @@
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/auth/auth_actions.dart';
 
@@ -12,14 +19,14 @@ import 'package:invoiceninja_flutter/utils/web_stub.dart'
 class WebSessionTimeout extends StatefulWidget {
   const WebSessionTimeout({this.child});
 
-  final Widget child;
+  final Widget? child;
 
   @override
   _WebSessionTimeoutState createState() => _WebSessionTimeoutState();
 }
 
 class _WebSessionTimeoutState extends State<WebSessionTimeout> {
-  Timer _timer;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -29,25 +36,23 @@ class _WebSessionTimeoutState extends State<WebSessionTimeout> {
       return;
     }
 
-    _timer = Timer.periodic(
-      Duration(minutes: 1),
-      (Timer timer) {
-        final store = StoreProvider.of<AppState>(context);
-        final state = store.state;
-        final sessionTimeout = state.company.sessionTimeout;
+    _timer = Timer.periodic(Duration(minutes: 1), (Timer timer) {
+      final store = StoreProvider.of<AppState>(context);
+      final state = store.state;
+      final sessionTimeout = state.company.sessionTimeout;
 
-        if (sessionTimeout == 0) {
-          return;
-        }
+      if (sessionTimeout == 0 || !state.isLoaded) {
+        return;
+      }
 
-        final sessionLength = DateTime.now().millisecondsSinceEpoch -
-            state.userCompanyState.lastUpdated;
+      final sessionLength =
+          DateTime.now().millisecondsSinceEpoch -
+          state.userCompanyState.lastUpdated;
 
-        if (sessionLength > sessionTimeout) {
-          store.dispatch(UserLogout());
-        }
-      },
-    );
+      if (sessionLength > sessionTimeout) {
+        store.dispatch(UserLogout());
+      }
+    });
   }
 
   @override
@@ -59,6 +64,6 @@ class _WebSessionTimeoutState extends State<WebSessionTimeout> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return widget.child!;
   }
 }

@@ -1,22 +1,24 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/design/design_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/app_bottom_bar.dart';
-import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/app/list_filter.dart';
+import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/design/design_list_vm.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 import 'design_screen_vm.dart';
 
 class DesignScreen extends StatelessWidget {
-  const DesignScreen({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const DesignScreen({Key? key, required this.viewModel}) : super(key: key);
 
   static const String route = '/$kSettings/$kSettingsCustomDesigns';
 
@@ -41,6 +43,9 @@ class DesignScreen extends StatelessWidget {
         onFilterChanged: (value) {
           store.dispatch(FilterDesigns(value));
         },
+        onSelectedState: (EntityState state, value) {
+          store.dispatch(FilterDesignsByState(state));
+        },
       ),
       onCheckboxPressed: () {
         if (store.state.designListState.isInMultiselect()) {
@@ -55,10 +60,7 @@ class DesignScreen extends StatelessWidget {
         onSelectedSortField: (value) {
           store.dispatch(SortDesigns(value));
         },
-        sortFields: [
-          DesignFields.name,
-          DesignFields.updatedAt,
-        ],
+        sortFields: [DesignFields.name, DesignFields.updatedAt],
         onSelectedState: (EntityState state, value) {
           store.dispatch(FilterDesignsByState(state));
         },
@@ -84,16 +86,13 @@ class DesignScreen extends StatelessWidget {
               backgroundColor: Theme.of(context).primaryColorDark,
               onPressed: () {
                 createEntity(
-                  context: context,
                   entity: DesignEntity(
-                      design: state.designState.cleanDesign.design),
+                    design: state.designState.cleanDesign.design,
+                  ),
                 );
               },
-              child: Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-              tooltip: localization.newDesign,
+              child: Icon(Icons.add, color: Colors.white),
+              tooltip: localization!.newDesign,
             )
           : null,
     );

@@ -1,11 +1,16 @@
+// Dart imports:
 import 'dart:async';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:built_collection/built_collection.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/company_gateway_model.dart';
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
 
 part 'company_gateway_state.g.dart';
@@ -27,7 +32,7 @@ abstract class CompanyGatewayState
 
   CompanyGatewayEntity get(String companyGatewayId) {
     if (map.containsKey(companyGatewayId)) {
-      return map[companyGatewayId];
+      return map[companyGatewayId]!;
     } else {
       return CompanyGatewayEntity(id: companyGatewayId);
     }
@@ -44,10 +49,12 @@ abstract class CompanyGatewayState
 abstract class CompanyGatewayUIState extends Object
     with EntityUIState
     implements Built<CompanyGatewayUIState, CompanyGatewayUIStateBuilder> {
-  factory CompanyGatewayUIState(PrefStateSortField sortField) {
+  factory CompanyGatewayUIState(PrefStateSortField? sortField) {
     return _$CompanyGatewayUIState._(
-      listUIState: ListUIState(sortField?.field ?? CompanyGatewayFields.name,
-          sortAscending: sortField?.ascending),
+      listUIState: ListUIState(
+        sortField?.field ?? CompanyGatewayFields.name,
+        sortAscending: sortField?.ascending,
+      ),
       editing: CompanyGatewayEntity(),
       selectedId: '',
       tabIndex: 0,
@@ -60,14 +67,13 @@ abstract class CompanyGatewayUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  CompanyGatewayEntity get editing;
+  CompanyGatewayEntity? get editing;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<CompanyGatewayUIState> get serializer =>
       _$companyGatewayUIStateSerializer;

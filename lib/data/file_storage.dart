@@ -1,19 +1,21 @@
+// Dart imports:
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:archive/archive.dart';
+// Flutter imports:
 import 'package:flutter/foundation.dart';
+
+// Package imports:
+import 'package:archive/archive.dart';
+import 'package:invoiceninja_flutter/utils/platforms.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 //import 'package:idb_shim/idb.dart';
 //import 'package:idb_shim/idb_browser.dart';
 
 class FileStorage {
-  const FileStorage(
-    this.tag,
-    this.getDirectory,
-  );
+  const FileStorage(this.tag, this.getDirectory);
 
   static const GZIP_TAG = '_gzip';
   static const STORE_NAME = 'invoiceninja';
@@ -24,7 +26,11 @@ class FileStorage {
   Future<File> _getLocalFile() async {
     final dir = await getDirectory();
 
-    return File('${dir.path}/invoiceninja__$tag.json');
+    if (isWindows()) {
+      return File('${dir.path}/invoiceninja/$tag.json');
+    } else {
+      return File('${dir.path}/invoiceninja__$tag.json');
+    }
   }
 
   /*
@@ -58,7 +64,7 @@ class FileStorage {
       */
 
       final prefs = await SharedPreferences.getInstance();
-      String value = prefs.getString(tag);
+      String? value = prefs.getString(tag);
 
       if (value != null) {
         return value;
@@ -79,7 +85,7 @@ class FileStorage {
     }
   }
 
-  Future<File> save(String data) async {
+  Future<File?> save(String data) async {
     if (kIsWeb) {
       /*
       final db = await _getIndexedDb();
@@ -115,7 +121,7 @@ class FileStorage {
     }
   }
 
-  Future<FileSystemEntity> delete() async {
+  Future<FileSystemEntity?> delete() async {
     if (kIsWeb) {
       /*
       final db = await _getIndexedDb();

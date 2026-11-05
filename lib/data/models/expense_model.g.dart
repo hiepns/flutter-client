@@ -7,35 +7,40 @@ part of 'expense_model.dart';
 // **************************************************************************
 
 Serializer<ExpenseListResponse> _$expenseListResponseSerializer =
-    new _$ExpenseListResponseSerializer();
+    _$ExpenseListResponseSerializer();
 Serializer<ExpenseItemResponse> _$expenseItemResponseSerializer =
-    new _$ExpenseItemResponseSerializer();
+    _$ExpenseItemResponseSerializer();
 Serializer<ExpenseEntity> _$expenseEntitySerializer =
-    new _$ExpenseEntitySerializer();
+    _$ExpenseEntitySerializer();
 Serializer<ExpenseScheduleEntity> _$expenseScheduleEntitySerializer =
-    new _$ExpenseScheduleEntitySerializer();
+    _$ExpenseScheduleEntitySerializer();
 Serializer<ExpenseStatusEntity> _$expenseStatusEntitySerializer =
-    new _$ExpenseStatusEntitySerializer();
+    _$ExpenseStatusEntitySerializer();
 
 class _$ExpenseListResponseSerializer
     implements StructuredSerializer<ExpenseListResponse> {
   @override
   final Iterable<Type> types = const [
     ExpenseListResponse,
-    _$ExpenseListResponse
+    _$ExpenseListResponse,
   ];
   @override
   final String wireName = 'ExpenseListResponse';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, ExpenseListResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ExpenseListResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'data',
-      serializers.serialize(object.data,
-          specifiedType:
-              const FullType(BuiltList, const [const FullType(ExpenseEntity)])),
+      serializers.serialize(
+        object.data,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(ExpenseEntity),
+        ]),
+      ),
     ];
 
     return result;
@@ -43,21 +48,28 @@ class _$ExpenseListResponseSerializer
 
   @override
   ExpenseListResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ExpenseListResponseBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ExpenseListResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'data':
-          result.data.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(ExpenseEntity)]))
-              as BuiltList<Object>);
+          result.data.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(ExpenseEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
       }
     }
@@ -71,19 +83,23 @@ class _$ExpenseItemResponseSerializer
   @override
   final Iterable<Type> types = const [
     ExpenseItemResponse,
-    _$ExpenseItemResponse
+    _$ExpenseItemResponse,
   ];
   @override
   final String wireName = 'ExpenseItemResponse';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, ExpenseItemResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ExpenseItemResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'data',
-      serializers.serialize(object.data,
-          specifiedType: const FullType(ExpenseEntity)),
+      serializers.serialize(
+        object.data,
+        specifiedType: const FullType(ExpenseEntity),
+      ),
     ];
 
     return result;
@@ -91,19 +107,26 @@ class _$ExpenseItemResponseSerializer
 
   @override
   ExpenseItemResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ExpenseItemResponseBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ExpenseItemResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'data':
-          result.data.replace(serializers.deserialize(value,
-              specifiedType: const FullType(ExpenseEntity)) as ExpenseEntity);
+          result.data.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(ExpenseEntity),
+                )!
+                as ExpenseEntity,
+          );
           break;
       }
     }
@@ -119,188 +142,276 @@ class _$ExpenseEntitySerializer implements StructuredSerializer<ExpenseEntity> {
   final String wireName = 'ExpenseEntity';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, ExpenseEntity object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ExpenseEntity object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'private_notes',
-      serializers.serialize(object.privateNotes,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.privateNotes,
+        specifiedType: const FullType(String),
+      ),
       'public_notes',
-      serializers.serialize(object.publicNotes,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.publicNotes,
+        specifiedType: const FullType(String),
+      ),
       'should_be_invoiced',
-      serializers.serialize(object.shouldBeInvoiced,
-          specifiedType: const FullType(bool)),
+      serializers.serialize(
+        object.shouldBeInvoiced,
+        specifiedType: const FullType(bool),
+      ),
       'invoice_documents',
-      serializers.serialize(object.invoiceDocuments,
-          specifiedType: const FullType(bool)),
+      serializers.serialize(
+        object.invoiceDocuments,
+        specifiedType: const FullType(bool),
+      ),
       'transaction_id',
-      serializers.serialize(object.transactionId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.transactionId,
+        specifiedType: const FullType(String),
+      ),
       'transaction_reference',
-      serializers.serialize(object.transactionReference,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.transactionReference,
+        specifiedType: const FullType(String),
+      ),
       'bank_id',
-      serializers.serialize(object.bankId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.bankId,
+        specifiedType: const FullType(String),
+      ),
       'currency_id',
-      serializers.serialize(object.currencyId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.currencyId,
+        specifiedType: const FullType(String),
+      ),
       'category_id',
-      serializers.serialize(object.categoryId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.categoryId,
+        specifiedType: const FullType(String),
+      ),
       'amount',
-      serializers.serialize(object.amount,
-          specifiedType: const FullType(double)),
+      serializers.serialize(
+        object.amount,
+        specifiedType: const FullType(double),
+      ),
       'payment_date',
-      serializers.serialize(object.paymentDate,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.paymentDate,
+        specifiedType: const FullType(String),
+      ),
       'exchange_rate',
-      serializers.serialize(object.exchangeRate,
-          specifiedType: const FullType(double)),
+      serializers.serialize(
+        object.exchangeRate,
+        specifiedType: const FullType(double),
+      ),
       'invoice_currency_id',
-      serializers.serialize(object.invoiceCurrencyId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.invoiceCurrencyId,
+        specifiedType: const FullType(String),
+      ),
       'payment_type_id',
-      serializers.serialize(object.paymentTypeId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.paymentTypeId,
+        specifiedType: const FullType(String),
+      ),
       'tax_name1',
-      serializers.serialize(object.taxName1,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.taxName1,
+        specifiedType: const FullType(String),
+      ),
       'tax_name2',
-      serializers.serialize(object.taxName2,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.taxName2,
+        specifiedType: const FullType(String),
+      ),
       'tax_rate1',
-      serializers.serialize(object.taxRate1,
-          specifiedType: const FullType(double)),
+      serializers.serialize(
+        object.taxRate1,
+        specifiedType: const FullType(double),
+      ),
       'tax_rate2',
-      serializers.serialize(object.taxRate2,
-          specifiedType: const FullType(double)),
+      serializers.serialize(
+        object.taxRate2,
+        specifiedType: const FullType(double),
+      ),
       'tax_name3',
-      serializers.serialize(object.taxName3,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.taxName3,
+        specifiedType: const FullType(String),
+      ),
       'tax_rate3',
-      serializers.serialize(object.taxRate3,
-          specifiedType: const FullType(double)),
+      serializers.serialize(
+        object.taxRate3,
+        specifiedType: const FullType(double),
+      ),
       'custom_value1',
-      serializers.serialize(object.customValue1,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.customValue1,
+        specifiedType: const FullType(String),
+      ),
       'custom_value2',
-      serializers.serialize(object.customValue2,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.customValue2,
+        specifiedType: const FullType(String),
+      ),
       'custom_value3',
-      serializers.serialize(object.customValue3,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.customValue3,
+        specifiedType: const FullType(String),
+      ),
       'custom_value4',
-      serializers.serialize(object.customValue4,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.customValue4,
+        specifiedType: const FullType(String),
+      ),
       'tax_amount1',
-      serializers.serialize(object.taxAmount1,
-          specifiedType: const FullType(double)),
+      serializers.serialize(
+        object.taxAmount1,
+        specifiedType: const FullType(double),
+      ),
       'tax_amount2',
-      serializers.serialize(object.taxAmount2,
-          specifiedType: const FullType(double)),
+      serializers.serialize(
+        object.taxAmount2,
+        specifiedType: const FullType(double),
+      ),
       'tax_amount3',
-      serializers.serialize(object.taxAmount3,
-          specifiedType: const FullType(double)),
+      serializers.serialize(
+        object.taxAmount3,
+        specifiedType: const FullType(double),
+      ),
       'uses_inclusive_taxes',
-      serializers.serialize(object.usesInclusiveTaxes,
-          specifiedType: const FullType(bool)),
+      serializers.serialize(
+        object.usesInclusiveTaxes,
+        specifiedType: const FullType(bool),
+      ),
       'documents',
-      serializers.serialize(object.documents,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(DocumentEntity)])),
+      serializers.serialize(
+        object.documents,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(DocumentEntity),
+        ]),
+      ),
       'number',
-      serializers.serialize(object.number,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.number,
+        specifiedType: const FullType(String),
+      ),
+      'recurring_expense_id',
+      serializers.serialize(
+        object.recurringExpenseId,
+        specifiedType: const FullType(String),
+      ),
       'frequency_id',
-      serializers.serialize(object.frequencyId,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.frequencyId,
+        specifiedType: const FullType(String),
+      ),
       'last_sent_date',
-      serializers.serialize(object.lastSentDate,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.lastSentDate,
+        specifiedType: const FullType(String),
+      ),
       'next_send_date',
-      serializers.serialize(object.nextSendDate,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.nextSendDate,
+        specifiedType: const FullType(String),
+      ),
       'remaining_cycles',
-      serializers.serialize(object.remainingCycles,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.remainingCycles,
+        specifiedType: const FullType(int),
+      ),
       'created_at',
-      serializers.serialize(object.createdAt,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.createdAt,
+        specifiedType: const FullType(int),
+      ),
       'updated_at',
-      serializers.serialize(object.updatedAt,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.updatedAt,
+        specifiedType: const FullType(int),
+      ),
       'archived_at',
-      serializers.serialize(object.archivedAt,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.archivedAt,
+        specifiedType: const FullType(int),
+      ),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
     ];
-    Object value;
+    Object? value;
     value = object.date;
     if (value != null) {
       result
         ..add('date')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.clientId;
     if (value != null) {
       result
         ..add('client_id')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.invoiceId;
     if (value != null) {
       result
         ..add('invoice_id')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.vendorId;
     if (value != null) {
       result
         ..add('vendor_id')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.projectId;
     if (value != null) {
       result
         ..add('project_id')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.statusId;
     if (value != null) {
       result
         ..add('status_id')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.calculateTaxByAmount;
     if (value != null) {
       result
         ..add('calculate_tax_by_amount')
         ..add(
-            serializers.serialize(value, specifiedType: const FullType(bool)));
-    }
-    value = object.recurringId;
-    if (value != null) {
-      result
-        ..add('recurring_id')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+          serializers.serialize(value, specifiedType: const FullType(bool)),
+        );
     }
     value = object.recurringDates;
     if (value != null) {
       result
         ..add('recurring_dates')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(
-                BuiltList, const [const FullType(ExpenseScheduleEntity)])));
+        ..add(
+          serializers.serialize(
+            value,
+            specifiedType: const FullType(BuiltList, const [
+              const FullType(ExpenseScheduleEntity),
+            ]),
+          ),
+        );
     }
     value = object.loadedAt;
     if (value != null) {
@@ -313,266 +424,487 @@ class _$ExpenseEntitySerializer implements StructuredSerializer<ExpenseEntity> {
       result
         ..add('isChanged')
         ..add(
-            serializers.serialize(value, specifiedType: const FullType(bool)));
+          serializers.serialize(value, specifiedType: const FullType(bool)),
+        );
     }
     value = object.isDeleted;
     if (value != null) {
       result
         ..add('is_deleted')
         ..add(
-            serializers.serialize(value, specifiedType: const FullType(bool)));
+          serializers.serialize(value, specifiedType: const FullType(bool)),
+        );
     }
     value = object.createdUserId;
     if (value != null) {
       result
         ..add('user_id')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.assignedUserId;
     if (value != null) {
       result
         ..add('assigned_user_id')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.entityType;
     if (value != null) {
       result
         ..add('entity_type')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(EntityType)));
+        ..add(
+          serializers.serialize(
+            value,
+            specifiedType: const FullType(EntityType),
+          ),
+        );
     }
     return result;
   }
 
   @override
   ExpenseEntity deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ExpenseEntityBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ExpenseEntityBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'private_notes':
-          result.privateNotes = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.privateNotes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'public_notes':
-          result.publicNotes = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.publicNotes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'should_be_invoiced':
-          result.shouldBeInvoiced = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+          result.shouldBeInvoiced =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
           break;
         case 'invoice_documents':
-          result.invoiceDocuments = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+          result.invoiceDocuments =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
           break;
         case 'transaction_id':
-          result.transactionId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.transactionId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'transaction_reference':
-          result.transactionReference = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.transactionReference =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'bank_id':
-          result.bankId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.bankId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'currency_id':
-          result.currencyId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.currencyId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'category_id':
-          result.categoryId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.categoryId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'amount':
-          result.amount = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
+          result.amount =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(double),
+                  )!
+                  as double;
           break;
         case 'date':
-          result.date = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.date =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'payment_date':
-          result.paymentDate = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.paymentDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'exchange_rate':
-          result.exchangeRate = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
+          result.exchangeRate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(double),
+                  )!
+                  as double;
           break;
         case 'invoice_currency_id':
-          result.invoiceCurrencyId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.invoiceCurrencyId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'payment_type_id':
-          result.paymentTypeId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.paymentTypeId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'tax_name1':
-          result.taxName1 = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.taxName1 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'tax_name2':
-          result.taxName2 = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.taxName2 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'tax_rate1':
-          result.taxRate1 = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
+          result.taxRate1 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(double),
+                  )!
+                  as double;
           break;
         case 'tax_rate2':
-          result.taxRate2 = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
+          result.taxRate2 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(double),
+                  )!
+                  as double;
           break;
         case 'tax_name3':
-          result.taxName3 = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.taxName3 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'tax_rate3':
-          result.taxRate3 = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
+          result.taxRate3 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(double),
+                  )!
+                  as double;
           break;
         case 'client_id':
-          result.clientId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.clientId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'invoice_id':
-          result.invoiceId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.invoiceId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'vendor_id':
-          result.vendorId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.vendorId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'project_id':
-          result.projectId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.projectId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'status_id':
-          result.statusId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.statusId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'custom_value1':
-          result.customValue1 = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.customValue1 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'custom_value2':
-          result.customValue2 = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.customValue2 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'custom_value3':
-          result.customValue3 = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.customValue3 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'custom_value4':
-          result.customValue4 = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.customValue4 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'tax_amount1':
-          result.taxAmount1 = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
+          result.taxAmount1 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(double),
+                  )!
+                  as double;
           break;
         case 'tax_amount2':
-          result.taxAmount2 = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
+          result.taxAmount2 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(double),
+                  )!
+                  as double;
           break;
         case 'tax_amount3':
-          result.taxAmount3 = serializers.deserialize(value,
-              specifiedType: const FullType(double)) as double;
+          result.taxAmount3 =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(double),
+                  )!
+                  as double;
           break;
         case 'uses_inclusive_taxes':
-          result.usesInclusiveTaxes = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+          result.usesInclusiveTaxes =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
           break;
         case 'calculate_tax_by_amount':
-          result.calculateTaxByAmount = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+          result.calculateTaxByAmount =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )
+                  as bool?;
           break;
         case 'documents':
-          result.documents.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(DocumentEntity)]))
-              as BuiltList<Object>);
+          result.documents.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(DocumentEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'number':
-          result.number = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.number =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
-        case 'recurring_id':
-          result.recurringId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+        case 'recurring_expense_id':
+          result.recurringExpenseId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'frequency_id':
-          result.frequencyId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.frequencyId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'last_sent_date':
-          result.lastSentDate = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.lastSentDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'next_send_date':
-          result.nextSendDate = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.nextSendDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'remaining_cycles':
-          result.remainingCycles = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+          result.remainingCycles =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'recurring_dates':
-          result.recurringDates.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(ExpenseScheduleEntity)]))
-              as BuiltList<Object>);
+          result.recurringDates.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(ExpenseScheduleEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'loadedAt':
-          result.loadedAt = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+          result.loadedAt =
+              serializers.deserialize(value, specifiedType: const FullType(int))
+                  as int?;
           break;
         case 'isChanged':
-          result.isChanged = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+          result.isChanged =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )
+                  as bool?;
           break;
         case 'created_at':
-          result.createdAt = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+          result.createdAt =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'updated_at':
-          result.updatedAt = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+          result.updatedAt =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'archived_at':
-          result.archivedAt = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+          result.archivedAt =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'is_deleted':
-          result.isDeleted = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+          result.isDeleted =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )
+                  as bool?;
           break;
         case 'user_id':
-          result.createdUserId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.createdUserId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'assigned_user_id':
-          result.assignedUserId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.assignedUserId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'entity_type':
-          result.entityType = serializers.deserialize(value,
-              specifiedType: const FullType(EntityType)) as EntityType;
+          result.entityType =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(EntityType),
+                  )
+                  as EntityType?;
           break;
         case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.id =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
       }
     }
@@ -586,19 +918,23 @@ class _$ExpenseScheduleEntitySerializer
   @override
   final Iterable<Type> types = const [
     ExpenseScheduleEntity,
-    _$ExpenseScheduleEntity
+    _$ExpenseScheduleEntity,
   ];
   @override
   final String wireName = 'ExpenseScheduleEntity';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, ExpenseScheduleEntity object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ExpenseScheduleEntity object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'send_date',
-      serializers.serialize(object.sendDate,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.sendDate,
+        specifiedType: const FullType(String),
+      ),
     ];
 
     return result;
@@ -606,19 +942,25 @@ class _$ExpenseScheduleEntitySerializer
 
   @override
   ExpenseScheduleEntity deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ExpenseScheduleEntityBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ExpenseScheduleEntityBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'send_date':
-          result.sendDate = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.sendDate =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
       }
     }
@@ -632,16 +974,18 @@ class _$ExpenseStatusEntitySerializer
   @override
   final Iterable<Type> types = const [
     ExpenseStatusEntity,
-    _$ExpenseStatusEntity
+    _$ExpenseStatusEntity,
   ];
   @override
   final String wireName = 'ExpenseStatusEntity';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, ExpenseStatusEntity object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ExpenseStatusEntity object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
       'name',
@@ -653,23 +997,33 @@ class _$ExpenseStatusEntitySerializer
 
   @override
   ExpenseStatusEntity deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ExpenseStatusEntityBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ExpenseStatusEntityBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.id =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'name':
-          result.name = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.name =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
       }
     }
@@ -682,22 +1036,19 @@ class _$ExpenseListResponse extends ExpenseListResponse {
   @override
   final BuiltList<ExpenseEntity> data;
 
-  factory _$ExpenseListResponse(
-          [void Function(ExpenseListResponseBuilder) updates]) =>
-      (new ExpenseListResponseBuilder()..update(updates)).build();
+  factory _$ExpenseListResponse([
+    void Function(ExpenseListResponseBuilder)? updates,
+  ]) => (ExpenseListResponseBuilder()..update(updates))._build();
 
-  _$ExpenseListResponse._({this.data}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(data, 'ExpenseListResponse', 'data');
-  }
-
+  _$ExpenseListResponse._({required this.data}) : super._();
   @override
   ExpenseListResponse rebuild(
-          void Function(ExpenseListResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(ExpenseListResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   ExpenseListResponseBuilder toBuilder() =>
-      new ExpenseListResponseBuilder()..replace(this);
+      ExpenseListResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -705,28 +1056,32 @@ class _$ExpenseListResponse extends ExpenseListResponse {
     return other is ExpenseListResponse && data == other.data;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, data.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, data.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExpenseListResponse')
-          ..add('data', data))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'ExpenseListResponse',
+    )..add('data', data)).toString();
   }
 }
 
 class ExpenseListResponseBuilder
     implements Builder<ExpenseListResponse, ExpenseListResponseBuilder> {
-  _$ExpenseListResponse _$v;
+  _$ExpenseListResponse? _$v;
 
-  ListBuilder<ExpenseEntity> _data;
+  ListBuilder<ExpenseEntity>? _data;
   ListBuilder<ExpenseEntity> get data =>
-      _$this._data ??= new ListBuilder<ExpenseEntity>();
-  set data(ListBuilder<ExpenseEntity> data) => _$this._data = data;
+      _$this._data ??= ListBuilder<ExpenseEntity>();
+  set data(ListBuilder<ExpenseEntity>? data) => _$this._data = data;
 
   ExpenseListResponseBuilder();
 
@@ -741,28 +1096,32 @@ class ExpenseListResponseBuilder
 
   @override
   void replace(ExpenseListResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExpenseListResponse;
   }
 
   @override
-  void update(void Function(ExpenseListResponseBuilder) updates) {
+  void update(void Function(ExpenseListResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ExpenseListResponse build() {
+  ExpenseListResponse build() => _build();
+
+  _$ExpenseListResponse _build() {
     _$ExpenseListResponse _$result;
     try {
-      _$result = _$v ?? new _$ExpenseListResponse._(data: data.build());
+      _$result = _$v ?? _$ExpenseListResponse._(data: data.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'data';
         data.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'ExpenseListResponse', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'ExpenseListResponse',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -775,22 +1134,19 @@ class _$ExpenseItemResponse extends ExpenseItemResponse {
   @override
   final ExpenseEntity data;
 
-  factory _$ExpenseItemResponse(
-          [void Function(ExpenseItemResponseBuilder) updates]) =>
-      (new ExpenseItemResponseBuilder()..update(updates)).build();
+  factory _$ExpenseItemResponse([
+    void Function(ExpenseItemResponseBuilder)? updates,
+  ]) => (ExpenseItemResponseBuilder()..update(updates))._build();
 
-  _$ExpenseItemResponse._({this.data}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(data, 'ExpenseItemResponse', 'data');
-  }
-
+  _$ExpenseItemResponse._({required this.data}) : super._();
   @override
   ExpenseItemResponse rebuild(
-          void Function(ExpenseItemResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(ExpenseItemResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   ExpenseItemResponseBuilder toBuilder() =>
-      new ExpenseItemResponseBuilder()..replace(this);
+      ExpenseItemResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -798,27 +1154,31 @@ class _$ExpenseItemResponse extends ExpenseItemResponse {
     return other is ExpenseItemResponse && data == other.data;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, data.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, data.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExpenseItemResponse')
-          ..add('data', data))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'ExpenseItemResponse',
+    )..add('data', data)).toString();
   }
 }
 
 class ExpenseItemResponseBuilder
     implements Builder<ExpenseItemResponse, ExpenseItemResponseBuilder> {
-  _$ExpenseItemResponse _$v;
+  _$ExpenseItemResponse? _$v;
 
-  ExpenseEntityBuilder _data;
-  ExpenseEntityBuilder get data => _$this._data ??= new ExpenseEntityBuilder();
-  set data(ExpenseEntityBuilder data) => _$this._data = data;
+  ExpenseEntityBuilder? _data;
+  ExpenseEntityBuilder get data => _$this._data ??= ExpenseEntityBuilder();
+  set data(ExpenseEntityBuilder? data) => _$this._data = data;
 
   ExpenseItemResponseBuilder();
 
@@ -833,28 +1193,32 @@ class ExpenseItemResponseBuilder
 
   @override
   void replace(ExpenseItemResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExpenseItemResponse;
   }
 
   @override
-  void update(void Function(ExpenseItemResponseBuilder) updates) {
+  void update(void Function(ExpenseItemResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ExpenseItemResponse build() {
+  ExpenseItemResponse build() => _build();
+
+  _$ExpenseItemResponse _build() {
     _$ExpenseItemResponse _$result;
     try {
-      _$result = _$v ?? new _$ExpenseItemResponse._(data: data.build());
+      _$result = _$v ?? _$ExpenseItemResponse._(data: data.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'data';
         data.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'ExpenseItemResponse', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'ExpenseItemResponse',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -885,7 +1249,7 @@ class _$ExpenseEntity extends ExpenseEntity {
   @override
   final double amount;
   @override
-  final String date;
+  final String? date;
   @override
   final String paymentDate;
   @override
@@ -907,15 +1271,15 @@ class _$ExpenseEntity extends ExpenseEntity {
   @override
   final double taxRate3;
   @override
-  final String clientId;
+  final String? clientId;
   @override
-  final String invoiceId;
+  final String? invoiceId;
   @override
-  final String vendorId;
+  final String? vendorId;
   @override
-  final String projectId;
+  final String? projectId;
   @override
-  final String statusId;
+  final String? statusId;
   @override
   final String customValue1;
   @override
@@ -933,13 +1297,13 @@ class _$ExpenseEntity extends ExpenseEntity {
   @override
   final bool usesInclusiveTaxes;
   @override
-  final bool calculateTaxByAmount;
+  final bool? calculateTaxByAmount;
   @override
   final BuiltList<DocumentEntity> documents;
   @override
   final String number;
   @override
-  final String recurringId;
+  final String recurringExpenseId;
   @override
   final String frequencyId;
   @override
@@ -949,11 +1313,11 @@ class _$ExpenseEntity extends ExpenseEntity {
   @override
   final int remainingCycles;
   @override
-  final BuiltList<ExpenseScheduleEntity> recurringDates;
+  final BuiltList<ExpenseScheduleEntity>? recurringDates;
   @override
-  final int loadedAt;
+  final int? loadedAt;
   @override
-  final bool isChanged;
+  final bool? isChanged;
   @override
   final int createdAt;
   @override
@@ -961,154 +1325,80 @@ class _$ExpenseEntity extends ExpenseEntity {
   @override
   final int archivedAt;
   @override
-  final bool isDeleted;
+  final bool? isDeleted;
   @override
-  final String createdUserId;
+  final String? createdUserId;
   @override
-  final String assignedUserId;
+  final String? assignedUserId;
   @override
-  final EntityType entityType;
+  final EntityType? entityType;
   @override
   final String id;
 
-  factory _$ExpenseEntity([void Function(ExpenseEntityBuilder) updates]) =>
-      (new ExpenseEntityBuilder()..update(updates)).build();
+  factory _$ExpenseEntity([void Function(ExpenseEntityBuilder)? updates]) =>
+      (ExpenseEntityBuilder()..update(updates))._build();
 
-  _$ExpenseEntity._(
-      {this.privateNotes,
-      this.publicNotes,
-      this.shouldBeInvoiced,
-      this.invoiceDocuments,
-      this.transactionId,
-      this.transactionReference,
-      this.bankId,
-      this.currencyId,
-      this.categoryId,
-      this.amount,
-      this.date,
-      this.paymentDate,
-      this.exchangeRate,
-      this.invoiceCurrencyId,
-      this.paymentTypeId,
-      this.taxName1,
-      this.taxName2,
-      this.taxRate1,
-      this.taxRate2,
-      this.taxName3,
-      this.taxRate3,
-      this.clientId,
-      this.invoiceId,
-      this.vendorId,
-      this.projectId,
-      this.statusId,
-      this.customValue1,
-      this.customValue2,
-      this.customValue3,
-      this.customValue4,
-      this.taxAmount1,
-      this.taxAmount2,
-      this.taxAmount3,
-      this.usesInclusiveTaxes,
-      this.calculateTaxByAmount,
-      this.documents,
-      this.number,
-      this.recurringId,
-      this.frequencyId,
-      this.lastSentDate,
-      this.nextSendDate,
-      this.remainingCycles,
-      this.recurringDates,
-      this.loadedAt,
-      this.isChanged,
-      this.createdAt,
-      this.updatedAt,
-      this.archivedAt,
-      this.isDeleted,
-      this.createdUserId,
-      this.assignedUserId,
-      this.entityType,
-      this.id})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        privateNotes, 'ExpenseEntity', 'privateNotes');
-    BuiltValueNullFieldError.checkNotNull(
-        publicNotes, 'ExpenseEntity', 'publicNotes');
-    BuiltValueNullFieldError.checkNotNull(
-        shouldBeInvoiced, 'ExpenseEntity', 'shouldBeInvoiced');
-    BuiltValueNullFieldError.checkNotNull(
-        invoiceDocuments, 'ExpenseEntity', 'invoiceDocuments');
-    BuiltValueNullFieldError.checkNotNull(
-        transactionId, 'ExpenseEntity', 'transactionId');
-    BuiltValueNullFieldError.checkNotNull(
-        transactionReference, 'ExpenseEntity', 'transactionReference');
-    BuiltValueNullFieldError.checkNotNull(bankId, 'ExpenseEntity', 'bankId');
-    BuiltValueNullFieldError.checkNotNull(
-        currencyId, 'ExpenseEntity', 'currencyId');
-    BuiltValueNullFieldError.checkNotNull(
-        categoryId, 'ExpenseEntity', 'categoryId');
-    BuiltValueNullFieldError.checkNotNull(amount, 'ExpenseEntity', 'amount');
-    BuiltValueNullFieldError.checkNotNull(
-        paymentDate, 'ExpenseEntity', 'paymentDate');
-    BuiltValueNullFieldError.checkNotNull(
-        exchangeRate, 'ExpenseEntity', 'exchangeRate');
-    BuiltValueNullFieldError.checkNotNull(
-        invoiceCurrencyId, 'ExpenseEntity', 'invoiceCurrencyId');
-    BuiltValueNullFieldError.checkNotNull(
-        paymentTypeId, 'ExpenseEntity', 'paymentTypeId');
-    BuiltValueNullFieldError.checkNotNull(
-        taxName1, 'ExpenseEntity', 'taxName1');
-    BuiltValueNullFieldError.checkNotNull(
-        taxName2, 'ExpenseEntity', 'taxName2');
-    BuiltValueNullFieldError.checkNotNull(
-        taxRate1, 'ExpenseEntity', 'taxRate1');
-    BuiltValueNullFieldError.checkNotNull(
-        taxRate2, 'ExpenseEntity', 'taxRate2');
-    BuiltValueNullFieldError.checkNotNull(
-        taxName3, 'ExpenseEntity', 'taxName3');
-    BuiltValueNullFieldError.checkNotNull(
-        taxRate3, 'ExpenseEntity', 'taxRate3');
-    BuiltValueNullFieldError.checkNotNull(
-        customValue1, 'ExpenseEntity', 'customValue1');
-    BuiltValueNullFieldError.checkNotNull(
-        customValue2, 'ExpenseEntity', 'customValue2');
-    BuiltValueNullFieldError.checkNotNull(
-        customValue3, 'ExpenseEntity', 'customValue3');
-    BuiltValueNullFieldError.checkNotNull(
-        customValue4, 'ExpenseEntity', 'customValue4');
-    BuiltValueNullFieldError.checkNotNull(
-        taxAmount1, 'ExpenseEntity', 'taxAmount1');
-    BuiltValueNullFieldError.checkNotNull(
-        taxAmount2, 'ExpenseEntity', 'taxAmount2');
-    BuiltValueNullFieldError.checkNotNull(
-        taxAmount3, 'ExpenseEntity', 'taxAmount3');
-    BuiltValueNullFieldError.checkNotNull(
-        usesInclusiveTaxes, 'ExpenseEntity', 'usesInclusiveTaxes');
-    BuiltValueNullFieldError.checkNotNull(
-        documents, 'ExpenseEntity', 'documents');
-    BuiltValueNullFieldError.checkNotNull(number, 'ExpenseEntity', 'number');
-    BuiltValueNullFieldError.checkNotNull(
-        frequencyId, 'ExpenseEntity', 'frequencyId');
-    BuiltValueNullFieldError.checkNotNull(
-        lastSentDate, 'ExpenseEntity', 'lastSentDate');
-    BuiltValueNullFieldError.checkNotNull(
-        nextSendDate, 'ExpenseEntity', 'nextSendDate');
-    BuiltValueNullFieldError.checkNotNull(
-        remainingCycles, 'ExpenseEntity', 'remainingCycles');
-    BuiltValueNullFieldError.checkNotNull(
-        createdAt, 'ExpenseEntity', 'createdAt');
-    BuiltValueNullFieldError.checkNotNull(
-        updatedAt, 'ExpenseEntity', 'updatedAt');
-    BuiltValueNullFieldError.checkNotNull(
-        archivedAt, 'ExpenseEntity', 'archivedAt');
-    BuiltValueNullFieldError.checkNotNull(id, 'ExpenseEntity', 'id');
-  }
-
+  _$ExpenseEntity._({
+    required this.privateNotes,
+    required this.publicNotes,
+    required this.shouldBeInvoiced,
+    required this.invoiceDocuments,
+    required this.transactionId,
+    required this.transactionReference,
+    required this.bankId,
+    required this.currencyId,
+    required this.categoryId,
+    required this.amount,
+    this.date,
+    required this.paymentDate,
+    required this.exchangeRate,
+    required this.invoiceCurrencyId,
+    required this.paymentTypeId,
+    required this.taxName1,
+    required this.taxName2,
+    required this.taxRate1,
+    required this.taxRate2,
+    required this.taxName3,
+    required this.taxRate3,
+    this.clientId,
+    this.invoiceId,
+    this.vendorId,
+    this.projectId,
+    this.statusId,
+    required this.customValue1,
+    required this.customValue2,
+    required this.customValue3,
+    required this.customValue4,
+    required this.taxAmount1,
+    required this.taxAmount2,
+    required this.taxAmount3,
+    required this.usesInclusiveTaxes,
+    this.calculateTaxByAmount,
+    required this.documents,
+    required this.number,
+    required this.recurringExpenseId,
+    required this.frequencyId,
+    required this.lastSentDate,
+    required this.nextSendDate,
+    required this.remainingCycles,
+    this.recurringDates,
+    this.loadedAt,
+    this.isChanged,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.archivedAt,
+    this.isDeleted,
+    this.createdUserId,
+    this.assignedUserId,
+    this.entityType,
+    required this.id,
+  }) : super._();
   @override
   ExpenseEntity rebuild(void Function(ExpenseEntityBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ExpenseEntityBuilder toBuilder() => new ExpenseEntityBuilder()..replace(this);
+  ExpenseEntityBuilder toBuilder() => ExpenseEntityBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -1151,7 +1441,7 @@ class _$ExpenseEntity extends ExpenseEntity {
         calculateTaxByAmount == other.calculateTaxByAmount &&
         documents == other.documents &&
         number == other.number &&
-        recurringId == other.recurringId &&
+        recurringExpenseId == other.recurringExpenseId &&
         frequencyId == other.frequencyId &&
         lastSentDate == other.lastSentDate &&
         nextSendDate == other.nextSendDate &&
@@ -1168,52 +1458,70 @@ class _$ExpenseEntity extends ExpenseEntity {
         id == other.id;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(
-        $jc(
-            $jc(
-                $jc(
-                    $jc(
-                        $jc(
-                            $jc(
-                                $jc(
-                                    $jc(
-                                        $jc(
-                                            $jc(
-                                                $jc(
-                                                    $jc(
-                                                        $jc(
-                                                            $jc(
-                                                                $jc(
-                                                                    $jc(
-                                                                        $jc(
-                                                                            $jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc($jc(0, privateNotes.hashCode), publicNotes.hashCode), shouldBeInvoiced.hashCode), invoiceDocuments.hashCode), transactionId.hashCode), transactionReference.hashCode), bankId.hashCode), currencyId.hashCode), categoryId.hashCode), amount.hashCode), date.hashCode), paymentDate.hashCode), exchangeRate.hashCode), invoiceCurrencyId.hashCode), paymentTypeId.hashCode), taxName1.hashCode), taxName2.hashCode), taxRate1.hashCode), taxRate2.hashCode), taxName3.hashCode), taxRate3.hashCode), clientId.hashCode), invoiceId.hashCode), vendorId.hashCode), projectId.hashCode), statusId.hashCode), customValue1.hashCode), customValue2.hashCode), customValue3.hashCode), customValue4.hashCode), taxAmount1.hashCode), taxAmount2.hashCode), taxAmount3.hashCode),
-                                                                                usesInclusiveTaxes.hashCode),
-                                                                            calculateTaxByAmount.hashCode),
-                                                                        documents.hashCode),
-                                                                    number.hashCode),
-                                                                recurringId.hashCode),
-                                                            frequencyId.hashCode),
-                                                        lastSentDate.hashCode),
-                                                    nextSendDate.hashCode),
-                                                remainingCycles.hashCode),
-                                            recurringDates.hashCode),
-                                        isChanged.hashCode),
-                                    createdAt.hashCode),
-                                updatedAt.hashCode),
-                            archivedAt.hashCode),
-                        isDeleted.hashCode),
-                    createdUserId.hashCode),
-                assignedUserId.hashCode),
-            entityType.hashCode),
-        id.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, privateNotes.hashCode);
+    _$hash = $jc(_$hash, publicNotes.hashCode);
+    _$hash = $jc(_$hash, shouldBeInvoiced.hashCode);
+    _$hash = $jc(_$hash, invoiceDocuments.hashCode);
+    _$hash = $jc(_$hash, transactionId.hashCode);
+    _$hash = $jc(_$hash, transactionReference.hashCode);
+    _$hash = $jc(_$hash, bankId.hashCode);
+    _$hash = $jc(_$hash, currencyId.hashCode);
+    _$hash = $jc(_$hash, categoryId.hashCode);
+    _$hash = $jc(_$hash, amount.hashCode);
+    _$hash = $jc(_$hash, date.hashCode);
+    _$hash = $jc(_$hash, paymentDate.hashCode);
+    _$hash = $jc(_$hash, exchangeRate.hashCode);
+    _$hash = $jc(_$hash, invoiceCurrencyId.hashCode);
+    _$hash = $jc(_$hash, paymentTypeId.hashCode);
+    _$hash = $jc(_$hash, taxName1.hashCode);
+    _$hash = $jc(_$hash, taxName2.hashCode);
+    _$hash = $jc(_$hash, taxRate1.hashCode);
+    _$hash = $jc(_$hash, taxRate2.hashCode);
+    _$hash = $jc(_$hash, taxName3.hashCode);
+    _$hash = $jc(_$hash, taxRate3.hashCode);
+    _$hash = $jc(_$hash, clientId.hashCode);
+    _$hash = $jc(_$hash, invoiceId.hashCode);
+    _$hash = $jc(_$hash, vendorId.hashCode);
+    _$hash = $jc(_$hash, projectId.hashCode);
+    _$hash = $jc(_$hash, statusId.hashCode);
+    _$hash = $jc(_$hash, customValue1.hashCode);
+    _$hash = $jc(_$hash, customValue2.hashCode);
+    _$hash = $jc(_$hash, customValue3.hashCode);
+    _$hash = $jc(_$hash, customValue4.hashCode);
+    _$hash = $jc(_$hash, taxAmount1.hashCode);
+    _$hash = $jc(_$hash, taxAmount2.hashCode);
+    _$hash = $jc(_$hash, taxAmount3.hashCode);
+    _$hash = $jc(_$hash, usesInclusiveTaxes.hashCode);
+    _$hash = $jc(_$hash, calculateTaxByAmount.hashCode);
+    _$hash = $jc(_$hash, documents.hashCode);
+    _$hash = $jc(_$hash, number.hashCode);
+    _$hash = $jc(_$hash, recurringExpenseId.hashCode);
+    _$hash = $jc(_$hash, frequencyId.hashCode);
+    _$hash = $jc(_$hash, lastSentDate.hashCode);
+    _$hash = $jc(_$hash, nextSendDate.hashCode);
+    _$hash = $jc(_$hash, remainingCycles.hashCode);
+    _$hash = $jc(_$hash, recurringDates.hashCode);
+    _$hash = $jc(_$hash, isChanged.hashCode);
+    _$hash = $jc(_$hash, createdAt.hashCode);
+    _$hash = $jc(_$hash, updatedAt.hashCode);
+    _$hash = $jc(_$hash, archivedAt.hashCode);
+    _$hash = $jc(_$hash, isDeleted.hashCode);
+    _$hash = $jc(_$hash, createdUserId.hashCode);
+    _$hash = $jc(_$hash, assignedUserId.hashCode);
+    _$hash = $jc(_$hash, entityType.hashCode);
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExpenseEntity')
+    return (newBuiltValueToStringHelper(r'ExpenseEntity')
           ..add('privateNotes', privateNotes)
           ..add('publicNotes', publicNotes)
           ..add('shouldBeInvoiced', shouldBeInvoiced)
@@ -1251,7 +1559,7 @@ class _$ExpenseEntity extends ExpenseEntity {
           ..add('calculateTaxByAmount', calculateTaxByAmount)
           ..add('documents', documents)
           ..add('number', number)
-          ..add('recurringId', recurringId)
+          ..add('recurringExpenseId', recurringExpenseId)
           ..add('frequencyId', frequencyId)
           ..add('lastSentDate', lastSentDate)
           ..add('nextSendDate', nextSendDate)
@@ -1273,234 +1581,235 @@ class _$ExpenseEntity extends ExpenseEntity {
 
 class ExpenseEntityBuilder
     implements Builder<ExpenseEntity, ExpenseEntityBuilder> {
-  _$ExpenseEntity _$v;
+  _$ExpenseEntity? _$v;
 
-  String _privateNotes;
-  String get privateNotes => _$this._privateNotes;
-  set privateNotes(String privateNotes) => _$this._privateNotes = privateNotes;
+  String? _privateNotes;
+  String? get privateNotes => _$this._privateNotes;
+  set privateNotes(String? privateNotes) => _$this._privateNotes = privateNotes;
 
-  String _publicNotes;
-  String get publicNotes => _$this._publicNotes;
-  set publicNotes(String publicNotes) => _$this._publicNotes = publicNotes;
+  String? _publicNotes;
+  String? get publicNotes => _$this._publicNotes;
+  set publicNotes(String? publicNotes) => _$this._publicNotes = publicNotes;
 
-  bool _shouldBeInvoiced;
-  bool get shouldBeInvoiced => _$this._shouldBeInvoiced;
-  set shouldBeInvoiced(bool shouldBeInvoiced) =>
+  bool? _shouldBeInvoiced;
+  bool? get shouldBeInvoiced => _$this._shouldBeInvoiced;
+  set shouldBeInvoiced(bool? shouldBeInvoiced) =>
       _$this._shouldBeInvoiced = shouldBeInvoiced;
 
-  bool _invoiceDocuments;
-  bool get invoiceDocuments => _$this._invoiceDocuments;
-  set invoiceDocuments(bool invoiceDocuments) =>
+  bool? _invoiceDocuments;
+  bool? get invoiceDocuments => _$this._invoiceDocuments;
+  set invoiceDocuments(bool? invoiceDocuments) =>
       _$this._invoiceDocuments = invoiceDocuments;
 
-  String _transactionId;
-  String get transactionId => _$this._transactionId;
-  set transactionId(String transactionId) =>
+  String? _transactionId;
+  String? get transactionId => _$this._transactionId;
+  set transactionId(String? transactionId) =>
       _$this._transactionId = transactionId;
 
-  String _transactionReference;
-  String get transactionReference => _$this._transactionReference;
-  set transactionReference(String transactionReference) =>
+  String? _transactionReference;
+  String? get transactionReference => _$this._transactionReference;
+  set transactionReference(String? transactionReference) =>
       _$this._transactionReference = transactionReference;
 
-  String _bankId;
-  String get bankId => _$this._bankId;
-  set bankId(String bankId) => _$this._bankId = bankId;
+  String? _bankId;
+  String? get bankId => _$this._bankId;
+  set bankId(String? bankId) => _$this._bankId = bankId;
 
-  String _currencyId;
-  String get currencyId => _$this._currencyId;
-  set currencyId(String currencyId) => _$this._currencyId = currencyId;
+  String? _currencyId;
+  String? get currencyId => _$this._currencyId;
+  set currencyId(String? currencyId) => _$this._currencyId = currencyId;
 
-  String _categoryId;
-  String get categoryId => _$this._categoryId;
-  set categoryId(String categoryId) => _$this._categoryId = categoryId;
+  String? _categoryId;
+  String? get categoryId => _$this._categoryId;
+  set categoryId(String? categoryId) => _$this._categoryId = categoryId;
 
-  double _amount;
-  double get amount => _$this._amount;
-  set amount(double amount) => _$this._amount = amount;
+  double? _amount;
+  double? get amount => _$this._amount;
+  set amount(double? amount) => _$this._amount = amount;
 
-  String _date;
-  String get date => _$this._date;
-  set date(String date) => _$this._date = date;
+  String? _date;
+  String? get date => _$this._date;
+  set date(String? date) => _$this._date = date;
 
-  String _paymentDate;
-  String get paymentDate => _$this._paymentDate;
-  set paymentDate(String paymentDate) => _$this._paymentDate = paymentDate;
+  String? _paymentDate;
+  String? get paymentDate => _$this._paymentDate;
+  set paymentDate(String? paymentDate) => _$this._paymentDate = paymentDate;
 
-  double _exchangeRate;
-  double get exchangeRate => _$this._exchangeRate;
-  set exchangeRate(double exchangeRate) => _$this._exchangeRate = exchangeRate;
+  double? _exchangeRate;
+  double? get exchangeRate => _$this._exchangeRate;
+  set exchangeRate(double? exchangeRate) => _$this._exchangeRate = exchangeRate;
 
-  String _invoiceCurrencyId;
-  String get invoiceCurrencyId => _$this._invoiceCurrencyId;
-  set invoiceCurrencyId(String invoiceCurrencyId) =>
+  String? _invoiceCurrencyId;
+  String? get invoiceCurrencyId => _$this._invoiceCurrencyId;
+  set invoiceCurrencyId(String? invoiceCurrencyId) =>
       _$this._invoiceCurrencyId = invoiceCurrencyId;
 
-  String _paymentTypeId;
-  String get paymentTypeId => _$this._paymentTypeId;
-  set paymentTypeId(String paymentTypeId) =>
+  String? _paymentTypeId;
+  String? get paymentTypeId => _$this._paymentTypeId;
+  set paymentTypeId(String? paymentTypeId) =>
       _$this._paymentTypeId = paymentTypeId;
 
-  String _taxName1;
-  String get taxName1 => _$this._taxName1;
-  set taxName1(String taxName1) => _$this._taxName1 = taxName1;
+  String? _taxName1;
+  String? get taxName1 => _$this._taxName1;
+  set taxName1(String? taxName1) => _$this._taxName1 = taxName1;
 
-  String _taxName2;
-  String get taxName2 => _$this._taxName2;
-  set taxName2(String taxName2) => _$this._taxName2 = taxName2;
+  String? _taxName2;
+  String? get taxName2 => _$this._taxName2;
+  set taxName2(String? taxName2) => _$this._taxName2 = taxName2;
 
-  double _taxRate1;
-  double get taxRate1 => _$this._taxRate1;
-  set taxRate1(double taxRate1) => _$this._taxRate1 = taxRate1;
+  double? _taxRate1;
+  double? get taxRate1 => _$this._taxRate1;
+  set taxRate1(double? taxRate1) => _$this._taxRate1 = taxRate1;
 
-  double _taxRate2;
-  double get taxRate2 => _$this._taxRate2;
-  set taxRate2(double taxRate2) => _$this._taxRate2 = taxRate2;
+  double? _taxRate2;
+  double? get taxRate2 => _$this._taxRate2;
+  set taxRate2(double? taxRate2) => _$this._taxRate2 = taxRate2;
 
-  String _taxName3;
-  String get taxName3 => _$this._taxName3;
-  set taxName3(String taxName3) => _$this._taxName3 = taxName3;
+  String? _taxName3;
+  String? get taxName3 => _$this._taxName3;
+  set taxName3(String? taxName3) => _$this._taxName3 = taxName3;
 
-  double _taxRate3;
-  double get taxRate3 => _$this._taxRate3;
-  set taxRate3(double taxRate3) => _$this._taxRate3 = taxRate3;
+  double? _taxRate3;
+  double? get taxRate3 => _$this._taxRate3;
+  set taxRate3(double? taxRate3) => _$this._taxRate3 = taxRate3;
 
-  String _clientId;
-  String get clientId => _$this._clientId;
-  set clientId(String clientId) => _$this._clientId = clientId;
+  String? _clientId;
+  String? get clientId => _$this._clientId;
+  set clientId(String? clientId) => _$this._clientId = clientId;
 
-  String _invoiceId;
-  String get invoiceId => _$this._invoiceId;
-  set invoiceId(String invoiceId) => _$this._invoiceId = invoiceId;
+  String? _invoiceId;
+  String? get invoiceId => _$this._invoiceId;
+  set invoiceId(String? invoiceId) => _$this._invoiceId = invoiceId;
 
-  String _vendorId;
-  String get vendorId => _$this._vendorId;
-  set vendorId(String vendorId) => _$this._vendorId = vendorId;
+  String? _vendorId;
+  String? get vendorId => _$this._vendorId;
+  set vendorId(String? vendorId) => _$this._vendorId = vendorId;
 
-  String _projectId;
-  String get projectId => _$this._projectId;
-  set projectId(String projectId) => _$this._projectId = projectId;
+  String? _projectId;
+  String? get projectId => _$this._projectId;
+  set projectId(String? projectId) => _$this._projectId = projectId;
 
-  String _statusId;
-  String get statusId => _$this._statusId;
-  set statusId(String statusId) => _$this._statusId = statusId;
+  String? _statusId;
+  String? get statusId => _$this._statusId;
+  set statusId(String? statusId) => _$this._statusId = statusId;
 
-  String _customValue1;
-  String get customValue1 => _$this._customValue1;
-  set customValue1(String customValue1) => _$this._customValue1 = customValue1;
+  String? _customValue1;
+  String? get customValue1 => _$this._customValue1;
+  set customValue1(String? customValue1) => _$this._customValue1 = customValue1;
 
-  String _customValue2;
-  String get customValue2 => _$this._customValue2;
-  set customValue2(String customValue2) => _$this._customValue2 = customValue2;
+  String? _customValue2;
+  String? get customValue2 => _$this._customValue2;
+  set customValue2(String? customValue2) => _$this._customValue2 = customValue2;
 
-  String _customValue3;
-  String get customValue3 => _$this._customValue3;
-  set customValue3(String customValue3) => _$this._customValue3 = customValue3;
+  String? _customValue3;
+  String? get customValue3 => _$this._customValue3;
+  set customValue3(String? customValue3) => _$this._customValue3 = customValue3;
 
-  String _customValue4;
-  String get customValue4 => _$this._customValue4;
-  set customValue4(String customValue4) => _$this._customValue4 = customValue4;
+  String? _customValue4;
+  String? get customValue4 => _$this._customValue4;
+  set customValue4(String? customValue4) => _$this._customValue4 = customValue4;
 
-  double _taxAmount1;
-  double get taxAmount1 => _$this._taxAmount1;
-  set taxAmount1(double taxAmount1) => _$this._taxAmount1 = taxAmount1;
+  double? _taxAmount1;
+  double? get taxAmount1 => _$this._taxAmount1;
+  set taxAmount1(double? taxAmount1) => _$this._taxAmount1 = taxAmount1;
 
-  double _taxAmount2;
-  double get taxAmount2 => _$this._taxAmount2;
-  set taxAmount2(double taxAmount2) => _$this._taxAmount2 = taxAmount2;
+  double? _taxAmount2;
+  double? get taxAmount2 => _$this._taxAmount2;
+  set taxAmount2(double? taxAmount2) => _$this._taxAmount2 = taxAmount2;
 
-  double _taxAmount3;
-  double get taxAmount3 => _$this._taxAmount3;
-  set taxAmount3(double taxAmount3) => _$this._taxAmount3 = taxAmount3;
+  double? _taxAmount3;
+  double? get taxAmount3 => _$this._taxAmount3;
+  set taxAmount3(double? taxAmount3) => _$this._taxAmount3 = taxAmount3;
 
-  bool _usesInclusiveTaxes;
-  bool get usesInclusiveTaxes => _$this._usesInclusiveTaxes;
-  set usesInclusiveTaxes(bool usesInclusiveTaxes) =>
+  bool? _usesInclusiveTaxes;
+  bool? get usesInclusiveTaxes => _$this._usesInclusiveTaxes;
+  set usesInclusiveTaxes(bool? usesInclusiveTaxes) =>
       _$this._usesInclusiveTaxes = usesInclusiveTaxes;
 
-  bool _calculateTaxByAmount;
-  bool get calculateTaxByAmount => _$this._calculateTaxByAmount;
-  set calculateTaxByAmount(bool calculateTaxByAmount) =>
+  bool? _calculateTaxByAmount;
+  bool? get calculateTaxByAmount => _$this._calculateTaxByAmount;
+  set calculateTaxByAmount(bool? calculateTaxByAmount) =>
       _$this._calculateTaxByAmount = calculateTaxByAmount;
 
-  ListBuilder<DocumentEntity> _documents;
+  ListBuilder<DocumentEntity>? _documents;
   ListBuilder<DocumentEntity> get documents =>
-      _$this._documents ??= new ListBuilder<DocumentEntity>();
-  set documents(ListBuilder<DocumentEntity> documents) =>
+      _$this._documents ??= ListBuilder<DocumentEntity>();
+  set documents(ListBuilder<DocumentEntity>? documents) =>
       _$this._documents = documents;
 
-  String _number;
-  String get number => _$this._number;
-  set number(String number) => _$this._number = number;
+  String? _number;
+  String? get number => _$this._number;
+  set number(String? number) => _$this._number = number;
 
-  String _recurringId;
-  String get recurringId => _$this._recurringId;
-  set recurringId(String recurringId) => _$this._recurringId = recurringId;
+  String? _recurringExpenseId;
+  String? get recurringExpenseId => _$this._recurringExpenseId;
+  set recurringExpenseId(String? recurringExpenseId) =>
+      _$this._recurringExpenseId = recurringExpenseId;
 
-  String _frequencyId;
-  String get frequencyId => _$this._frequencyId;
-  set frequencyId(String frequencyId) => _$this._frequencyId = frequencyId;
+  String? _frequencyId;
+  String? get frequencyId => _$this._frequencyId;
+  set frequencyId(String? frequencyId) => _$this._frequencyId = frequencyId;
 
-  String _lastSentDate;
-  String get lastSentDate => _$this._lastSentDate;
-  set lastSentDate(String lastSentDate) => _$this._lastSentDate = lastSentDate;
+  String? _lastSentDate;
+  String? get lastSentDate => _$this._lastSentDate;
+  set lastSentDate(String? lastSentDate) => _$this._lastSentDate = lastSentDate;
 
-  String _nextSendDate;
-  String get nextSendDate => _$this._nextSendDate;
-  set nextSendDate(String nextSendDate) => _$this._nextSendDate = nextSendDate;
+  String? _nextSendDate;
+  String? get nextSendDate => _$this._nextSendDate;
+  set nextSendDate(String? nextSendDate) => _$this._nextSendDate = nextSendDate;
 
-  int _remainingCycles;
-  int get remainingCycles => _$this._remainingCycles;
-  set remainingCycles(int remainingCycles) =>
+  int? _remainingCycles;
+  int? get remainingCycles => _$this._remainingCycles;
+  set remainingCycles(int? remainingCycles) =>
       _$this._remainingCycles = remainingCycles;
 
-  ListBuilder<ExpenseScheduleEntity> _recurringDates;
+  ListBuilder<ExpenseScheduleEntity>? _recurringDates;
   ListBuilder<ExpenseScheduleEntity> get recurringDates =>
-      _$this._recurringDates ??= new ListBuilder<ExpenseScheduleEntity>();
-  set recurringDates(ListBuilder<ExpenseScheduleEntity> recurringDates) =>
+      _$this._recurringDates ??= ListBuilder<ExpenseScheduleEntity>();
+  set recurringDates(ListBuilder<ExpenseScheduleEntity>? recurringDates) =>
       _$this._recurringDates = recurringDates;
 
-  int _loadedAt;
-  int get loadedAt => _$this._loadedAt;
-  set loadedAt(int loadedAt) => _$this._loadedAt = loadedAt;
+  int? _loadedAt;
+  int? get loadedAt => _$this._loadedAt;
+  set loadedAt(int? loadedAt) => _$this._loadedAt = loadedAt;
 
-  bool _isChanged;
-  bool get isChanged => _$this._isChanged;
-  set isChanged(bool isChanged) => _$this._isChanged = isChanged;
+  bool? _isChanged;
+  bool? get isChanged => _$this._isChanged;
+  set isChanged(bool? isChanged) => _$this._isChanged = isChanged;
 
-  int _createdAt;
-  int get createdAt => _$this._createdAt;
-  set createdAt(int createdAt) => _$this._createdAt = createdAt;
+  int? _createdAt;
+  int? get createdAt => _$this._createdAt;
+  set createdAt(int? createdAt) => _$this._createdAt = createdAt;
 
-  int _updatedAt;
-  int get updatedAt => _$this._updatedAt;
-  set updatedAt(int updatedAt) => _$this._updatedAt = updatedAt;
+  int? _updatedAt;
+  int? get updatedAt => _$this._updatedAt;
+  set updatedAt(int? updatedAt) => _$this._updatedAt = updatedAt;
 
-  int _archivedAt;
-  int get archivedAt => _$this._archivedAt;
-  set archivedAt(int archivedAt) => _$this._archivedAt = archivedAt;
+  int? _archivedAt;
+  int? get archivedAt => _$this._archivedAt;
+  set archivedAt(int? archivedAt) => _$this._archivedAt = archivedAt;
 
-  bool _isDeleted;
-  bool get isDeleted => _$this._isDeleted;
-  set isDeleted(bool isDeleted) => _$this._isDeleted = isDeleted;
+  bool? _isDeleted;
+  bool? get isDeleted => _$this._isDeleted;
+  set isDeleted(bool? isDeleted) => _$this._isDeleted = isDeleted;
 
-  String _createdUserId;
-  String get createdUserId => _$this._createdUserId;
-  set createdUserId(String createdUserId) =>
+  String? _createdUserId;
+  String? get createdUserId => _$this._createdUserId;
+  set createdUserId(String? createdUserId) =>
       _$this._createdUserId = createdUserId;
 
-  String _assignedUserId;
-  String get assignedUserId => _$this._assignedUserId;
-  set assignedUserId(String assignedUserId) =>
+  String? _assignedUserId;
+  String? get assignedUserId => _$this._assignedUserId;
+  set assignedUserId(String? assignedUserId) =>
       _$this._assignedUserId = assignedUserId;
 
-  EntityType _entityType;
-  EntityType get entityType => _$this._entityType;
-  set entityType(EntityType entityType) => _$this._entityType = entityType;
+  EntityType? _entityType;
+  EntityType? get entityType => _$this._entityType;
+  set entityType(EntityType? entityType) => _$this._entityType = entityType;
 
-  String _id;
-  String get id => _$this._id;
-  set id(String id) => _$this._id = id;
+  String? _id;
+  String? get id => _$this._id;
+  set id(String? id) => _$this._id = id;
 
   ExpenseEntityBuilder() {
     ExpenseEntity._initializeBuilder(this);
@@ -1546,7 +1855,7 @@ class ExpenseEntityBuilder
       _calculateTaxByAmount = $v.calculateTaxByAmount;
       _documents = $v.documents.toBuilder();
       _number = $v.number;
-      _recurringId = $v.recurringId;
+      _recurringExpenseId = $v.recurringExpenseId;
       _frequencyId = $v.frequencyId;
       _lastSentDate = $v.lastSentDate;
       _nextSendDate = $v.nextSendDate;
@@ -1569,83 +1878,231 @@ class ExpenseEntityBuilder
 
   @override
   void replace(ExpenseEntity other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExpenseEntity;
   }
 
   @override
-  void update(void Function(ExpenseEntityBuilder) updates) {
+  void update(void Function(ExpenseEntityBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ExpenseEntity build() {
+  ExpenseEntity build() => _build();
+
+  _$ExpenseEntity _build() {
     _$ExpenseEntity _$result;
     try {
-      _$result = _$v ??
-          new _$ExpenseEntity._(
-              privateNotes: BuiltValueNullFieldError.checkNotNull(
-                  privateNotes, 'ExpenseEntity', 'privateNotes'),
-              publicNotes: BuiltValueNullFieldError.checkNotNull(
-                  publicNotes, 'ExpenseEntity', 'publicNotes'),
-              shouldBeInvoiced: BuiltValueNullFieldError.checkNotNull(
-                  shouldBeInvoiced, 'ExpenseEntity', 'shouldBeInvoiced'),
-              invoiceDocuments: BuiltValueNullFieldError.checkNotNull(
-                  invoiceDocuments, 'ExpenseEntity', 'invoiceDocuments'),
-              transactionId: BuiltValueNullFieldError.checkNotNull(
-                  transactionId, 'ExpenseEntity', 'transactionId'),
-              transactionReference: BuiltValueNullFieldError.checkNotNull(
-                  transactionReference, 'ExpenseEntity', 'transactionReference'),
-              bankId: BuiltValueNullFieldError.checkNotNull(
-                  bankId, 'ExpenseEntity', 'bankId'),
-              currencyId: BuiltValueNullFieldError.checkNotNull(currencyId, 'ExpenseEntity', 'currencyId'),
-              categoryId: BuiltValueNullFieldError.checkNotNull(categoryId, 'ExpenseEntity', 'categoryId'),
-              amount: BuiltValueNullFieldError.checkNotNull(amount, 'ExpenseEntity', 'amount'),
-              date: date,
-              paymentDate: BuiltValueNullFieldError.checkNotNull(paymentDate, 'ExpenseEntity', 'paymentDate'),
-              exchangeRate: BuiltValueNullFieldError.checkNotNull(exchangeRate, 'ExpenseEntity', 'exchangeRate'),
-              invoiceCurrencyId: BuiltValueNullFieldError.checkNotNull(invoiceCurrencyId, 'ExpenseEntity', 'invoiceCurrencyId'),
-              paymentTypeId: BuiltValueNullFieldError.checkNotNull(paymentTypeId, 'ExpenseEntity', 'paymentTypeId'),
-              taxName1: BuiltValueNullFieldError.checkNotNull(taxName1, 'ExpenseEntity', 'taxName1'),
-              taxName2: BuiltValueNullFieldError.checkNotNull(taxName2, 'ExpenseEntity', 'taxName2'),
-              taxRate1: BuiltValueNullFieldError.checkNotNull(taxRate1, 'ExpenseEntity', 'taxRate1'),
-              taxRate2: BuiltValueNullFieldError.checkNotNull(taxRate2, 'ExpenseEntity', 'taxRate2'),
-              taxName3: BuiltValueNullFieldError.checkNotNull(taxName3, 'ExpenseEntity', 'taxName3'),
-              taxRate3: BuiltValueNullFieldError.checkNotNull(taxRate3, 'ExpenseEntity', 'taxRate3'),
-              clientId: clientId,
-              invoiceId: invoiceId,
-              vendorId: vendorId,
-              projectId: projectId,
-              statusId: statusId,
-              customValue1: BuiltValueNullFieldError.checkNotNull(customValue1, 'ExpenseEntity', 'customValue1'),
-              customValue2: BuiltValueNullFieldError.checkNotNull(customValue2, 'ExpenseEntity', 'customValue2'),
-              customValue3: BuiltValueNullFieldError.checkNotNull(customValue3, 'ExpenseEntity', 'customValue3'),
-              customValue4: BuiltValueNullFieldError.checkNotNull(customValue4, 'ExpenseEntity', 'customValue4'),
-              taxAmount1: BuiltValueNullFieldError.checkNotNull(taxAmount1, 'ExpenseEntity', 'taxAmount1'),
-              taxAmount2: BuiltValueNullFieldError.checkNotNull(taxAmount2, 'ExpenseEntity', 'taxAmount2'),
-              taxAmount3: BuiltValueNullFieldError.checkNotNull(taxAmount3, 'ExpenseEntity', 'taxAmount3'),
-              usesInclusiveTaxes: BuiltValueNullFieldError.checkNotNull(usesInclusiveTaxes, 'ExpenseEntity', 'usesInclusiveTaxes'),
-              calculateTaxByAmount: calculateTaxByAmount,
-              documents: documents.build(),
-              number: BuiltValueNullFieldError.checkNotNull(number, 'ExpenseEntity', 'number'),
-              recurringId: recurringId,
-              frequencyId: BuiltValueNullFieldError.checkNotNull(frequencyId, 'ExpenseEntity', 'frequencyId'),
-              lastSentDate: BuiltValueNullFieldError.checkNotNull(lastSentDate, 'ExpenseEntity', 'lastSentDate'),
-              nextSendDate: BuiltValueNullFieldError.checkNotNull(nextSendDate, 'ExpenseEntity', 'nextSendDate'),
-              remainingCycles: BuiltValueNullFieldError.checkNotNull(remainingCycles, 'ExpenseEntity', 'remainingCycles'),
-              recurringDates: _recurringDates?.build(),
-              loadedAt: loadedAt,
-              isChanged: isChanged,
-              createdAt: BuiltValueNullFieldError.checkNotNull(createdAt, 'ExpenseEntity', 'createdAt'),
-              updatedAt: BuiltValueNullFieldError.checkNotNull(updatedAt, 'ExpenseEntity', 'updatedAt'),
-              archivedAt: BuiltValueNullFieldError.checkNotNull(archivedAt, 'ExpenseEntity', 'archivedAt'),
-              isDeleted: isDeleted,
-              createdUserId: createdUserId,
-              assignedUserId: assignedUserId,
-              entityType: entityType,
-              id: BuiltValueNullFieldError.checkNotNull(id, 'ExpenseEntity', 'id'));
+      _$result =
+          _$v ??
+          _$ExpenseEntity._(
+            privateNotes: BuiltValueNullFieldError.checkNotNull(
+              privateNotes,
+              r'ExpenseEntity',
+              'privateNotes',
+            ),
+            publicNotes: BuiltValueNullFieldError.checkNotNull(
+              publicNotes,
+              r'ExpenseEntity',
+              'publicNotes',
+            ),
+            shouldBeInvoiced: BuiltValueNullFieldError.checkNotNull(
+              shouldBeInvoiced,
+              r'ExpenseEntity',
+              'shouldBeInvoiced',
+            ),
+            invoiceDocuments: BuiltValueNullFieldError.checkNotNull(
+              invoiceDocuments,
+              r'ExpenseEntity',
+              'invoiceDocuments',
+            ),
+            transactionId: BuiltValueNullFieldError.checkNotNull(
+              transactionId,
+              r'ExpenseEntity',
+              'transactionId',
+            ),
+            transactionReference: BuiltValueNullFieldError.checkNotNull(
+              transactionReference,
+              r'ExpenseEntity',
+              'transactionReference',
+            ),
+            bankId: BuiltValueNullFieldError.checkNotNull(
+              bankId,
+              r'ExpenseEntity',
+              'bankId',
+            ),
+            currencyId: BuiltValueNullFieldError.checkNotNull(
+              currencyId,
+              r'ExpenseEntity',
+              'currencyId',
+            ),
+            categoryId: BuiltValueNullFieldError.checkNotNull(
+              categoryId,
+              r'ExpenseEntity',
+              'categoryId',
+            ),
+            amount: BuiltValueNullFieldError.checkNotNull(
+              amount,
+              r'ExpenseEntity',
+              'amount',
+            ),
+            date: date,
+            paymentDate: BuiltValueNullFieldError.checkNotNull(
+              paymentDate,
+              r'ExpenseEntity',
+              'paymentDate',
+            ),
+            exchangeRate: BuiltValueNullFieldError.checkNotNull(
+              exchangeRate,
+              r'ExpenseEntity',
+              'exchangeRate',
+            ),
+            invoiceCurrencyId: BuiltValueNullFieldError.checkNotNull(
+              invoiceCurrencyId,
+              r'ExpenseEntity',
+              'invoiceCurrencyId',
+            ),
+            paymentTypeId: BuiltValueNullFieldError.checkNotNull(
+              paymentTypeId,
+              r'ExpenseEntity',
+              'paymentTypeId',
+            ),
+            taxName1: BuiltValueNullFieldError.checkNotNull(
+              taxName1,
+              r'ExpenseEntity',
+              'taxName1',
+            ),
+            taxName2: BuiltValueNullFieldError.checkNotNull(
+              taxName2,
+              r'ExpenseEntity',
+              'taxName2',
+            ),
+            taxRate1: BuiltValueNullFieldError.checkNotNull(
+              taxRate1,
+              r'ExpenseEntity',
+              'taxRate1',
+            ),
+            taxRate2: BuiltValueNullFieldError.checkNotNull(
+              taxRate2,
+              r'ExpenseEntity',
+              'taxRate2',
+            ),
+            taxName3: BuiltValueNullFieldError.checkNotNull(
+              taxName3,
+              r'ExpenseEntity',
+              'taxName3',
+            ),
+            taxRate3: BuiltValueNullFieldError.checkNotNull(
+              taxRate3,
+              r'ExpenseEntity',
+              'taxRate3',
+            ),
+            clientId: clientId,
+            invoiceId: invoiceId,
+            vendorId: vendorId,
+            projectId: projectId,
+            statusId: statusId,
+            customValue1: BuiltValueNullFieldError.checkNotNull(
+              customValue1,
+              r'ExpenseEntity',
+              'customValue1',
+            ),
+            customValue2: BuiltValueNullFieldError.checkNotNull(
+              customValue2,
+              r'ExpenseEntity',
+              'customValue2',
+            ),
+            customValue3: BuiltValueNullFieldError.checkNotNull(
+              customValue3,
+              r'ExpenseEntity',
+              'customValue3',
+            ),
+            customValue4: BuiltValueNullFieldError.checkNotNull(
+              customValue4,
+              r'ExpenseEntity',
+              'customValue4',
+            ),
+            taxAmount1: BuiltValueNullFieldError.checkNotNull(
+              taxAmount1,
+              r'ExpenseEntity',
+              'taxAmount1',
+            ),
+            taxAmount2: BuiltValueNullFieldError.checkNotNull(
+              taxAmount2,
+              r'ExpenseEntity',
+              'taxAmount2',
+            ),
+            taxAmount3: BuiltValueNullFieldError.checkNotNull(
+              taxAmount3,
+              r'ExpenseEntity',
+              'taxAmount3',
+            ),
+            usesInclusiveTaxes: BuiltValueNullFieldError.checkNotNull(
+              usesInclusiveTaxes,
+              r'ExpenseEntity',
+              'usesInclusiveTaxes',
+            ),
+            calculateTaxByAmount: calculateTaxByAmount,
+            documents: documents.build(),
+            number: BuiltValueNullFieldError.checkNotNull(
+              number,
+              r'ExpenseEntity',
+              'number',
+            ),
+            recurringExpenseId: BuiltValueNullFieldError.checkNotNull(
+              recurringExpenseId,
+              r'ExpenseEntity',
+              'recurringExpenseId',
+            ),
+            frequencyId: BuiltValueNullFieldError.checkNotNull(
+              frequencyId,
+              r'ExpenseEntity',
+              'frequencyId',
+            ),
+            lastSentDate: BuiltValueNullFieldError.checkNotNull(
+              lastSentDate,
+              r'ExpenseEntity',
+              'lastSentDate',
+            ),
+            nextSendDate: BuiltValueNullFieldError.checkNotNull(
+              nextSendDate,
+              r'ExpenseEntity',
+              'nextSendDate',
+            ),
+            remainingCycles: BuiltValueNullFieldError.checkNotNull(
+              remainingCycles,
+              r'ExpenseEntity',
+              'remainingCycles',
+            ),
+            recurringDates: _recurringDates?.build(),
+            loadedAt: loadedAt,
+            isChanged: isChanged,
+            createdAt: BuiltValueNullFieldError.checkNotNull(
+              createdAt,
+              r'ExpenseEntity',
+              'createdAt',
+            ),
+            updatedAt: BuiltValueNullFieldError.checkNotNull(
+              updatedAt,
+              r'ExpenseEntity',
+              'updatedAt',
+            ),
+            archivedAt: BuiltValueNullFieldError.checkNotNull(
+              archivedAt,
+              r'ExpenseEntity',
+              'archivedAt',
+            ),
+            isDeleted: isDeleted,
+            createdUserId: createdUserId,
+            assignedUserId: assignedUserId,
+            entityType: entityType,
+            id: BuiltValueNullFieldError.checkNotNull(
+              id,
+              r'ExpenseEntity',
+              'id',
+            ),
+          );
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'documents';
         documents.build();
@@ -1653,8 +2110,11 @@ class ExpenseEntityBuilder
         _$failedField = 'recurringDates';
         _recurringDates?.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'ExpenseEntity', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'ExpenseEntity',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -1667,23 +2127,19 @@ class _$ExpenseScheduleEntity extends ExpenseScheduleEntity {
   @override
   final String sendDate;
 
-  factory _$ExpenseScheduleEntity(
-          [void Function(ExpenseScheduleEntityBuilder) updates]) =>
-      (new ExpenseScheduleEntityBuilder()..update(updates)).build();
+  factory _$ExpenseScheduleEntity([
+    void Function(ExpenseScheduleEntityBuilder)? updates,
+  ]) => (ExpenseScheduleEntityBuilder()..update(updates))._build();
 
-  _$ExpenseScheduleEntity._({this.sendDate}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        sendDate, 'ExpenseScheduleEntity', 'sendDate');
-  }
-
+  _$ExpenseScheduleEntity._({required this.sendDate}) : super._();
   @override
   ExpenseScheduleEntity rebuild(
-          void Function(ExpenseScheduleEntityBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(ExpenseScheduleEntityBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   ExpenseScheduleEntityBuilder toBuilder() =>
-      new ExpenseScheduleEntityBuilder()..replace(this);
+      ExpenseScheduleEntityBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -1691,27 +2147,31 @@ class _$ExpenseScheduleEntity extends ExpenseScheduleEntity {
     return other is ExpenseScheduleEntity && sendDate == other.sendDate;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, sendDate.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, sendDate.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExpenseScheduleEntity')
-          ..add('sendDate', sendDate))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'ExpenseScheduleEntity',
+    )..add('sendDate', sendDate)).toString();
   }
 }
 
 class ExpenseScheduleEntityBuilder
     implements Builder<ExpenseScheduleEntity, ExpenseScheduleEntityBuilder> {
-  _$ExpenseScheduleEntity _$v;
+  _$ExpenseScheduleEntity? _$v;
 
-  String _sendDate;
-  String get sendDate => _$this._sendDate;
-  set sendDate(String sendDate) => _$this._sendDate = sendDate;
+  String? _sendDate;
+  String? get sendDate => _$this._sendDate;
+  set sendDate(String? sendDate) => _$this._sendDate = sendDate;
 
   ExpenseScheduleEntityBuilder();
 
@@ -1726,21 +2186,27 @@ class ExpenseScheduleEntityBuilder
 
   @override
   void replace(ExpenseScheduleEntity other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExpenseScheduleEntity;
   }
 
   @override
-  void update(void Function(ExpenseScheduleEntityBuilder) updates) {
+  void update(void Function(ExpenseScheduleEntityBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ExpenseScheduleEntity build() {
-    final _$result = _$v ??
-        new _$ExpenseScheduleEntity._(
-            sendDate: BuiltValueNullFieldError.checkNotNull(
-                sendDate, 'ExpenseScheduleEntity', 'sendDate'));
+  ExpenseScheduleEntity build() => _build();
+
+  _$ExpenseScheduleEntity _build() {
+    final _$result =
+        _$v ??
+        _$ExpenseScheduleEntity._(
+          sendDate: BuiltValueNullFieldError.checkNotNull(
+            sendDate,
+            r'ExpenseScheduleEntity',
+            'sendDate',
+          ),
+        );
     replace(_$result);
     return _$result;
   }
@@ -1752,23 +2218,19 @@ class _$ExpenseStatusEntity extends ExpenseStatusEntity {
   @override
   final String name;
 
-  factory _$ExpenseStatusEntity(
-          [void Function(ExpenseStatusEntityBuilder) updates]) =>
-      (new ExpenseStatusEntityBuilder()..update(updates)).build();
+  factory _$ExpenseStatusEntity([
+    void Function(ExpenseStatusEntityBuilder)? updates,
+  ]) => (ExpenseStatusEntityBuilder()..update(updates))._build();
 
-  _$ExpenseStatusEntity._({this.id, this.name}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(id, 'ExpenseStatusEntity', 'id');
-    BuiltValueNullFieldError.checkNotNull(name, 'ExpenseStatusEntity', 'name');
-  }
-
+  _$ExpenseStatusEntity._({required this.id, required this.name}) : super._();
   @override
   ExpenseStatusEntity rebuild(
-          void Function(ExpenseStatusEntityBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(ExpenseStatusEntityBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   ExpenseStatusEntityBuilder toBuilder() =>
-      new ExpenseStatusEntityBuilder()..replace(this);
+      ExpenseStatusEntityBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -1776,15 +2238,20 @@ class _$ExpenseStatusEntity extends ExpenseStatusEntity {
     return other is ExpenseStatusEntity && id == other.id && name == other.name;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc($jc(0, id.hashCode), name.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExpenseStatusEntity')
+    return (newBuiltValueToStringHelper(r'ExpenseStatusEntity')
           ..add('id', id)
           ..add('name', name))
         .toString();
@@ -1793,15 +2260,15 @@ class _$ExpenseStatusEntity extends ExpenseStatusEntity {
 
 class ExpenseStatusEntityBuilder
     implements Builder<ExpenseStatusEntity, ExpenseStatusEntityBuilder> {
-  _$ExpenseStatusEntity _$v;
+  _$ExpenseStatusEntity? _$v;
 
-  String _id;
-  String get id => _$this._id;
-  set id(String id) => _$this._id = id;
+  String? _id;
+  String? get id => _$this._id;
+  set id(String? id) => _$this._id = id;
 
-  String _name;
-  String get name => _$this._name;
-  set name(String name) => _$this._name = name;
+  String? _name;
+  String? get name => _$this._name;
+  set name(String? name) => _$this._name = name;
 
   ExpenseStatusEntityBuilder();
 
@@ -1817,26 +2284,35 @@ class ExpenseStatusEntityBuilder
 
   @override
   void replace(ExpenseStatusEntity other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExpenseStatusEntity;
   }
 
   @override
-  void update(void Function(ExpenseStatusEntityBuilder) updates) {
+  void update(void Function(ExpenseStatusEntityBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ExpenseStatusEntity build() {
-    final _$result = _$v ??
-        new _$ExpenseStatusEntity._(
-            id: BuiltValueNullFieldError.checkNotNull(
-                id, 'ExpenseStatusEntity', 'id'),
-            name: BuiltValueNullFieldError.checkNotNull(
-                name, 'ExpenseStatusEntity', 'name'));
+  ExpenseStatusEntity build() => _build();
+
+  _$ExpenseStatusEntity _build() {
+    final _$result =
+        _$v ??
+        _$ExpenseStatusEntity._(
+          id: BuiltValueNullFieldError.checkNotNull(
+            id,
+            r'ExpenseStatusEntity',
+            'id',
+          ),
+          name: BuiltValueNullFieldError.checkNotNull(
+            name,
+            r'ExpenseStatusEntity',
+            'name',
+          ),
+        );
     replace(_$result);
     return _$result;
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

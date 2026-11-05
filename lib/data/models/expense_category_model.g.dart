@@ -7,33 +7,38 @@ part of 'expense_category_model.dart';
 // **************************************************************************
 
 Serializer<ExpenseCategoryListResponse>
-    _$expenseCategoryListResponseSerializer =
-    new _$ExpenseCategoryListResponseSerializer();
+_$expenseCategoryListResponseSerializer =
+    _$ExpenseCategoryListResponseSerializer();
 Serializer<ExpenseCategoryItemResponse>
-    _$expenseCategoryItemResponseSerializer =
-    new _$ExpenseCategoryItemResponseSerializer();
+_$expenseCategoryItemResponseSerializer =
+    _$ExpenseCategoryItemResponseSerializer();
 Serializer<ExpenseCategoryEntity> _$expenseCategoryEntitySerializer =
-    new _$ExpenseCategoryEntitySerializer();
+    _$ExpenseCategoryEntitySerializer();
 
 class _$ExpenseCategoryListResponseSerializer
     implements StructuredSerializer<ExpenseCategoryListResponse> {
   @override
   final Iterable<Type> types = const [
     ExpenseCategoryListResponse,
-    _$ExpenseCategoryListResponse
+    _$ExpenseCategoryListResponse,
   ];
   @override
   final String wireName = 'ExpenseCategoryListResponse';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, ExpenseCategoryListResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ExpenseCategoryListResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'data',
-      serializers.serialize(object.data,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(ExpenseCategoryEntity)])),
+      serializers.serialize(
+        object.data,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(ExpenseCategoryEntity),
+        ]),
+      ),
     ];
 
     return result;
@@ -41,21 +46,28 @@ class _$ExpenseCategoryListResponseSerializer
 
   @override
   ExpenseCategoryListResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ExpenseCategoryListResponseBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ExpenseCategoryListResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'data':
-          result.data.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(ExpenseCategoryEntity)]))
-              as BuiltList<Object>);
+          result.data.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(ExpenseCategoryEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
       }
     }
@@ -69,19 +81,23 @@ class _$ExpenseCategoryItemResponseSerializer
   @override
   final Iterable<Type> types = const [
     ExpenseCategoryItemResponse,
-    _$ExpenseCategoryItemResponse
+    _$ExpenseCategoryItemResponse,
   ];
   @override
   final String wireName = 'ExpenseCategoryItemResponse';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, ExpenseCategoryItemResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ExpenseCategoryItemResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'data',
-      serializers.serialize(object.data,
-          specifiedType: const FullType(ExpenseCategoryEntity)),
+      serializers.serialize(
+        object.data,
+        specifiedType: const FullType(ExpenseCategoryEntity),
+      ),
     ];
 
     return result;
@@ -89,20 +105,26 @@ class _$ExpenseCategoryItemResponseSerializer
 
   @override
   ExpenseCategoryItemResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ExpenseCategoryItemResponseBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ExpenseCategoryItemResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'data':
-          result.data.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(ExpenseCategoryEntity))
-              as ExpenseCategoryEntity);
+          result.data.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(ExpenseCategoryEntity),
+                )!
+                as ExpenseCategoryEntity,
+          );
           break;
       }
     }
@@ -116,116 +138,172 @@ class _$ExpenseCategoryEntitySerializer
   @override
   final Iterable<Type> types = const [
     ExpenseCategoryEntity,
-    _$ExpenseCategoryEntity
+    _$ExpenseCategoryEntity,
   ];
   @override
   final String wireName = 'ExpenseCategoryEntity';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, ExpenseCategoryEntity object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ExpenseCategoryEntity object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'name',
       serializers.serialize(object.name, specifiedType: const FullType(String)),
       'color',
-      serializers.serialize(object.color,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.color,
+        specifiedType: const FullType(String),
+      ),
       'created_at',
-      serializers.serialize(object.createdAt,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.createdAt,
+        specifiedType: const FullType(int),
+      ),
       'updated_at',
-      serializers.serialize(object.updatedAt,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.updatedAt,
+        specifiedType: const FullType(int),
+      ),
       'archived_at',
-      serializers.serialize(object.archivedAt,
-          specifiedType: const FullType(int)),
+      serializers.serialize(
+        object.archivedAt,
+        specifiedType: const FullType(int),
+      ),
       'id',
       serializers.serialize(object.id, specifiedType: const FullType(String)),
     ];
-    Object value;
+    Object? value;
     value = object.isChanged;
     if (value != null) {
       result
         ..add('isChanged')
         ..add(
-            serializers.serialize(value, specifiedType: const FullType(bool)));
+          serializers.serialize(value, specifiedType: const FullType(bool)),
+        );
     }
     value = object.isDeleted;
     if (value != null) {
       result
         ..add('is_deleted')
         ..add(
-            serializers.serialize(value, specifiedType: const FullType(bool)));
+          serializers.serialize(value, specifiedType: const FullType(bool)),
+        );
     }
     value = object.createdUserId;
     if (value != null) {
       result
         ..add('user_id')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     value = object.assignedUserId;
     if (value != null) {
       result
         ..add('assigned_user_id')
-        ..add(serializers.serialize(value,
-            specifiedType: const FullType(String)));
+        ..add(
+          serializers.serialize(value, specifiedType: const FullType(String)),
+        );
     }
     return result;
   }
 
   @override
   ExpenseCategoryEntity deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ExpenseCategoryEntityBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ExpenseCategoryEntityBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'name':
-          result.name = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.name =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'color':
-          result.color = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.color =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'isChanged':
-          result.isChanged = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+          result.isChanged =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )
+                  as bool?;
           break;
         case 'created_at':
-          result.createdAt = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+          result.createdAt =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'updated_at':
-          result.updatedAt = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+          result.updatedAt =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'archived_at':
-          result.archivedAt = serializers.deserialize(value,
-              specifiedType: const FullType(int)) as int;
+          result.archivedAt =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(int),
+                  )!
+                  as int;
           break;
         case 'is_deleted':
-          result.isDeleted = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+          result.isDeleted =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )
+                  as bool?;
           break;
         case 'user_id':
-          result.createdUserId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.createdUserId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'assigned_user_id':
-          result.assignedUserId = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.assignedUserId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )
+                  as String?;
           break;
         case 'id':
-          result.id = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.id =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
       }
     }
@@ -238,23 +316,19 @@ class _$ExpenseCategoryListResponse extends ExpenseCategoryListResponse {
   @override
   final BuiltList<ExpenseCategoryEntity> data;
 
-  factory _$ExpenseCategoryListResponse(
-          [void Function(ExpenseCategoryListResponseBuilder) updates]) =>
-      (new ExpenseCategoryListResponseBuilder()..update(updates)).build();
+  factory _$ExpenseCategoryListResponse([
+    void Function(ExpenseCategoryListResponseBuilder)? updates,
+  ]) => (ExpenseCategoryListResponseBuilder()..update(updates))._build();
 
-  _$ExpenseCategoryListResponse._({this.data}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        data, 'ExpenseCategoryListResponse', 'data');
-  }
-
+  _$ExpenseCategoryListResponse._({required this.data}) : super._();
   @override
   ExpenseCategoryListResponse rebuild(
-          void Function(ExpenseCategoryListResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(ExpenseCategoryListResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   ExpenseCategoryListResponseBuilder toBuilder() =>
-      new ExpenseCategoryListResponseBuilder()..replace(this);
+      ExpenseCategoryListResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -262,30 +336,36 @@ class _$ExpenseCategoryListResponse extends ExpenseCategoryListResponse {
     return other is ExpenseCategoryListResponse && data == other.data;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, data.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, data.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExpenseCategoryListResponse')
-          ..add('data', data))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'ExpenseCategoryListResponse',
+    )..add('data', data)).toString();
   }
 }
 
 class ExpenseCategoryListResponseBuilder
     implements
-        Builder<ExpenseCategoryListResponse,
-            ExpenseCategoryListResponseBuilder> {
-  _$ExpenseCategoryListResponse _$v;
+        Builder<
+          ExpenseCategoryListResponse,
+          ExpenseCategoryListResponseBuilder
+        > {
+  _$ExpenseCategoryListResponse? _$v;
 
-  ListBuilder<ExpenseCategoryEntity> _data;
+  ListBuilder<ExpenseCategoryEntity>? _data;
   ListBuilder<ExpenseCategoryEntity> get data =>
-      _$this._data ??= new ListBuilder<ExpenseCategoryEntity>();
-  set data(ListBuilder<ExpenseCategoryEntity> data) => _$this._data = data;
+      _$this._data ??= ListBuilder<ExpenseCategoryEntity>();
+  set data(ListBuilder<ExpenseCategoryEntity>? data) => _$this._data = data;
 
   ExpenseCategoryListResponseBuilder();
 
@@ -300,28 +380,32 @@ class ExpenseCategoryListResponseBuilder
 
   @override
   void replace(ExpenseCategoryListResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExpenseCategoryListResponse;
   }
 
   @override
-  void update(void Function(ExpenseCategoryListResponseBuilder) updates) {
+  void update(void Function(ExpenseCategoryListResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ExpenseCategoryListResponse build() {
+  ExpenseCategoryListResponse build() => _build();
+
+  _$ExpenseCategoryListResponse _build() {
     _$ExpenseCategoryListResponse _$result;
     try {
-      _$result = _$v ?? new _$ExpenseCategoryListResponse._(data: data.build());
+      _$result = _$v ?? _$ExpenseCategoryListResponse._(data: data.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'data';
         data.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'ExpenseCategoryListResponse', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'ExpenseCategoryListResponse',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -334,23 +418,19 @@ class _$ExpenseCategoryItemResponse extends ExpenseCategoryItemResponse {
   @override
   final ExpenseCategoryEntity data;
 
-  factory _$ExpenseCategoryItemResponse(
-          [void Function(ExpenseCategoryItemResponseBuilder) updates]) =>
-      (new ExpenseCategoryItemResponseBuilder()..update(updates)).build();
+  factory _$ExpenseCategoryItemResponse([
+    void Function(ExpenseCategoryItemResponseBuilder)? updates,
+  ]) => (ExpenseCategoryItemResponseBuilder()..update(updates))._build();
 
-  _$ExpenseCategoryItemResponse._({this.data}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        data, 'ExpenseCategoryItemResponse', 'data');
-  }
-
+  _$ExpenseCategoryItemResponse._({required this.data}) : super._();
   @override
   ExpenseCategoryItemResponse rebuild(
-          void Function(ExpenseCategoryItemResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(ExpenseCategoryItemResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   ExpenseCategoryItemResponseBuilder toBuilder() =>
-      new ExpenseCategoryItemResponseBuilder()..replace(this);
+      ExpenseCategoryItemResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -358,30 +438,36 @@ class _$ExpenseCategoryItemResponse extends ExpenseCategoryItemResponse {
     return other is ExpenseCategoryItemResponse && data == other.data;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, data.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, data.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExpenseCategoryItemResponse')
-          ..add('data', data))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'ExpenseCategoryItemResponse',
+    )..add('data', data)).toString();
   }
 }
 
 class ExpenseCategoryItemResponseBuilder
     implements
-        Builder<ExpenseCategoryItemResponse,
-            ExpenseCategoryItemResponseBuilder> {
-  _$ExpenseCategoryItemResponse _$v;
+        Builder<
+          ExpenseCategoryItemResponse,
+          ExpenseCategoryItemResponseBuilder
+        > {
+  _$ExpenseCategoryItemResponse? _$v;
 
-  ExpenseCategoryEntityBuilder _data;
+  ExpenseCategoryEntityBuilder? _data;
   ExpenseCategoryEntityBuilder get data =>
-      _$this._data ??= new ExpenseCategoryEntityBuilder();
-  set data(ExpenseCategoryEntityBuilder data) => _$this._data = data;
+      _$this._data ??= ExpenseCategoryEntityBuilder();
+  set data(ExpenseCategoryEntityBuilder? data) => _$this._data = data;
 
   ExpenseCategoryItemResponseBuilder();
 
@@ -396,28 +482,32 @@ class ExpenseCategoryItemResponseBuilder
 
   @override
   void replace(ExpenseCategoryItemResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExpenseCategoryItemResponse;
   }
 
   @override
-  void update(void Function(ExpenseCategoryItemResponseBuilder) updates) {
+  void update(void Function(ExpenseCategoryItemResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ExpenseCategoryItemResponse build() {
+  ExpenseCategoryItemResponse build() => _build();
+
+  _$ExpenseCategoryItemResponse _build() {
     _$ExpenseCategoryItemResponse _$result;
     try {
-      _$result = _$v ?? new _$ExpenseCategoryItemResponse._(data: data.build());
+      _$result = _$v ?? _$ExpenseCategoryItemResponse._(data: data.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'data';
         data.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'ExpenseCategoryItemResponse', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'ExpenseCategoryItemResponse',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -432,7 +522,7 @@ class _$ExpenseCategoryEntity extends ExpenseCategoryEntity {
   @override
   final String color;
   @override
-  final bool isChanged;
+  final bool? isChanged;
   @override
   final int createdAt;
   @override
@@ -440,51 +530,38 @@ class _$ExpenseCategoryEntity extends ExpenseCategoryEntity {
   @override
   final int archivedAt;
   @override
-  final bool isDeleted;
+  final bool? isDeleted;
   @override
-  final String createdUserId;
+  final String? createdUserId;
   @override
-  final String assignedUserId;
+  final String? assignedUserId;
   @override
   final String id;
 
-  factory _$ExpenseCategoryEntity(
-          [void Function(ExpenseCategoryEntityBuilder) updates]) =>
-      (new ExpenseCategoryEntityBuilder()..update(updates)).build();
+  factory _$ExpenseCategoryEntity([
+    void Function(ExpenseCategoryEntityBuilder)? updates,
+  ]) => (ExpenseCategoryEntityBuilder()..update(updates))._build();
 
-  _$ExpenseCategoryEntity._(
-      {this.name,
-      this.color,
-      this.isChanged,
-      this.createdAt,
-      this.updatedAt,
-      this.archivedAt,
-      this.isDeleted,
-      this.createdUserId,
-      this.assignedUserId,
-      this.id})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        name, 'ExpenseCategoryEntity', 'name');
-    BuiltValueNullFieldError.checkNotNull(
-        color, 'ExpenseCategoryEntity', 'color');
-    BuiltValueNullFieldError.checkNotNull(
-        createdAt, 'ExpenseCategoryEntity', 'createdAt');
-    BuiltValueNullFieldError.checkNotNull(
-        updatedAt, 'ExpenseCategoryEntity', 'updatedAt');
-    BuiltValueNullFieldError.checkNotNull(
-        archivedAt, 'ExpenseCategoryEntity', 'archivedAt');
-    BuiltValueNullFieldError.checkNotNull(id, 'ExpenseCategoryEntity', 'id');
-  }
-
+  _$ExpenseCategoryEntity._({
+    required this.name,
+    required this.color,
+    this.isChanged,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.archivedAt,
+    this.isDeleted,
+    this.createdUserId,
+    this.assignedUserId,
+    required this.id,
+  }) : super._();
   @override
   ExpenseCategoryEntity rebuild(
-          void Function(ExpenseCategoryEntityBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(ExpenseCategoryEntityBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   ExpenseCategoryEntityBuilder toBuilder() =>
-      new ExpenseCategoryEntityBuilder()..replace(this);
+      ExpenseCategoryEntityBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -502,30 +579,28 @@ class _$ExpenseCategoryEntity extends ExpenseCategoryEntity {
         id == other.id;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(
-        $jc(
-            $jc(
-                $jc(
-                    $jc(
-                        $jc(
-                            $jc(
-                                $jc($jc($jc(0, name.hashCode), color.hashCode),
-                                    isChanged.hashCode),
-                                createdAt.hashCode),
-                            updatedAt.hashCode),
-                        archivedAt.hashCode),
-                    isDeleted.hashCode),
-                createdUserId.hashCode),
-            assignedUserId.hashCode),
-        id.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, name.hashCode);
+    _$hash = $jc(_$hash, color.hashCode);
+    _$hash = $jc(_$hash, isChanged.hashCode);
+    _$hash = $jc(_$hash, createdAt.hashCode);
+    _$hash = $jc(_$hash, updatedAt.hashCode);
+    _$hash = $jc(_$hash, archivedAt.hashCode);
+    _$hash = $jc(_$hash, isDeleted.hashCode);
+    _$hash = $jc(_$hash, createdUserId.hashCode);
+    _$hash = $jc(_$hash, assignedUserId.hashCode);
+    _$hash = $jc(_$hash, id.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ExpenseCategoryEntity')
+    return (newBuiltValueToStringHelper(r'ExpenseCategoryEntity')
           ..add('name', name)
           ..add('color', color)
           ..add('isChanged', isChanged)
@@ -542,49 +617,49 @@ class _$ExpenseCategoryEntity extends ExpenseCategoryEntity {
 
 class ExpenseCategoryEntityBuilder
     implements Builder<ExpenseCategoryEntity, ExpenseCategoryEntityBuilder> {
-  _$ExpenseCategoryEntity _$v;
+  _$ExpenseCategoryEntity? _$v;
 
-  String _name;
-  String get name => _$this._name;
-  set name(String name) => _$this._name = name;
+  String? _name;
+  String? get name => _$this._name;
+  set name(String? name) => _$this._name = name;
 
-  String _color;
-  String get color => _$this._color;
-  set color(String color) => _$this._color = color;
+  String? _color;
+  String? get color => _$this._color;
+  set color(String? color) => _$this._color = color;
 
-  bool _isChanged;
-  bool get isChanged => _$this._isChanged;
-  set isChanged(bool isChanged) => _$this._isChanged = isChanged;
+  bool? _isChanged;
+  bool? get isChanged => _$this._isChanged;
+  set isChanged(bool? isChanged) => _$this._isChanged = isChanged;
 
-  int _createdAt;
-  int get createdAt => _$this._createdAt;
-  set createdAt(int createdAt) => _$this._createdAt = createdAt;
+  int? _createdAt;
+  int? get createdAt => _$this._createdAt;
+  set createdAt(int? createdAt) => _$this._createdAt = createdAt;
 
-  int _updatedAt;
-  int get updatedAt => _$this._updatedAt;
-  set updatedAt(int updatedAt) => _$this._updatedAt = updatedAt;
+  int? _updatedAt;
+  int? get updatedAt => _$this._updatedAt;
+  set updatedAt(int? updatedAt) => _$this._updatedAt = updatedAt;
 
-  int _archivedAt;
-  int get archivedAt => _$this._archivedAt;
-  set archivedAt(int archivedAt) => _$this._archivedAt = archivedAt;
+  int? _archivedAt;
+  int? get archivedAt => _$this._archivedAt;
+  set archivedAt(int? archivedAt) => _$this._archivedAt = archivedAt;
 
-  bool _isDeleted;
-  bool get isDeleted => _$this._isDeleted;
-  set isDeleted(bool isDeleted) => _$this._isDeleted = isDeleted;
+  bool? _isDeleted;
+  bool? get isDeleted => _$this._isDeleted;
+  set isDeleted(bool? isDeleted) => _$this._isDeleted = isDeleted;
 
-  String _createdUserId;
-  String get createdUserId => _$this._createdUserId;
-  set createdUserId(String createdUserId) =>
+  String? _createdUserId;
+  String? get createdUserId => _$this._createdUserId;
+  set createdUserId(String? createdUserId) =>
       _$this._createdUserId = createdUserId;
 
-  String _assignedUserId;
-  String get assignedUserId => _$this._assignedUserId;
-  set assignedUserId(String assignedUserId) =>
+  String? _assignedUserId;
+  String? get assignedUserId => _$this._assignedUserId;
+  set assignedUserId(String? assignedUserId) =>
       _$this._assignedUserId = assignedUserId;
 
-  String _id;
-  String get id => _$this._id;
-  set id(String id) => _$this._id = id;
+  String? _id;
+  String? get id => _$this._id;
+  set id(String? id) => _$this._id = id;
 
   ExpenseCategoryEntityBuilder() {
     ExpenseCategoryEntity._initializeBuilder(this);
@@ -610,38 +685,59 @@ class ExpenseCategoryEntityBuilder
 
   @override
   void replace(ExpenseCategoryEntity other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ExpenseCategoryEntity;
   }
 
   @override
-  void update(void Function(ExpenseCategoryEntityBuilder) updates) {
+  void update(void Function(ExpenseCategoryEntityBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ExpenseCategoryEntity build() {
-    final _$result = _$v ??
-        new _$ExpenseCategoryEntity._(
-            name: BuiltValueNullFieldError.checkNotNull(
-                name, 'ExpenseCategoryEntity', 'name'),
-            color: BuiltValueNullFieldError.checkNotNull(
-                color, 'ExpenseCategoryEntity', 'color'),
-            isChanged: isChanged,
-            createdAt: BuiltValueNullFieldError.checkNotNull(
-                createdAt, 'ExpenseCategoryEntity', 'createdAt'),
-            updatedAt: BuiltValueNullFieldError.checkNotNull(
-                updatedAt, 'ExpenseCategoryEntity', 'updatedAt'),
-            archivedAt: BuiltValueNullFieldError.checkNotNull(
-                archivedAt, 'ExpenseCategoryEntity', 'archivedAt'),
-            isDeleted: isDeleted,
-            createdUserId: createdUserId,
-            assignedUserId: assignedUserId,
-            id: BuiltValueNullFieldError.checkNotNull(
-                id, 'ExpenseCategoryEntity', 'id'));
+  ExpenseCategoryEntity build() => _build();
+
+  _$ExpenseCategoryEntity _build() {
+    final _$result =
+        _$v ??
+        _$ExpenseCategoryEntity._(
+          name: BuiltValueNullFieldError.checkNotNull(
+            name,
+            r'ExpenseCategoryEntity',
+            'name',
+          ),
+          color: BuiltValueNullFieldError.checkNotNull(
+            color,
+            r'ExpenseCategoryEntity',
+            'color',
+          ),
+          isChanged: isChanged,
+          createdAt: BuiltValueNullFieldError.checkNotNull(
+            createdAt,
+            r'ExpenseCategoryEntity',
+            'createdAt',
+          ),
+          updatedAt: BuiltValueNullFieldError.checkNotNull(
+            updatedAt,
+            r'ExpenseCategoryEntity',
+            'updatedAt',
+          ),
+          archivedAt: BuiltValueNullFieldError.checkNotNull(
+            archivedAt,
+            r'ExpenseCategoryEntity',
+            'archivedAt',
+          ),
+          isDeleted: isDeleted,
+          createdUserId: createdUserId,
+          assignedUserId: assignedUserId,
+          id: BuiltValueNullFieldError.checkNotNull(
+            id,
+            r'ExpenseCategoryEntity',
+            'id',
+          ),
+        );
     replace(_$result);
     return _$result;
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

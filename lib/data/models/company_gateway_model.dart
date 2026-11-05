@@ -1,11 +1,13 @@
+// Dart imports:
 import 'dart:convert';
 
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
-import 'package:invoiceninja_flutter/data/models/company_model.dart';
-import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/data/models/system_log_model.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
@@ -17,9 +19,9 @@ part 'company_gateway_model.g.dart';
 abstract class CompanyGatewayListResponse
     implements
         Built<CompanyGatewayListResponse, CompanyGatewayListResponseBuilder> {
-  factory CompanyGatewayListResponse(
-          [void updates(CompanyGatewayListResponseBuilder b)]) =
-      _$CompanyGatewayListResponse;
+  factory CompanyGatewayListResponse([
+    void updates(CompanyGatewayListResponseBuilder b),
+  ]) = _$CompanyGatewayListResponse;
 
   CompanyGatewayListResponse._();
 
@@ -36,9 +38,9 @@ abstract class CompanyGatewayListResponse
 abstract class CompanyGatewayItemResponse
     implements
         Built<CompanyGatewayItemResponse, CompanyGatewayItemResponseBuilder> {
-  factory CompanyGatewayItemResponse(
-          [void updates(CompanyGatewayItemResponseBuilder b)]) =
-      _$CompanyGatewayItemResponse;
+  factory CompanyGatewayItemResponse([
+    void updates(CompanyGatewayItemResponseBuilder b),
+  ]) = _$CompanyGatewayItemResponse;
 
   CompanyGatewayItemResponse._();
 
@@ -60,7 +62,7 @@ class CompanyGatewayFields {
 abstract class CompanyGatewayEntity extends Object
     with BaseEntity, SelectableEntity
     implements Built<CompanyGatewayEntity, CompanyGatewayEntityBuilder> {
-  factory CompanyGatewayEntity({String id, AppState state}) {
+  factory CompanyGatewayEntity({String? id, AppState? state}) {
     return _$CompanyGatewayEntity._(
       id: id ?? BaseEntity.nextId,
       isChanged: false,
@@ -75,6 +77,11 @@ abstract class CompanyGatewayEntity extends Object
       requireContactEmail: true,
       requireContactName: false,
       requirePostalCode: true,
+      requireCustomValue1: false,
+      requireCustomValue2: false,
+      requireCustomValue3: false,
+      requireCustomValue4: false,
+      alwaysShowRequiredFields: true,
       updateDetails: true,
       config: '',
       feesAndLimitsMap: BuiltMap<String, FeesAndLimitsSettings>(),
@@ -89,34 +96,28 @@ abstract class CompanyGatewayEntity extends Object
       assignedUserId: '',
       createdAt: 0,
       label: '',
-      tokenBilling: TOKEN_BILLING_ALWAYS,
+      tokenBilling: SettingsEntity.AUTO_BILL_ALWAYS,
       isTestMode: false,
     );
   }
 
   CompanyGatewayEntity._();
 
-  static const TOKEN_BILLING_ALWAYS = 'always';
-  static const TOKEN_BILLING_OPT_IN = 'optin';
-  static const TOKEN_BILLING_OPT_OUT = 'optout';
-  static const TOKEN_BILLING_DISABLED = 'disabled';
-
   @override
   @memoized
   int get hashCode;
 
-  @nullable
   @BuiltValueField(compare: false)
-  int get loadedAt;
+  int? get loadedAt;
 
-  bool get isLoaded => loadedAt != null && loadedAt > 0;
+  bool get isLoaded => loadedAt != null && loadedAt! > 0;
 
   bool get isStale {
     if (!isLoaded) {
       return true;
     }
 
-    return DateTime.now().millisecondsSinceEpoch - loadedAt >
+    return DateTime.now().millisecondsSinceEpoch - loadedAt! >
         kMillisecondsToRefreshActivities;
   }
 
@@ -140,9 +141,9 @@ abstract class CompanyGatewayEntity extends Object
   @BuiltValueField(wireName: 'require_client_name')
   bool get requireClientName;
 
-  @nullable // TODO remove nullable
+  // TODO remove nullable
   @BuiltValueField(wireName: 'require_postal_code')
-  bool get requirePostalCode;
+  bool? get requirePostalCode;
 
   @BuiltValueField(wireName: 'require_client_phone')
   bool get requireClientPhone;
@@ -153,6 +154,18 @@ abstract class CompanyGatewayEntity extends Object
   @BuiltValueField(wireName: 'require_contact_email')
   bool get requireContactEmail;
 
+  @BuiltValueField(wireName: 'require_custom_value1')
+  bool get requireCustomValue1;
+
+  @BuiltValueField(wireName: 'require_custom_value2')
+  bool get requireCustomValue2;
+
+  @BuiltValueField(wireName: 'require_custom_value3')
+  bool get requireCustomValue3;
+
+  @BuiltValueField(wireName: 'require_custom_value4')
+  bool get requireCustomValue4;
+
   @BuiltValueField(wireName: 'require_cvv')
   bool get requireCvv;
 
@@ -160,7 +173,7 @@ abstract class CompanyGatewayEntity extends Object
   bool get updateDetails;
 
   @BuiltValueField(wireName: 'fees_and_limits')
-  BuiltMap<String, FeesAndLimitsSettings> get feesAndLimitsMap;
+  BuiltMap<String?, FeesAndLimitsSettings> get feesAndLimitsMap;
 
   @BuiltValueField(wireName: 'system_logs')
   BuiltList<SystemLogEntity> get systemLogs;
@@ -185,17 +198,20 @@ abstract class CompanyGatewayEntity extends Object
   @BuiltValueField(wireName: 'test_mode')
   bool get isTestMode;
 
+  @BuiltValueField(wireName: 'always_show_required_fields')
+  bool get alwaysShowRequiredFields;
+
   String get label;
 
-  Map<String, dynamic> get parsedConfig =>
+  Map<String, dynamic>? get parsedConfig =>
       config.isEmpty ? <String, dynamic>{} : jsonDecode(config);
 
-  FeesAndLimitsSettings getSettingsForGatewayTypeId(String gatewayTypeId) =>
+  FeesAndLimitsSettings getSettingsForGatewayTypeId(String? gatewayTypeId) =>
       feesAndLimitsMap[gatewayTypeId] ?? FeesAndLimitsSettings();
 
   @override
   String get listDisplayName =>
-      (gatewayId == kGatewayCustom ? parsedConfig['name'] : label) ?? label;
+      (gatewayId == kGatewayCustom ? parsedConfig!['name'] : label) ?? label;
 
   bool get isCustom => gatewayId == kGatewayCustom;
 
@@ -204,36 +220,38 @@ abstract class CompanyGatewayEntity extends Object
       return true;
     }
 
-    final accountId = (parsedConfig['account_id'] ?? '').toString();
+    final accountId = (parsedConfig!['account_id'] ?? '').toString();
 
     return accountId.isNotEmpty;
   }
 
   bool supportsCard(int cardType) => acceptedCreditCards & cardType > 0;
 
-  CompanyGatewayEntity addCard(int cardType) =>
-      rebuild((b) => b..acceptedCreditCards = acceptedCreditCards | cardType);
+  CompanyGatewayEntity addCard(int? cardType) =>
+      rebuild((b) => b..acceptedCreditCards = acceptedCreditCards | cardType!);
 
-  CompanyGatewayEntity removeCard(int cardType) =>
-      rebuild((b) => b..acceptedCreditCards = acceptedCreditCards ^ cardType);
+  CompanyGatewayEntity removeCard(int? cardType) =>
+      rebuild((b) => b..acceptedCreditCards = acceptedCreditCards ^ cardType!);
 
   CompanyGatewayEntity updateConfig(String field, dynamic value) {
     final updatedConfig = parsedConfig;
     if (value.runtimeType == String && value == '') {
-      updatedConfig.remove(field);
+      updatedConfig!.remove(field);
     } else {
-      updatedConfig[field] = value;
+      updatedConfig![field] = value;
     }
 
     return rebuild((b) => b..config = jsonEncode(updatedConfig));
   }
 
-  int compareTo(CompanyGatewayEntity companyGateway, String sortField,
-          bool sortAscending) =>
-      0;
+  int compareTo(
+    CompanyGatewayEntity? companyGateway,
+    String sortField,
+    bool sortAscending,
+  ) => 0;
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     return matchesStrings(
       haystacks: [
         label,
@@ -247,28 +265,24 @@ abstract class CompanyGatewayEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     return matchesStringsValue(
-      haystacks: [
-        customValue1,
-        customValue2,
-        customValue3,
-        customValue4,
-      ],
+      haystacks: [customValue1, customValue2, customValue3, customValue4],
       needle: filter,
     );
   }
 
   @override
-  List<EntityAction> getActions(
-      {UserCompanyEntity userCompany,
-      ClientEntity client,
-      bool includeEdit = false,
-      bool includePreview = false,
-      bool multiselect = false}) {
-    final actions = <EntityAction>[];
+  List<EntityAction?> getActions({
+    UserCompanyEntity? userCompany,
+    ClientEntity? client,
+    bool includeEdit = false,
+    bool includePreview = false,
+    bool multiselect = false,
+  }) {
+    final actions = <EntityAction?>[];
 
-    if (!isDeleted && !multiselect && userCompany.canEditEntity(this)) {
+    if (!isDeleted! && !multiselect && userCompany!.canEditEntity(this)) {
       if (includeEdit) {
         actions.add(EntityAction.edit);
       }
@@ -286,10 +300,18 @@ abstract class CompanyGatewayEntity extends Object
   }
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   @override
-  FormatNumberType get listDisplayAmountType => null;
+  FormatNumberType? get listDisplayAmountType => null;
+
+  // ignore: unused_element
+  static void _initializeBuilder(CompanyGatewayEntityBuilder builder) => builder
+    ..requireCustomValue1 = false
+    ..requireCustomValue2 = false
+    ..requireCustomValue3 = false
+    ..requireCustomValue4 = false
+    ..alwaysShowRequiredFields = true;
 
   static Serializer<CompanyGatewayEntity> get serializer =>
       _$companyGatewayEntitySerializer;
@@ -297,7 +319,7 @@ abstract class CompanyGatewayEntity extends Object
 
 abstract class FeesAndLimitsSettings
     implements Built<FeesAndLimitsSettings, FeesAndLimitsSettingsBuilder> {
-  factory FeesAndLimitsSettings({String id, bool isEnabled}) {
+  factory FeesAndLimitsSettings({String? id, bool? isEnabled}) {
     return _$FeesAndLimitsSettings._(
       maxLimit: -1,
       minLimit: -1,
@@ -359,6 +381,39 @@ abstract class FeesAndLimitsSettings
 
   @BuiltValueField(wireName: 'is_enabled')
   bool get isEnabled;
+
+  double calculateSampleFee(double amount) {
+    double fee = 0;
+
+    if (feePercent == 0) {
+      fee = feeAmount;
+    } else {
+      if (adjustFeePercent) {
+        fee += round(
+          ((feeAmount + amount) / (1 - feePercent / 100)) - amount,
+          2,
+        );
+      } else {
+        fee = round(feeAmount + (amount * feePercent / 100), 2);
+      }
+    }
+
+    if (taxRate1 != 0) {
+      fee += round(amount * 1 / taxRate1, 2);
+    }
+    if (taxRate2 != 0) {
+      fee += round(amount * 1 / taxRate2, 2);
+    }
+    if (taxRate2 != 0) {
+      fee += round(amount * 1 / taxRate2, 2);
+    }
+
+    if (feeCap > 0 && fee > feeCap) {
+      fee = feeCap;
+    }
+
+    return fee;
+  }
 
   // ignore: unused_element
   static void _initializeBuilder(FeesAndLimitsSettingsBuilder builder) =>

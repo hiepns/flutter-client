@@ -1,119 +1,112 @@
+// Dart imports:
 import 'dart:ui';
 
-import 'package:invoiceninja_flutter/.env.dart';
+// Flutter imports:
+
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:flutter/foundation.dart';
+import 'package:invoiceninja_flutter/redux/settings/settings_state.dart';
+import 'package:invoiceninja_flutter/ui/purchase_order/purchase_order_screen.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
+// Project imports:
+import 'package:invoiceninja_flutter/.env.dart';
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/account_model.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/auth/auth_state.dart';
-import 'package:invoiceninja_flutter/redux/client/client_selectors.dart';
 import 'package:invoiceninja_flutter/redux/client/client_state.dart';
 import 'package:invoiceninja_flutter/redux/company/company_state.dart';
-import 'package:invoiceninja_flutter/redux/company_gateway/company_gateway_selectors.dart';
-import 'package:invoiceninja_flutter/redux/credit/credit_selectors.dart';
+import 'package:invoiceninja_flutter/redux/company_gateway/company_gateway_state.dart';
+import 'package:invoiceninja_flutter/redux/credit/credit_state.dart';
 import 'package:invoiceninja_flutter/redux/dashboard/dashboard_state.dart';
-import 'package:invoiceninja_flutter/redux/design/design_selectors.dart';
 import 'package:invoiceninja_flutter/redux/design/design_state.dart';
 import 'package:invoiceninja_flutter/redux/document/document_state.dart';
-import 'package:invoiceninja_flutter/redux/expense/expense_selectors.dart';
 import 'package:invoiceninja_flutter/redux/expense/expense_state.dart';
-import 'package:invoiceninja_flutter/redux/group/group_selectors.dart';
-import 'package:invoiceninja_flutter/redux/invoice/invoice_selectors.dart';
+import 'package:invoiceninja_flutter/redux/expense_category/expense_category_state.dart';
+import 'package:invoiceninja_flutter/redux/group/group_state.dart';
 import 'package:invoiceninja_flutter/redux/invoice/invoice_state.dart';
-import 'package:invoiceninja_flutter/redux/payment/payment_selectors.dart';
 import 'package:invoiceninja_flutter/redux/payment/payment_state.dart';
-import 'package:invoiceninja_flutter/redux/product/product_selectors.dart';
+import 'package:invoiceninja_flutter/redux/payment_term/payment_term_state.dart';
 import 'package:invoiceninja_flutter/redux/product/product_state.dart';
-import 'package:invoiceninja_flutter/redux/project/project_selectors.dart';
 import 'package:invoiceninja_flutter/redux/project/project_state.dart';
-import 'package:invoiceninja_flutter/redux/quote/quote_selectors.dart';
 import 'package:invoiceninja_flutter/redux/quote/quote_state.dart';
+import 'package:invoiceninja_flutter/redux/recurring_expense/recurring_expense_state.dart';
+import 'package:invoiceninja_flutter/redux/recurring_invoice/recurring_invoice_state.dart';
 import 'package:invoiceninja_flutter/redux/static/static_state.dart';
-import 'package:invoiceninja_flutter/redux/task/task_selectors.dart';
+import 'package:invoiceninja_flutter/redux/subscription/subscription_state.dart';
 import 'package:invoiceninja_flutter/redux/task/task_state.dart';
-import 'package:invoiceninja_flutter/redux/tax_rate/tax_rate_selectors.dart';
+import 'package:invoiceninja_flutter/redux/task_status/task_status_state.dart';
+import 'package:invoiceninja_flutter/redux/tax_rate/tax_rate_state.dart';
+import 'package:invoiceninja_flutter/redux/token/token_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/ui_state.dart';
-import 'package:invoiceninja_flutter/redux/vendor/vendor_selectors.dart';
+import 'package:invoiceninja_flutter/redux/user/user_state.dart';
 import 'package:invoiceninja_flutter/redux/vendor/vendor_state.dart';
+import 'package:invoiceninja_flutter/redux/webhook/webhook_state.dart';
 import 'package:invoiceninja_flutter/ui/app/screen_imports.dart';
-import 'package:invoiceninja_flutter/ui/client/edit/client_edit_vm.dart';
-import 'package:invoiceninja_flutter/ui/company_gateway/edit/company_gateway_edit_vm.dart';
 import 'package:invoiceninja_flutter/ui/credit/credit_screen.dart';
 import 'package:invoiceninja_flutter/ui/credit/edit/credit_edit_vm.dart';
 import 'package:invoiceninja_flutter/ui/design/edit/design_edit_vm.dart';
-import 'package:invoiceninja_flutter/ui/group/edit/group_edit_vm.dart';
-import 'package:invoiceninja_flutter/ui/product/edit/product_edit_vm.dart';
-// STARTER: import - do not remove comment
-import 'package:invoiceninja_flutter/redux/recurring_expense/recurring_expense_state.dart';
-import 'package:invoiceninja_flutter/ui/recurring_expense/edit/recurring_expense_edit_vm.dart';
-import 'package:invoiceninja_flutter/redux/recurring_expense/recurring_expense_selectors.dart';
-import 'package:invoiceninja_flutter/redux/subscription/subscription_state.dart';
-import 'package:invoiceninja_flutter/ui/recurring_expense/recurring_expense_screen.dart';
-import 'package:invoiceninja_flutter/ui/subscription/edit/subscription_edit_vm.dart';
-import 'package:invoiceninja_flutter/redux/subscription/subscription_selectors.dart';
-import 'package:invoiceninja_flutter/redux/task_status/task_status_state.dart';
-import 'package:invoiceninja_flutter/ui/recurring_invoice/recurring_invoice_screen.dart';
-import 'package:invoiceninja_flutter/ui/task_status/edit/task_status_edit_vm.dart';
-import 'package:invoiceninja_flutter/redux/task_status/task_status_selectors.dart';
-import 'package:invoiceninja_flutter/redux/expense_category/expense_category_state.dart';
 import 'package:invoiceninja_flutter/ui/expense_category/edit/expense_category_edit_vm.dart';
-import 'package:invoiceninja_flutter/redux/expense_category/expense_category_selectors.dart';
-import 'package:invoiceninja_flutter/redux/recurring_invoice/recurring_invoice_state.dart';
-import 'package:invoiceninja_flutter/ui/recurring_invoice/edit/recurring_invoice_edit_vm.dart';
-import 'package:invoiceninja_flutter/redux/recurring_invoice/recurring_invoice_selectors.dart';
-import 'package:invoiceninja_flutter/redux/webhook/webhook_state.dart';
-import 'package:invoiceninja_flutter/ui/webhook/edit/webhook_edit_vm.dart';
-import 'package:invoiceninja_flutter/redux/webhook/webhook_selectors.dart';
-import 'package:invoiceninja_flutter/redux/token/token_state.dart';
-import 'package:invoiceninja_flutter/ui/token/edit/token_edit_vm.dart';
-import 'package:invoiceninja_flutter/redux/token/token_selectors.dart';
-import 'package:invoiceninja_flutter/redux/payment_term/payment_term_state.dart';
 import 'package:invoiceninja_flutter/ui/payment_term/edit/payment_term_edit_vm.dart';
-import 'package:invoiceninja_flutter/redux/payment_term/payment_term_selectors.dart';
-import 'package:invoiceninja_flutter/redux/credit/credit_state.dart';
-import 'package:invoiceninja_flutter/redux/user/user_state.dart';
-import 'package:invoiceninja_flutter/redux/tax_rate/tax_rate_state.dart';
-import 'package:invoiceninja_flutter/redux/company_gateway/company_gateway_state.dart';
-import 'package:invoiceninja_flutter/redux/group/group_state.dart';
-import 'package:invoiceninja_flutter/ui/tax_rate/edit/tax_rate_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/recurring_expense/edit/recurring_expense_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/recurring_expense/recurring_expense_screen.dart';
+import 'package:invoiceninja_flutter/ui/recurring_invoice/edit/recurring_invoice_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/recurring_invoice/recurring_invoice_screen.dart';
+import 'package:invoiceninja_flutter/ui/subscription/edit/subscription_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/task_status/edit/task_status_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/token/edit/token_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/webhook/edit/webhook_edit_vm.dart';
 import 'package:invoiceninja_flutter/utils/colors.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
-import 'package:timeago/timeago.dart' as timeago;
+import 'package:invoiceninja_flutter/redux/transaction/transaction_state.dart';
+import 'package:invoiceninja_flutter/ui/transaction/edit/transaction_edit_vm.dart';
+import 'package:invoiceninja_flutter/redux/bank_account/bank_account_state.dart';
+import 'package:invoiceninja_flutter/redux/purchase_order/purchase_order_state.dart';
+import 'package:invoiceninja_flutter/ui/purchase_order/edit/purchase_order_edit_vm.dart';
+// STARTER: import - do not remove comment
+import 'package:invoiceninja_flutter/redux/schedule/schedule_state.dart';
+import 'package:invoiceninja_flutter/ui/schedule/edit/schedule_edit_vm.dart';
+
+import 'package:invoiceninja_flutter/redux/transaction_rule/transaction_rule_state.dart';
+import 'package:invoiceninja_flutter/ui/transaction_rule/edit/transaction_rule_edit_vm.dart';
 
 part 'app_state.g.dart';
 
 abstract class AppState implements Built<AppState, AppStateBuilder> {
   factory AppState({
-    @required PrefState prefState,
-    @required bool reportErrors,
-    String url,
-    String referralCode,
-    String currentRoute,
+    required PrefState? prefState,
+    required bool reportErrors,
+    required bool isWhiteLabeled,
+    String? url,
+    String? referralCode,
+    String? currentRoute,
   }) {
     return _$AppState._(
       isLoading: false,
       isSaving: false,
       isTesting: false,
-      dismissedNativeWarning: false,
+      isWhiteLabeled: isWhiteLabeled,
       lastError: '',
-      authState: AuthState(
-        url: url,
-        referralCode: referralCode,
-      ),
+      authState: AuthState(url: url, referralCode: referralCode),
       staticState: StaticState(),
       userCompanyStates: BuiltList(
-          List<int>.generate(kMaxNumberOfCompanies, (i) => i + 1)
-              .map((index) => UserCompanyState(reportErrors))
-              .toList()),
+        List<int>.generate(
+          kMaxNumberOfCompanies,
+          (i) => i + 1,
+        ).map((index) => UserCompanyState(reportErrors)).toList(),
+      ),
       uiState: UIState(
-          currentRoute: currentRoute, sortFields: prefState?.sortFields),
+        currentRoute: currentRoute,
+        sortFields:
+            prefState?.sortFields ?? BuiltMap<EntityType, PrefStateSortField>(),
+      ),
       prefState: prefState ?? PrefState(),
     );
   }
@@ -130,7 +123,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   bool get isTesting;
 
-  bool get dismissedNativeWarning;
+  bool get isWhiteLabeled;
 
   String get lastError;
 
@@ -162,13 +155,11 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     final List<CompanyEntity> list = [];
 
     for (var companyState in userCompanyStates) {
-      if (companyState.company != null) {
-        list.add(companyState.company);
-      }
+      list.add(companyState.company);
     }
 
     final companies = list
-        .where((CompanyEntity company) => (company.id ?? '').isNotEmpty)
+        .where((CompanyEntity company) => company.id.isNotEmpty)
         .toList();
 
     return companies;
@@ -180,6 +171,8 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   UserCompanyEntity get userCompany => userCompanyState.userCompany;
 
+  String get token => userCompany.token.token;
+
   Credentials get credentials =>
       Credentials(token: userCompanyState.token.token, url: authState.url);
 
@@ -188,7 +181,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       return true;
     }
 
-    final color = userCompany?.settings?.accentColor ?? '';
+    final color = userCompany.settings.accentColor ?? '';
 
     if (color == '#ffffff' && !prefState.enableDarkMode) {
       return false;
@@ -197,19 +190,33 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     return color.isNotEmpty;
   }
 
-  Color get linkColor => prefState.enableDarkMode
+  bool get showReviewApp => !prefState.hideReviewApp && company.daysActive > 60;
+
+  bool get showOneYearReviewApp =>
+      !prefState.hideOneYearReviewApp && company.daysActive > 365;
+
+  bool get showTwoYearReviewApp =>
+      !prefState.hideTwoYearReviewApp && company.daysActive > 730;
+
+  Color get greyColor => prefState.enableDarkMode
+      ? convertHexStringToColor('#AAAAAA')!
+      : convertHexStringToColor('#666666')!;
+
+  Color? get linkColor => prefState.enableDarkMode
       ? convertHexStringToColor('#FFFFFF')
       : accentColor;
 
-  Color get headerTextColor => prefState.enableDarkMode || hasAccentColor
+  Color? get headerTextColor => prefState.enableDarkMode || hasAccentColor
       ? convertHexStringToColor('#FFFFFF')
       : convertHexStringToColor('#000000');
 
-  Color get accentColor {
-    var color = userCompany?.settings?.accentColor ?? kDefaultAccentColor;
+  Color? get accentColor {
+    var color = userCompany.settings.accentColor ?? kDefaultAccentColor;
 
     if (color == '#ffffff' && !prefState.enableDarkMode) {
-      color = '#000000';
+      color = kDefaultAccentColor;
+    } else if (color == '#000000' && prefState.enableDarkMode) {
+      color = kDefaultAccentColor;
     }
 
     return convertHexStringToColor(color);
@@ -218,12 +225,13 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   String get appVersion {
     String version = 'v';
 
-    version += account?.currentVersion ?? '';
+    version += account.currentVersion;
 
     if (version.isNotEmpty) {
       version += '-';
     }
 
+    //version += isSelfHosted ? 'S' : 'H';
     version += getPlatformLetter();
     version += kClientVersion.split('.').last;
 
@@ -231,10 +239,10 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   }
 
   List<HistoryRecord> get historyList =>
-      prefState.companyPrefs[company.id].historyList.where((history) {
+      prefState.companyPrefs[company.id]!.historyList.where((history) {
         final entityMap = getEntityMap(history.entityType);
         if (entityMap != null) {
-          final entity = entityMap[history.id] as BaseEntity;
+          final entity = entityMap[history.id] as BaseEntity?;
           if (entity?.isDeleted == true) {
             return false;
           }
@@ -243,20 +251,24 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       }).toList();
 
   List<HistoryRecord> get unfilteredHistoryList =>
-      prefState.companyPrefs[company.id].historyList.toList();
+      prefState.companyPrefs[company.id]!.historyList.toList();
 
-  bool shouldSelectEntity({EntityType entityType, List<String> entityList}) {
+  bool? shouldSelectEntity({
+    EntityType? entityType,
+    List<String?>? entityList,
+  }) {
     final entityUIState = getUIState(entityType);
 
     if (prefState.isMobile ||
         !prefState.isPreviewVisible ||
         uiState.isEditing ||
-        entityType.isSetting ||
-        (entityList.isEmpty && (entityUIState.selectedId ?? '').isEmpty)) {
+        (prefState.isModuleList && entityType!.hasFullWidthViewer) ||
+        entityType!.isSetting ||
+        (entityList!.isEmpty && (entityUIState!.selectedId ?? '').isEmpty)) {
       return false;
     }
 
-    if ((entityUIState.selectedId ?? '').isEmpty ||
+    if ((entityUIState!.selectedId ?? '').isEmpty ||
         !entityList.contains(entityUIState.selectedId)) {
       return true;
     } else if (unfilteredHistoryList.isNotEmpty &&
@@ -269,13 +281,13 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     return false;
   }
 
-  BaseEntity getEntity(EntityType type, String id) {
+  BaseEntity? getEntity(EntityType? type, String? id) {
     final map = getEntityMap(type);
 
-    return map != null ? map[id] : null;
+    return map != null ? map[id] as BaseEntity? : null;
   }
 
-  BuiltMap<String, SelectableEntity> getEntityMap(EntityType type) {
+  BuiltMap<String?, SelectableEntity?>? getEntityMap(EntityType? type) {
     switch (type) {
       case EntityType.product:
         return productState.map;
@@ -284,10 +296,19 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       case EntityType.invoice:
         return invoiceState.map;
       // STARTER: states switch map - do not remove comment
+      case EntityType.schedule:
+        return scheduleState.map;
+      case EntityType.transactionRule:
+        return transactionRuleState.map;
+      case EntityType.transaction:
+        return transactionState.map;
+      case EntityType.bankAccount:
+        return bankAccountState.map;
+      case EntityType.purchaseOrder:
+        return purchaseOrderState.map;
       case EntityType.recurringExpense:
         return recurringExpenseState.map;
-
-      case EntityType.subscription:
+      case EntityType.paymentLink:
         return subscriptionState.map;
       case EntityType.taskStatus:
         return taskStatusState.map;
@@ -345,6 +366,14 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
         return staticState.dateFormatMap;
       case EntityType.timezone:
         return staticState.timezoneMap;
+      case EntityType.company:
+        return BuiltMap(
+          Map<String?, SelectableEntity?>.fromIterable(
+            companies,
+            key: (dynamic item) => item.id,
+            value: (dynamic item) => item,
+          ),
+        );
       case EntityType.dashboard:
       case EntityType.reports:
       case EntityType.settings:
@@ -355,7 +384,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     }
   }
 
-  BuiltList<String> getEntityList(EntityType type) {
+  BuiltList<String>? getEntityList(EntityType type) {
     switch (type) {
       case EntityType.product:
         return productState.list;
@@ -364,10 +393,25 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       case EntityType.invoice:
         return invoiceState.list;
       // STARTER: states switch list - do not remove comment
+      case EntityType.schedule:
+        return scheduleState.list;
+
+      case EntityType.transactionRule:
+        return transactionRuleState.list;
+
+      case EntityType.transaction:
+        return transactionState.list;
+
+      case EntityType.bankAccount:
+        return bankAccountState.list;
+
+      case EntityType.purchaseOrder:
+        return purchaseOrderState.list;
+
       case EntityType.recurringExpense:
         return recurringExpenseState.list;
 
-      case EntityType.subscription:
+      case EntityType.paymentLink:
         return subscriptionState.list;
 
       case EntityType.taskStatus:
@@ -414,17 +458,18 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   }
 
   SelectionState getUISelection(EntityType type) {
-    final entityUIState = getUIState(type);
+    final entityUIState = getUIState(type)!;
 
     return SelectionState(
-      selectedId:
-          entityUIState.forceSelected == true ? entityUIState.selectedId : null,
+      selectedId: entityUIState.forceSelected == true
+          ? entityUIState.selectedId
+          : null,
       filterEntityId: uiState.filterEntityId,
       filterEntityType: uiState.filterEntityType,
     );
   }
 
-  EntityUIState getUIState(EntityType type) {
+  EntityUIState? getUIState(EntityType? type) {
     switch (type) {
       case EntityType.product:
         return productUIState;
@@ -433,9 +478,24 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       case EntityType.invoice:
         return invoiceUIState;
       // STARTER: states switch - do not remove comment
+      case EntityType.schedule:
+        return scheduleUIState;
+
+      case EntityType.transactionRule:
+        return transactionRuleUIState;
+
+      case EntityType.transaction:
+        return transactionUIState;
+
+      case EntityType.bankAccount:
+        return bankAccountUIState;
+
+      case EntityType.purchaseOrder:
+        return purchaseOrderUIState;
+
       case EntityType.recurringExpense:
         return recurringExpenseUIState;
-      case EntityType.subscription:
+      case EntityType.paymentLink:
         return subscriptionUIState;
       case EntityType.taskStatus:
         return taskStatusUIState;
@@ -480,8 +540,8 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     }
   }
 
-  ListUIState getListState(EntityType type) {
-    return getUIState(type).listUIState;
+  ListUIState getListState(EntityType? type) {
+    return getUIState(type)!.listUIState;
   }
 
   ProductState get productState => userCompanyState.productState;
@@ -503,6 +563,33 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   ListUIState get invoiceListState => uiState.invoiceUIState.listUIState;
 
   // STARTER: state getters - do not remove comment
+  ScheduleState get scheduleState => userCompanyState.scheduleState;
+  ListUIState get scheduleListState => uiState.scheduleUIState.listUIState;
+  ScheduleUIState get scheduleUIState => uiState.scheduleUIState;
+
+  TransactionRuleState get transactionRuleState =>
+      userCompanyState.transactionRuleState;
+  ListUIState get transactionRuleListState =>
+      uiState.transactionRuleUIState.listUIState;
+  TransactionRuleUIState get transactionRuleUIState =>
+      uiState.transactionRuleUIState;
+
+  TransactionState get transactionState => userCompanyState.transactionState;
+  ListUIState get transactionListState =>
+      uiState.transactionUIState.listUIState;
+  TransactionUIState get transactionUIState => uiState.transactionUIState;
+
+  BankAccountState get bankAccountState => userCompanyState.bankAccountState;
+  ListUIState get bankAccountListState =>
+      uiState.bankAccountUIState.listUIState;
+  BankAccountUIState get bankAccountUIState => uiState.bankAccountUIState;
+
+  PurchaseOrderState get purchaseOrderState =>
+      userCompanyState.purchaseOrderState;
+  ListUIState get purchaseOrderListState =>
+      uiState.purchaseOrderUIState.listUIState;
+  PurchaseOrderUIState get purchaseOrderUIState => uiState.purchaseOrderUIState;
+
   RecurringExpenseState get recurringExpenseState =>
       userCompanyState.recurringExpenseState;
   ListUIState get recurringExpenseListState =>
@@ -646,59 +733,60 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
   bool hasChanges() {
     switch (uiState.currentRoute) {
       case ClientEditScreen.route:
-        return hasClientChanges(clientUIState.editing, clientState.map);
+        return clientUIState.editing!.isChanged == true;
       case ProductEditScreen.route:
-        return hasProductChanges(productUIState.editing, productState.map);
+        return productUIState.editing!.isChanged == true;
       case InvoiceEditScreen.route:
-        return hasInvoiceChanges(invoiceUIState.editing, invoiceState.map);
+        return invoiceUIState.editing!.isChanged == true;
       case PaymentEditScreen.route:
-        return hasPaymentChanges(paymentUIState.editing, paymentState.map);
+        return paymentUIState.editing!.isChanged == true;
       case QuoteEditScreen.route:
-        return hasQuoteChanges(quoteUIState.editing, quoteState.map);
+        return quoteUIState.editing!.isChanged == true;
       case ProjectEditScreen.route:
-        return hasProjectChanges(projectUIState.editing, projectState.map);
+        return projectUIState.editing!.isChanged == true;
       case TaskEditScreen.route:
-        return hasTaskChanges(taskUIState.editing, taskState.map);
+        return taskUIState.editing!.isChanged == true;
       case VendorEditScreen.route:
-        return hasVendorChanges(vendorUIState.editing, vendorState.map);
+        return vendorUIState.editing!.isChanged == true;
       case ExpenseEditScreen.route:
-        return hasExpenseChanges(expenseUIState.editing, expenseState.map);
+        return expenseUIState.editing!.isChanged == true;
       case GroupEditScreen.route:
-        return hasGroupChanges(groupUIState.editing, groupState.map);
+        return groupUIState.editing!.isChanged == true;
       case TaxRateEditScreen.route:
-        return hasTaxRateChanges(taxRateUIState.editing, taxRateState.map);
+        return taxRateUIState.editing!.isChanged == true;
       case CompanyGatewayEditScreen.route:
-        return hasCompanyGatewayChanges(
-            companyGatewayUIState.editing, companyGatewayState.map);
+        return companyGatewayUIState.editing!.isChanged == true;
       case CreditEditScreen.route:
-        return hasCreditChanges(creditUIState.editing, creditState.map);
+        return creditUIState.editing!.isChanged == true;
       // STARTER: has changes - do not remove comment
+      case ScheduleEditScreen.route:
+        return scheduleUIState.editing!.isChanged == true;
+      case TransactionRuleEditScreen.route:
+        return transactionRuleUIState.editing!.isChanged == true;
+      case TransactionEditScreen.route:
+        return transactionUIState.editing!.isChanged == true;
+      case PurchaseOrderEditScreen.route:
+        return purchaseOrderUIState.editing!.isChanged == true;
       case RecurringExpenseEditScreen.route:
-        return hasRecurringExpenseChanges(
-            recurringExpenseUIState.editing, recurringExpenseState.map);
-
+        return recurringExpenseUIState.editing!.isChanged == true;
       case SubscriptionEditScreen.route:
-        return hasSubscriptionChanges(
-            subscriptionUIState.editing, subscriptionState.map);
-
+        return subscriptionUIState.editing!.isChanged == true;
       case TaskStatusEditScreen.route:
-        return hasTaskStatusChanges(
-            taskStatusUIState.editing, taskStatusState.map);
+        return taskStatusUIState.editing!.isChanged == true;
       case ExpenseCategoryEditScreen.route:
-        return hasExpenseCategoryChanges(
-            expenseCategoryUIState.editing, expenseCategoryState.map);
+        return expenseCategoryUIState.editing!.isChanged == true;
       case RecurringInvoiceEditScreen.route:
-        return hasRecurringInvoiceChanges(
-            recurringInvoiceUIState.editing, recurringInvoiceState.map);
+        return recurringInvoiceUIState.editing!.isChanged == true;
       case WebhookEditScreen.route:
-        return hasWebhookChanges(webhookUIState.editing, webhookState.map);
+        return webhookUIState.editing!.isChanged == true;
       case TokenEditScreen.route:
-        return hasTokenChanges(tokenUIState.editing, tokenState.map);
+        return tokenUIState.editing!.isChanged == true;
       case PaymentTermEditScreen.route:
-        return hasPaymentTermChanges(
-            paymentTermUIState.editing, paymentTermState.map);
+        return paymentTermUIState.editing!.isChanged == true;
       case DesignEditScreen.route:
-        return hasDesignChanges(designUIState.editing, designState.map);
+        return designUIState.editing!.isChanged == true;
+      case DocumentEditScreen.route:
+        return documentUIState.editing!.isChanged == true;
     }
 
     if (uiState.isInSettings) {
@@ -746,30 +834,33 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     }
   }
 
-  bool get reportErrors => account?.reportErrors ?? false;
+  bool get reportErrors => account.reportErrors;
 
-  bool get isHosted => authState.isHosted ?? false;
+  bool get isHosted => account.isOld ? account.isHosted : authState.isHosted;
 
-  bool get isSelfHosted => authState.isSelfHost ?? false;
+  bool get isSelfHosted => !isHosted;
 
-  bool get isDemo => cleanApiUrl(authState.url) == kAppDemoUrl;
+  bool get isDemo => cleanApiUrl(authState.url) == kFlutterDemoUrl;
 
   bool get isStaging => cleanApiUrl(authState.url) == kAppStagingUrl;
 
-  bool get isProduction => cleanApiUrl(authState.url) == kAppProductionUrl;
-
-  bool get isWhiteLabeled => account.plan == kPlanWhiteLabel;
-
   bool get isProPlan => isEnterprisePlan || account.plan == kPlanPro;
 
-  bool get isTrial => account.isTrial;
+  bool get isTrial => isHosted && account.isTrial;
 
-  bool get isEnterprisePlan => !isProduction || account.plan == kPlanEnterprise;
+  bool get isEnterprisePlan => isSelfHosted || account.plan == kPlanEnterprise;
 
-  //bool get isEnterprisePlan => isSelfHosted || account.plan == kPlanEnterprise;
+  bool get isPaidAccount => isSelfHosted
+      ? (isWhiteLabeled || account.plan == kPlanWhiteLabel)
+      : ((isProPlan || isEnterprisePlan) && !isTrial);
 
-  bool get isPaidAccount =>
-      isSelfHosted ? isWhiteLabeled : (isProPlan || isEnterprisePlan);
+  bool get isUpdateAvailable =>
+      isSelfHosted && account.isUpdateAvailable && userCompany.isAdmin;
+
+  bool get isUsingPostmark => [
+    if (isHosted) SettingsEntity.EMAIL_SENDING_METHOD_POSTMARK_HOSTED,
+    SettingsEntity.EMAIL_SENDING_METHOD_POSTMARK,
+  ].contains(company.settings.emailSendingMethod);
 
   bool get isUserConfirmed {
     if (isSelfHosted) {
@@ -832,6 +923,7 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       RecurringInvoiceScreen.route,
       RecurringExpenseScreen.route,
       TaskScreen.route,
+      PurchaseOrderScreen.route,
     ].contains(mainRoute)) {
       if (isEmail || isPdf) {
         isFullScreen = true;
@@ -851,8 +943,10 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
       }
     }
 
-    if (DesignEditScreen.route == uiState.currentRoute) {
+    if (uiState.currentRoute == DesignEditScreen.route) {
       isFullScreen = true;
+    } else if (uiState.currentRoute == InvoiceDesignScreen.route) {
+      isFullScreen = settingsUIState.showPdfPreview;
     }
 
     return isFullScreen;
@@ -875,23 +969,28 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
 
   @override
   String toString() {
-    final companyUpdated = userCompanyState.lastUpdated == null ||
-            userCompanyState.lastUpdated == 0
+    final companyUpdated = userCompanyState.lastUpdated == 0
         ? 'Blank'
-        : timeago.format(convertTimestampToDate(
-            (userCompanyState.lastUpdated / 1000).round()));
+        : timeago.format(
+            convertTimestampToDate(
+              (userCompanyState.lastUpdated / 1000).round(),
+            ),
+          );
 
     final staticUpdated =
         staticState.updatedAt == null || staticState.updatedAt == 0
-            ? 'Blank'
-            : timeago.format(
-                convertTimestampToDate((staticState.updatedAt / 1000).round()));
-
-    final passwordUpdated = authState.lastEnteredPasswordAt == null ||
-            authState.lastEnteredPasswordAt == 0
         ? 'Blank'
-        : timeago.format(convertTimestampToDate(
-            (authState.lastEnteredPasswordAt / 1000).round()));
+        : timeago.format(
+            convertTimestampToDate((staticState.updatedAt! / 1000).round()),
+          );
+
+    final passwordUpdated = authState.lastEnteredPasswordAt == 0
+        ? 'Blank'
+        : timeago.format(
+            convertTimestampToDate(
+              (authState.lastEnteredPasswordAt / 1000).round(),
+            ),
+          );
 
     //return 'latestVersion: ${account.latestVersion}';
     //return 'Last Updated: ${userCompanyStates.map((state) => state.lastUpdated).join(',')}';
@@ -909,6 +1008,21 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
     //return 'FREQ: ${recurringInvoiceUIState.editing.frequencyId}';
     //return '## Logs: ${company.systemLogs}';
 
+    /*
+    var str = '\n\n\n';
+    for (var userCompany in userCompanyStates) {
+      //str += userCompany.company.id + ' => ' + userCompany.token.token + '\n';
+      str += '## ' +
+          userCompany.company.displayName +
+          ' => ' +
+          userCompany.clientState.list.length.toString() +
+          ' ' +
+          userCompany.lastUpdated.toString() +
+          '\n';
+    }
+    return str;
+    */
+
     return '\n\nForce: ${clientUIState.forceSelected}'
         '\n\nURL: ${authState.url}'
         '\nRoute: ${uiState.currentRoute}'
@@ -918,17 +1032,17 @@ abstract class AppState implements Built<AppState, AppStateBuilder> {
         '\nIs Loading: ${isLoading ? 'Yes' : 'No'}'
         '\nIs Saving: ${isSaving ? 'Yes' : 'No'}'
         '\nIs Loaded: ${isLoaded ? 'Yes' : 'No'}'
-        '\nis Large: ${(company?.isLarge ?? false) ? 'Yes' : 'No'}'
+        '\nis Large: ${(company.isLarge) ? 'Yes' : 'No'}'
         '\nCompany: $companyUpdated${userCompanyState.isStale ? ' [S]' : ''}'
         '\nStatic: $staticUpdated${staticState.isStale ? ' [S]' : ''}'
         '\nPassword: $passwordUpdated${hasRecentlyEnteredPassword ? '' : ' [S]'}'
-        '\nAccent: $hasAccentColor ${userCompany?.settings?.accentColor ?? ''}'
+        '\nAccent: $hasAccentColor ${userCompany.settings.accentColor ?? ''}'
         '\n';
   }
 }
 
 class Credentials {
-  const Credentials({this.url, this.token});
+  const Credentials({required this.url, required this.token});
 
   final String url;
   final String token;
@@ -941,7 +1055,17 @@ class SelectionState {
     this.filterEntityType,
   });
 
-  final String selectedId;
-  final String filterEntityId;
-  final EntityType filterEntityType;
+  final String? selectedId;
+  final String? filterEntityId;
+  final EntityType? filterEntityType;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is SelectionState) {
+      return selectedId == other.selectedId &&
+          filterEntityId == other.filterEntityId &&
+          filterEntityType == other.filterEntityType;
+    }
+    return false;
+  }
 }

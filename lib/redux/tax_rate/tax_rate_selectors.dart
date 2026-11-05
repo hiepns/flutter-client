@@ -1,20 +1,27 @@
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:memoize/memoize.dart';
+// Package imports:
 import 'package:built_collection/built_collection.dart';
+import 'package:memoize/memoize.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
 
 var memoizedDropdownTaxRateList = memo3(
-    (BuiltMap<String, TaxRateEntity> taxRateMap, BuiltList<String> taxRateList,
-            String clientId) =>
-        dropdownTaxRatesSelector(taxRateMap, taxRateList, clientId));
-
-List<String> dropdownTaxRatesSelector(
+  (
     BuiltMap<String, TaxRateEntity> taxRateMap,
     BuiltList<String> taxRateList,
-    String clientId) {
+    String clientId,
+  ) => dropdownTaxRatesSelector(taxRateMap, taxRateList, clientId),
+);
+
+List<String> dropdownTaxRatesSelector(
+  BuiltMap<String, TaxRateEntity> taxRateMap,
+  BuiltList<String> taxRateList,
+  String clientId,
+) {
   final list = taxRateList.where((taxRateId) {
-    final taxRate = taxRateMap[taxRateId];
+    final taxRate = taxRateMap[taxRateId]!;
     /*
     if (clientId != null && clientId > 0 && taxRate.clientId != clientId) {
       return false;
@@ -24,7 +31,7 @@ List<String> dropdownTaxRatesSelector(
   }).toList();
 
   list.sort((taxRateAId, taxRateBId) {
-    final taxRateA = taxRateMap[taxRateAId];
+    final taxRateA = taxRateMap[taxRateAId]!;
     final taxRateB = taxRateMap[taxRateBId];
     return taxRateA.compareTo(taxRateB, TaxRateFields.name, true);
   });
@@ -32,20 +39,28 @@ List<String> dropdownTaxRatesSelector(
   return list;
 }
 
-var memoizedFilteredTaxRateList = memo4((SelectionState selectionState,
-        BuiltMap<String, TaxRateEntity> taxRateMap,
-        BuiltList<String> taxRateList,
-        ListUIState taxRateListState) =>
-    filteredTaxRatesSelector(
-        selectionState, taxRateMap, taxRateList, taxRateListState));
+var memoizedFilteredTaxRateList = memo4(
+  (
+    SelectionState selectionState,
+    BuiltMap<String?, TaxRateEntity?> taxRateMap,
+    BuiltList<String> taxRateList,
+    ListUIState taxRateListState,
+  ) => filteredTaxRatesSelector(
+    selectionState,
+    taxRateMap,
+    taxRateList,
+    taxRateListState,
+  ),
+);
 
 List<String> filteredTaxRatesSelector(
-    SelectionState selectionState,
-    BuiltMap<String, TaxRateEntity> taxRateMap,
-    BuiltList<String> taxRateList,
-    ListUIState taxRateListState) {
+  SelectionState selectionState,
+  BuiltMap<String?, TaxRateEntity?> taxRateMap,
+  BuiltList<String> taxRateList,
+  ListUIState taxRateListState,
+) {
   final list = taxRateList.where((taxRateId) {
-    final taxRate = taxRateMap[taxRateId];
+    final taxRate = taxRateMap[taxRateId]!;
 
     if (taxRate.id == selectionState.selectedId) {
       return true;
@@ -58,15 +73,14 @@ List<String> filteredTaxRatesSelector(
   }).toList();
 
   list.sort((taxRateAId, taxRateBId) {
-    final taxRateA = taxRateMap[taxRateAId];
+    final taxRateA = taxRateMap[taxRateAId]!;
     final taxRateB = taxRateMap[taxRateBId];
     return taxRateA.compareTo(
-        taxRateB, taxRateListState.sortField, taxRateListState.sortAscending);
+      taxRateB,
+      taxRateListState.sortField,
+      taxRateListState.sortAscending,
+    );
   });
 
   return list;
 }
-
-bool hasTaxRateChanges(
-        TaxRateEntity taxRate, BuiltMap<String, TaxRateEntity> taxRateMap) =>
-    taxRate.isNew ? taxRate.isChanged : taxRate != taxRateMap[taxRate.id];

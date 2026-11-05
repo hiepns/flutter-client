@@ -1,12 +1,16 @@
+// Dart imports:
 import 'dart:async';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:built_collection/built_collection.dart';
-import 'package:invoiceninja_flutter/data/models/invoice_model.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/data/models/recurring_invoice_model.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
 
 part 'recurring_invoice_state.g.dart';
@@ -30,7 +34,7 @@ abstract class RecurringInvoiceState
 
   InvoiceEntity get(String invoiceId) {
     if (map.containsKey(invoiceId)) {
-      return map[invoiceId];
+      return map[invoiceId]!;
     } else {
       return InvoiceEntity(id: invoiceId);
     }
@@ -39,16 +43,19 @@ abstract class RecurringInvoiceState
   BuiltList<String> get list;
 
   RecurringInvoiceState loadRecurringInvoices(
-      BuiltList<InvoiceEntity> clients) {
+    BuiltList<InvoiceEntity> clients,
+  ) {
     final map = Map<String, InvoiceEntity>.fromIterable(
       clients,
       key: (dynamic item) => item.id,
       value: (dynamic item) => item,
     );
 
-    return rebuild((b) => b
-      ..map.addAll(map)
-      ..list.replace((map.keys.toList() + list.toList()).toSet().toList()));
+    return rebuild(
+      (b) => b
+        ..map.addAll(map)
+        ..list.replace((map.keys.toList() + list.toList()).toSet().toList()),
+    );
   }
 
   static Serializer<RecurringInvoiceState> get serializer =>
@@ -58,11 +65,12 @@ abstract class RecurringInvoiceState
 abstract class RecurringInvoiceUIState extends Object
     with EntityUIState
     implements Built<RecurringInvoiceUIState, RecurringInvoiceUIStateBuilder> {
-  factory RecurringInvoiceUIState(PrefStateSortField sortField) {
+  factory RecurringInvoiceUIState(PrefStateSortField? sortField) {
     return _$RecurringInvoiceUIState._(
       listUIState: ListUIState(
-          sortField?.field ?? RecurringInvoiceFields.number,
-          sortAscending: sortField?.ascending ?? false),
+        sortField?.field ?? RecurringInvoiceFields.number,
+        sortAscending: sortField?.ascending ?? false,
+      ),
       editing: InvoiceEntity(),
       selectedId: '',
       tabIndex: 0,
@@ -75,22 +83,19 @@ abstract class RecurringInvoiceUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  InvoiceEntity get editing;
+  InvoiceEntity? get editing;
 
-  @nullable
   @BuiltValueField(serialize: false)
-  int get editingItemIndex;
+  int? get editingItemIndex;
 
-  @nullable
   @BuiltValueField(serialize: false)
-  String get historyActivityId;
+  String? get historyActivityId;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<RecurringInvoiceUIState> get serializer =>
       _$recurringInvoiceUIStateSerializer;

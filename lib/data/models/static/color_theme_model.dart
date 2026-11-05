@@ -1,21 +1,25 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 
 class ColorTheme {
-  ColorTheme(
-      {this.colorPrimary,
-      this.colorInfo,
-      this.colorSuccess,
-      this.colorWarning,
-      this.colorDanger,
-      this.colorLightGray = const Color(0xff888888),
-      this.colorDarkGray = const Color(0xff333333)});
+  ColorTheme({
+    this.colorPrimary,
+    this.colorInfo,
+    this.colorSuccess,
+    this.colorWarning,
+    this.colorDanger,
+    this.colorLightGray = const Color(0xff888888),
+    this.colorDarkGray = const Color(0xff444444),
+  });
 
-  Color colorPrimary;
-  Color colorInfo;
-  Color colorSuccess;
-  Color colorWarning;
-  Color colorDanger;
+  Color? colorPrimary;
+  Color? colorInfo;
+  Color? colorSuccess;
+  Color? colorWarning;
+  Color? colorDanger;
   Color colorLightGray;
   Color colorDarkGray;
 }

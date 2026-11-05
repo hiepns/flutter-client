@@ -1,6 +1,10 @@
+// Dart imports:
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/task/task_selectors.dart';
 import 'package:invoiceninja_flutter/ui/app/FieldGrid.dart';
@@ -16,9 +20,9 @@ import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class TaskOverview extends StatefulWidget {
   const TaskOverview({
-    Key key,
-    @required this.viewModel,
-    @required this.isFilter,
+    Key? key,
+    required this.viewModel,
+    required this.isFilter,
   }) : super(key: key);
 
   final TaskViewVM viewModel;
@@ -29,18 +33,20 @@ class TaskOverview extends StatefulWidget {
 }
 
 class _TaskOverviewState extends State<TaskOverview> {
-  Timer _timer;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(Duration(seconds: 1),
-        (Timer timer) => mounted ? setState(() => false) : false);
+    _timer = Timer.periodic(
+      Duration(seconds: 1),
+      (Timer timer) => mounted ? setState(() => false) : false,
+    );
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer!.cancel();
     _timer = null;
     super.dispose();
   }
@@ -54,51 +60,64 @@ class _TaskOverviewState extends State<TaskOverview> {
 
     final project = viewModel.project;
     final client = viewModel.client;
-    final company = viewModel.company;
+    final company = viewModel.company!;
     final invoice = viewModel.state.invoiceState.map[task.invoiceId];
     final user = viewModel.state.userState.map[task.assignedUserId];
-    final group = state.groupState.get(client?.groupId);
+    final group = state.groupState.get(client?.groupId ?? '');
     final status = state.taskStatusState.get(task.statusId);
 
-    final Map<String, String> fields = {
-      TaskFields.rate: formatNumber(task.rate, context,
-          zeroIsNull: true, clientId: client?.id),
+    final Map<String, String?> fields = {
+      TaskFields.rate: formatNumber(
+        task.rate,
+        context,
+        zeroIsNull: true,
+        clientId: client?.id,
+      ),
     };
 
-    if ((task.statusId ?? '').isNotEmpty) {
-      fields[localization.status] =
+    if (task.statusId.isNotEmpty) {
+      fields[localization!.status] =
           company.taskStatusMap[task.statusId]?.name ?? '';
     }
 
-    if (task.customValue1.isNotEmpty) {
+    if (company.hasCustomField(CustomFieldType.task1) &&
+        task.customValue1.isNotEmpty) {
       final label1 = company.getCustomFieldLabel(CustomFieldType.task1);
       fields[label1] = formatCustomValue(
-          context: context,
-          field: CustomFieldType.task1,
-          value: task.customValue1);
+        context: context,
+        field: CustomFieldType.task1,
+        value: task.customValue1,
+      );
     }
-    if (task.customValue2.isNotEmpty) {
+
+    if (company.hasCustomField(CustomFieldType.task2) &&
+        task.customValue2.isNotEmpty) {
       final label2 = company.getCustomFieldLabel(CustomFieldType.task2);
       fields[label2] = formatCustomValue(
-          context: context,
-          field: CustomFieldType.task2,
-          value: task.customValue2);
+        context: context,
+        field: CustomFieldType.task2,
+        value: task.customValue2,
+      );
     }
 
-    if (task.customValue3.isNotEmpty) {
+    if (company.hasCustomField(CustomFieldType.task3) &&
+        task.customValue3.isNotEmpty) {
       final label3 = company.getCustomFieldLabel(CustomFieldType.task3);
       fields[label3] = formatCustomValue(
-          context: context,
-          field: CustomFieldType.task3,
-          value: task.customValue3);
+        context: context,
+        field: CustomFieldType.task3,
+        value: task.customValue3,
+      );
     }
 
-    if (task.customValue4.isNotEmpty) {
+    if (company.hasCustomField(CustomFieldType.task4) &&
+        task.customValue4.isNotEmpty) {
       final label4 = company.getCustomFieldLabel(CustomFieldType.task4);
       fields[label4] = formatCustomValue(
-          context: context,
-          field: CustomFieldType.task4,
-          value: task.customValue4);
+        context: context,
+        field: CustomFieldType.task4,
+        value: task.customValue4,
+      );
     }
 
     List<Widget> _buildView() {
@@ -109,9 +128,9 @@ class _TaskOverviewState extends State<TaskOverview> {
           statusColor: task.isInvoiced
               ? Colors.green
               : task.isRunning
-                  ? Colors.blue
-                  : null,
-          label: localization.duration,
+              ? Colors.blue
+              : null,
+          label: localization!.duration,
           value: formatDuration(task.calculateDuration()),
           secondLabel: localization.amount,
           secondValue: formatNumber(
@@ -122,7 +141,7 @@ class _TaskOverviewState extends State<TaskOverview> {
                 client: client,
                 task: task,
                 group: group,
-              ),
+              )!,
             ),
             context,
             clientId: client?.id,
@@ -133,60 +152,41 @@ class _TaskOverviewState extends State<TaskOverview> {
 
       if (client != null) {
         widgets.addAll([
-          EntityListTile(
-            entity: client,
-            isFilter: widget.isFilter,
-          ),
+          EntityListTile(entity: client, isFilter: widget.isFilter),
         ]);
       }
 
       if (project != null) {
         widgets.addAll([
-          EntityListTile(
-            entity: project,
-            isFilter: widget.isFilter,
-          ),
+          EntityListTile(entity: project, isFilter: widget.isFilter),
         ]);
       }
 
-      if (status != null) {
-        widgets.addAll([
-          EntityListTile(
-            entity: status,
-            isFilter: widget.isFilter,
-          ),
-        ]);
-      }
+      widgets.addAll([
+        EntityListTile(entity: status, isFilter: widget.isFilter),
+      ]);
 
       if (user != null) {
         widgets.addAll([
-          EntityListTile(
-            entity: user,
-            isFilter: widget.isFilter,
-          ),
+          EntityListTile(entity: user, isFilter: widget.isFilter),
         ]);
       }
 
       if (invoice != null) {
         widgets.addAll([
-          EntityListTile(
-            entity: invoice,
-            isFilter: widget.isFilter,
-          ),
+          EntityListTile(entity: invoice, isFilter: widget.isFilter),
         ]);
       }
 
       if (task.description.isNotEmpty) {
         widgets.addAll([
-          IconMessage(task.description),
+          IconMessage(task.description, copyToClipboard: true),
           ListDivider(),
         ]);
       }
 
       if (fields.isNotEmpty) {
-        widgets.addAll([
-          FieldGrid(fields),
-        ]);
+        widgets.addAll([FieldGrid(fields)]);
       }
 
       final items = task.getTaskTimes();
@@ -196,11 +196,12 @@ class _TaskOverviewState extends State<TaskOverview> {
             TaskTimeListTile(
               task: task,
               taskTime: taskTime,
+              isValid: true,
               onTap: (BuildContext context) =>
                   viewModel.state.userCompany.canEditEntity(task)
-                      ? viewModel.onEditPressed(context, taskTime)
-                      : null,
-            )
+                  ? viewModel.onEditPressed(context, taskTime)
+                  : null,
+            ),
           ]);
         });
       }
@@ -210,9 +211,7 @@ class _TaskOverviewState extends State<TaskOverview> {
 
     return RefreshIndicator(
       onRefresh: () => viewModel.onRefreshed(context),
-      child: ScrollableListView(
-        children: _buildView(),
-      ),
+      child: ScrollableListView(children: _buildView()),
     );
   }
 }

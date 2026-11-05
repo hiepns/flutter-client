@@ -1,9 +1,13 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:invoiceninja_flutter/data/models/models.dart';
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:built_collection/built_collection.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
@@ -29,7 +33,7 @@ abstract class InvoiceState
 
   InvoiceEntity get(String invoiceId) {
     if (map.containsKey(invoiceId)) {
-      return map[invoiceId];
+      return map[invoiceId]!;
     } else {
       return InvoiceEntity(id: invoiceId);
     }
@@ -44,9 +48,11 @@ abstract class InvoiceState
       value: (dynamic item) => item,
     );
 
-    return rebuild((b) => b
-      ..map.addAll(map)
-      ..list.replace((map.keys.toList() + list.toList()).toSet().toList()));
+    return rebuild(
+      (b) => b
+        ..map.addAll(map)
+        ..list.replace((map.keys.toList() + list.toList()).toSet().toList()),
+    );
   }
 
   static Serializer<InvoiceState> get serializer => _$invoiceStateSerializer;
@@ -55,10 +61,12 @@ abstract class InvoiceState
 abstract class InvoiceUIState extends Object
     with EntityUIState
     implements Built<InvoiceUIState, InvoiceUIStateBuilder> {
-  factory InvoiceUIState(PrefStateSortField sortField) {
+  factory InvoiceUIState(PrefStateSortField? sortField) {
     return _$InvoiceUIState._(
-      listUIState: ListUIState(sortField?.field ?? InvoiceFields.number,
-          sortAscending: sortField?.ascending ?? false),
+      listUIState: ListUIState(
+        sortField?.field ?? InvoiceFields.number,
+        sortAscending: sortField?.ascending ?? false,
+      ),
       editing: InvoiceEntity(),
       selectedId: '',
       tabIndex: 0,
@@ -71,22 +79,19 @@ abstract class InvoiceUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  InvoiceEntity get editing;
+  InvoiceEntity? get editing;
 
-  @nullable
   @BuiltValueField(serialize: false)
-  int get editingItemIndex;
+  int? get editingItemIndex;
 
-  @nullable
   @BuiltValueField(serialize: false)
-  String get historyActivityId;
+  String? get historyActivityId;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<InvoiceUIState> get serializer =>
       _$invoiceUIStateSerializer;

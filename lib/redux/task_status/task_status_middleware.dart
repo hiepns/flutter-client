@@ -1,16 +1,21 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:invoiceninja_flutter/main_app.dart';
+
+// Package imports:
 import 'package:redux/redux.dart';
-import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/redux/ui/ui_actions.dart';
-import 'package:invoiceninja_flutter/ui/task_status/task_status_screen.dart';
-import 'package:invoiceninja_flutter/ui/task_status/edit/task_status_edit_vm.dart';
-import 'package:invoiceninja_flutter/ui/task_status/view/task_status_view_vm.dart';
-import 'package:invoiceninja_flutter/redux/task_status/task_status_actions.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/data/repositories/task_status_repository.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
+import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/task_status/task_status_actions.dart';
+import 'package:invoiceninja_flutter/redux/ui/ui_actions.dart';
+import 'package:invoiceninja_flutter/ui/task_status/edit/task_status_edit_vm.dart';
+import 'package:invoiceninja_flutter/ui/task_status/task_status_screen.dart';
+import 'package:invoiceninja_flutter/ui/task_status/view/task_status_view_vm.dart';
 
 List<Middleware<AppState>> createStoreTaskStatusesMiddleware([
   TaskStatusRepository repository = const TaskStatusRepository(),
@@ -40,36 +45,39 @@ List<Middleware<AppState>> createStoreTaskStatusesMiddleware([
 
 Middleware<AppState> _editTaskStatus() {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as EditTaskStatus;
+    final action = dynamicAction as EditTaskStatus?;
 
     next(action);
 
     store.dispatch(UpdateCurrentRoute(TaskStatusEditScreen.route));
 
     if (store.state.prefState.isMobile) {
-      navigatorKey.currentState.pushNamed(TaskStatusEditScreen.route);
+      navigatorKey.currentState!.pushNamed(TaskStatusEditScreen.route);
     }
   };
 }
 
 Middleware<AppState> _viewTaskStatus() {
-  return (Store<AppState> store, dynamic dynamicAction,
-      NextDispatcher next) async {
-    final action = dynamicAction as ViewTaskStatus;
+  return (
+    Store<AppState> store,
+    dynamic dynamicAction,
+    NextDispatcher next,
+  ) async {
+    final action = dynamicAction as ViewTaskStatus?;
 
     next(action);
 
     store.dispatch(UpdateCurrentRoute(TaskStatusViewScreen.route));
 
     if (store.state.prefState.isMobile) {
-      navigatorKey.currentState.pushNamed(TaskStatusViewScreen.route);
+      navigatorKey.currentState!.pushNamed(TaskStatusViewScreen.route);
     }
   };
 }
 
 Middleware<AppState> _viewTaskStatusList() {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as ViewTaskStatusList;
+    final action = dynamicAction as ViewTaskStatusList?;
 
     next(action);
 
@@ -80,8 +88,10 @@ Middleware<AppState> _viewTaskStatusList() {
     store.dispatch(UpdateCurrentRoute(TaskStatusScreen.route));
 
     if (store.state.prefState.isMobile) {
-      navigatorKey.currentState.pushNamedAndRemoveUntil(
-          TaskStatusScreen.route, (Route<dynamic> route) => false);
+      navigatorKey.currentState!.pushNamedAndRemoveUntil(
+        TaskStatusScreen.route,
+        (Route<dynamic> route) => false,
+      );
     }
   };
 }
@@ -94,19 +104,19 @@ Middleware<AppState> _archiveTaskStatus(TaskStatusRepository repository) {
         .toList();
     repository
         .bulkAction(
-            store.state.credentials, action.taskStatusIds, EntityAction.archive)
+          store.state.credentials,
+          action.taskStatusIds,
+          EntityAction.archive,
+        )
         .then((List<TaskStatusEntity> taskStatuses) {
-      store.dispatch(ArchiveTaskStatusesSuccess(taskStatuses));
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(ArchiveTaskStatusesFailure(prevTaskStatuses));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          store.dispatch(ArchiveTaskStatusesSuccess(taskStatuses));
+          action.completer.complete(null);
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(ArchiveTaskStatusesFailure(prevTaskStatuses));
+          action.completer.completeError(error);
+        });
 
     next(action);
   };
@@ -120,19 +130,19 @@ Middleware<AppState> _deleteTaskStatus(TaskStatusRepository repository) {
         .toList();
     repository
         .bulkAction(
-            store.state.credentials, action.taskStatusIds, EntityAction.delete)
+          store.state.credentials,
+          action.taskStatusIds,
+          EntityAction.delete,
+        )
         .then((List<TaskStatusEntity> taskStatuses) {
-      store.dispatch(DeleteTaskStatusesSuccess(taskStatuses));
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(DeleteTaskStatusesFailure(prevTaskStatuses));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          store.dispatch(DeleteTaskStatusesSuccess(taskStatuses));
+          action.completer.complete(null);
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(DeleteTaskStatusesFailure(prevTaskStatuses));
+          action.completer.completeError(error);
+        });
 
     next(action);
   };
@@ -146,19 +156,19 @@ Middleware<AppState> _restoreTaskStatus(TaskStatusRepository repository) {
         .toList();
     repository
         .bulkAction(
-            store.state.credentials, action.taskStatusIds, EntityAction.restore)
+          store.state.credentials,
+          action.taskStatusIds,
+          EntityAction.restore,
+        )
         .then((List<TaskStatusEntity> taskStatuses) {
-      store.dispatch(RestoreTaskStatusesSuccess(taskStatuses));
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(RestoreTaskStatusesFailure(prevTaskStatuses));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          store.dispatch(RestoreTaskStatusesSuccess(taskStatuses));
+          action.completer.complete(null);
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(RestoreTaskStatusesFailure(prevTaskStatuses));
+          action.completer.completeError(error);
+        });
 
     next(action);
   };
@@ -168,20 +178,22 @@ Middleware<AppState> _saveTaskStatus(TaskStatusRepository repository) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
     final action = dynamicAction as SaveTaskStatusRequest;
     repository
-        .saveData(store.state.credentials, action.taskStatus)
+        .saveData(store.state.credentials, action.taskStatus!)
         .then((TaskStatusEntity taskStatus) {
-      if (action.taskStatus.isNew) {
-        store.dispatch(AddTaskStatusSuccess(taskStatus));
-      } else {
-        store.dispatch(SaveTaskStatusSuccess(taskStatus));
-      }
+          if (action.taskStatus!.isNew) {
+            store.dispatch(AddTaskStatusSuccess(taskStatus));
+          } else {
+            store.dispatch(SaveTaskStatusSuccess(taskStatus));
+          }
 
-      action.completer.complete(taskStatus);
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(SaveTaskStatusFailure(error));
-      action.completer.completeError(error);
-    });
+          store.dispatch(RefreshData());
+          action.completer!.complete(taskStatus);
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(SaveTaskStatusFailure(error));
+          action.completer!.completeError(error);
+        });
 
     next(action);
   };
@@ -196,18 +208,19 @@ Middleware<AppState> _loadTaskStatus(TaskStatusRepository repository) {
     repository
         .loadItem(state.credentials, action.taskStatusId)
         .then((taskStatus) {
-      store.dispatch(LoadTaskStatusSuccess(taskStatus));
+          store.dispatch(LoadTaskStatusSuccess(taskStatus));
 
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(LoadTaskStatusFailure(error));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+          if (action.completer != null) {
+            action.completer!.complete(null);
+          }
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(LoadTaskStatusFailure(error));
+          if (action.completer != null) {
+            action.completer!.completeError(error);
+          }
+        });
 
     next(action);
   };
@@ -215,28 +228,31 @@ Middleware<AppState> _loadTaskStatus(TaskStatusRepository repository) {
 
 Middleware<AppState> _loadTaskStatuses(TaskStatusRepository repository) {
   return (Store<AppState> store, dynamic dynamicAction, NextDispatcher next) {
-    final action = dynamicAction as LoadTaskStatuses;
+    final action = dynamicAction as LoadTaskStatuses?;
     final AppState state = store.state;
 
     store.dispatch(LoadTaskStatusesRequest());
-    repository.loadList(state.credentials).then((data) {
-      store.dispatch(LoadTaskStatusesSuccess(data));
+    repository
+        .loadList(state.credentials)
+        .then((data) {
+          store.dispatch(LoadTaskStatusesSuccess(data));
 
-      if (action.completer != null) {
-        action.completer.complete(null);
-      }
-      /*
+          if (action!.completer != null) {
+            action.completer!.complete(null);
+          }
+          /*
       if (state.productState.isStale) {
         store.dispatch(LoadProducts());
       }
       */
-    }).catchError((Object error) {
-      print(error);
-      store.dispatch(LoadTaskStatusesFailure(error));
-      if (action.completer != null) {
-        action.completer.completeError(error);
-      }
-    });
+        })
+        .catchError((Object error) {
+          print(error);
+          store.dispatch(LoadTaskStatusesFailure(error));
+          if (action!.completer != null) {
+            action.completer!.completeError(error);
+          }
+        });
 
     next(action);
   };

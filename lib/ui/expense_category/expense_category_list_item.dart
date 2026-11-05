@@ -1,31 +1,33 @@
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/ui/app/dismissible_entity.dart';
 import 'package:invoiceninja_flutter/ui/app/entity_state_label.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/ui/app/dismissible_entity.dart';
 
 class ExpenseCategoryListItem extends StatelessWidget {
   const ExpenseCategoryListItem({
-    @required this.user,
-    @required this.expenseCategory,
-    @required this.filter,
+    required this.expenseCategory,
+    this.filter = '',
     this.onTap,
     this.onLongPress,
-    this.onCheckboxChanged,
     this.isChecked = false,
+    this.showCheck = false,
   });
 
-  final UserEntity user;
-  final GestureTapCallback onTap;
-  final GestureTapCallback onLongPress;
+  final GestureTapCallback? onTap;
+  final GestureTapCallback? onLongPress;
   final ExpenseCategoryEntity expenseCategory;
-  final String filter;
-  final Function(bool) onCheckboxChanged;
+  final String? filter;
   final bool isChecked;
+  final bool showCheck;
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +35,8 @@ class ExpenseCategoryListItem extends StatelessWidget {
     final state = store.state;
     final uiState = state.uiState;
     final expenseCategoryUIState = uiState.expenseCategoryUIState;
-    final listUIState = expenseCategoryUIState.listUIState;
-    final isInMultiselect = listUIState.isInMultiselect();
-    final showCheckbox = onCheckboxChanged != null || isInMultiselect;
 
-    final filterMatch = filter != null && filter.isNotEmpty
+    final filterMatch = filter != null && filter!.isNotEmpty
         ? expenseCategory.matchesFilterValue(filter)
         : null;
     final subtitle = filterMatch;
@@ -45,26 +44,26 @@ class ExpenseCategoryListItem extends StatelessWidget {
     return DismissibleEntity(
       userCompany: state.userCompany,
       entity: expenseCategory,
-      isSelected: expenseCategory.id ==
-          (uiState.isEditing
-              ? expenseCategoryUIState.editing.id
-              : expenseCategoryUIState.selectedId),
+      isSelected:
+          !showCheck &&
+          expenseCategory.id ==
+              (uiState.isEditing
+                  ? expenseCategoryUIState.editing!.id
+                  : expenseCategoryUIState.selectedId),
+      showMultiselect: showCheck,
       child: ListTile(
-        onTap: () => onTap != null
-            ? onTap()
-            : selectEntity(entity: expenseCategory, context: context),
+        onTap: () =>
+            onTap != null ? onTap!() : selectEntity(entity: expenseCategory),
         onLongPress: () => onLongPress != null
-            ? onLongPress()
-            : selectEntity(
-                entity: expenseCategory, context: context, longPress: true),
-        leading: showCheckbox
+            ? onLongPress!()
+            : selectEntity(entity: expenseCategory, longPress: true),
+        leading: showCheck
             ? IgnorePointer(
-                ignoring: listUIState.isInMultiselect(),
                 child: Checkbox(
                   value: isChecked,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onChanged: (value) => onCheckboxChanged(value),
-                  activeColor: Theme.of(context).accentColor,
+                  activeColor: Theme.of(context).colorScheme.secondary,
+                  onChanged: (_) => null,
                 ),
               )
             : null,
@@ -75,11 +74,13 @@ class ExpenseCategoryListItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   expenseCategory.name,
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-              Text(formatNumber(expenseCategory.listDisplayAmount, context),
-                  style: Theme.of(context).textTheme.headline6),
+              Text(
+                formatNumber(expenseCategory.listDisplayAmount, context)!,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ],
           ),
         ),
@@ -87,11 +88,7 @@ class ExpenseCategoryListItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             subtitle != null && subtitle.isNotEmpty
-                ? Text(
-                    subtitle,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  )
+                ? Text(subtitle, maxLines: 3, overflow: TextOverflow.ellipsis)
                 : Container(),
             EntityStateLabel(expenseCategory),
           ],

@@ -1,6 +1,10 @@
-import 'package:built_collection/built_collection.dart';
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/company_model.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
@@ -15,13 +19,9 @@ import 'package:invoiceninja_flutter/ui/user/edit/user_edit_vm.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
-import 'package:invoiceninja_flutter/utils/strings.dart';
 
 class UserEdit extends StatefulWidget {
-  const UserEdit({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const UserEdit({Key? key, required this.viewModel}) : super(key: key);
 
   final UserEditVM viewModel;
 
@@ -31,12 +31,12 @@ class UserEdit extends StatefulWidget {
 
 class _UserEditState extends State<UserEdit>
     with SingleTickerProviderStateMixin {
-  static final GlobalKey<FormState> _formKey =
-      GlobalKey<FormState>(debugLabel: '_userEdit');
+  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>(
+    debugLabel: '_userEdit',
+  );
   final _debouncer = Debouncer();
   final FocusScopeNode _focusNode = FocusScopeNode();
-  TabController _controller;
-  bool autoValidate = false;
+  TabController? _controller;
 
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -91,7 +91,8 @@ class _UserEditState extends State<UserEdit>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _focusNode.dispose();
+    _controller!.dispose();
     _controllers.forEach((controller) {
       controller.removeListener(_onChanged);
       controller.dispose();
@@ -101,16 +102,18 @@ class _UserEditState extends State<UserEdit>
   }
 
   void _onChanged() {
-    final user = widget.viewModel.user.rebuild((b) => b
-      ..firstName = _firstNameController.text.trim()
-      ..lastName = _lastNameController.text.trim()
-      ..email = _emailController.text.trim()
-      ..phone = _phoneController.text.trim()
-      //..password = _passwordController.text.trim()
-      ..customValue1 = _custom1Controller.text.trim()
-      ..customValue2 = _custom2Controller.text.trim()
-      ..customValue3 = _custom3Controller.text.trim()
-      ..customValue4 = _custom4Controller.text.trim());
+    final user = widget.viewModel.user.rebuild(
+      (b) => b
+        ..firstName = _firstNameController.text.trim()
+        ..lastName = _lastNameController.text.trim()
+        ..email = _emailController.text.trim()
+        ..phone = _phoneController.text.trim()
+        //..password = _passwordController.text.trim()
+        ..customValue1 = _custom1Controller.text.trim()
+        ..customValue2 = _custom2Controller.text.trim()
+        ..customValue3 = _custom3Controller.text.trim()
+        ..customValue4 = _custom4Controller.text.trim(),
+    );
     if (user != widget.viewModel.user) {
       _debouncer.run(() {
         widget.viewModel.onUserChanged(user);
@@ -120,62 +123,57 @@ class _UserEditState extends State<UserEdit>
 
   void _togglePermission(String permission) {
     final user = widget.viewModel.user;
-    final userCompany = user.userCompany;
+    final userCompany = user.userCompany!;
 
-    final permissions = (userCompany.permissions ?? '').split(',');
+    final permissions = userCompany.permissions.split(',');
     if (permissions.contains(permission)) {
       permissions.remove(permission);
     } else {
       permissions.add(permission);
     }
-    final permissionsString =
-        permissions.where((value) => value.isNotEmpty).join(',');
+    final permissionsString = permissions
+        .where((value) => value.isNotEmpty)
+        .join(',');
 
     widget.viewModel.onUserChanged(
-        user.rebuild((b) => b..userCompany.permissions = permissionsString));
+      user.rebuild((b) => b..userCompany.permissions = permissionsString),
+    );
+  }
+
+  void _onSavePressed(BuildContext context) {
+    final bool isValid = _formKey.currentState!.validate();
+
+    if (!isValid) {
+      return;
+    }
+
+    widget.viewModel.onSavePressed(context);
   }
 
   @override
   Widget build(BuildContext context) {
     final viewModel = widget.viewModel;
     final state = viewModel.state;
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final user = viewModel.user;
-    final userCompany = user.userCompany;
+    final userCompany = user.userCompany!;
 
     return EditScaffold(
       entity: user,
-      title:
-          viewModel.user.isNew ? localization.newUser : localization.editUser,
+      title: viewModel.user.isNew
+          ? localization.newUser
+          : localization.editUser,
       appBarBottom: TabBar(
         controller: _controller,
         isScrollable: isMobile(context),
         tabs: [
-          Tab(
-            text: localization.details,
-          ),
-          Tab(
-            text: localization.notifications,
-          ),
-          Tab(
-            text: localization.permissions,
-          ),
+          Tab(text: localization.details),
+          Tab(text: localization.notifications),
+          Tab(text: localization.permissions),
         ],
       ),
       onCancelPressed: (context) => viewModel.onCancelPressed(context),
-      onSavePressed: (context) {
-        final bool isValid = _formKey.currentState.validate();
-
-        setState(() {
-          autoValidate = !isValid ?? false;
-        });
-
-        if (!isValid) {
-          return;
-        }
-
-        viewModel.onSavePressed(context);
-      },
+      onSavePressed: _onSavePressed,
       body: AppTabForm(
         focusNode: _focusNode,
         formKey: _formKey,
@@ -192,8 +190,9 @@ class _UserEditState extends State<UserEdit>
                     validator: (val) => val.isEmpty || val.trim().isEmpty
                         ? localization.pleaseEnterAFirstName
                         : null,
-                    autovalidate: autoValidate,
-                    onSavePressed: viewModel.onSavePressed,
+                    onSavePressed: _onSavePressed,
+                    keyboardType: TextInputType.text,
+                    textCapitalization: TextCapitalization.words,
                   ),
                   DecoratedFormField(
                     label: localization.lastName,
@@ -201,8 +200,9 @@ class _UserEditState extends State<UserEdit>
                     validator: (val) => val.isEmpty || val.trim().isEmpty
                         ? localization.pleaseEnterALastName
                         : null,
-                    autovalidate: autoValidate,
-                    onSavePressed: viewModel.onSavePressed,
+                    onSavePressed: _onSavePressed,
+                    keyboardType: TextInputType.text,
+                    textCapitalization: TextCapitalization.words,
                   ),
                   DecoratedFormField(
                     label: localization.email,
@@ -210,44 +210,45 @@ class _UserEditState extends State<UserEdit>
                     validator: (val) => val.isEmpty || val.trim().isEmpty
                         ? localization.pleaseEnterYourEmail
                         : null,
-                    autovalidate: autoValidate,
-                    onSavePressed: viewModel.onSavePressed,
+                    onSavePressed: _onSavePressed,
+                    keyboardType: TextInputType.emailAddress,
                   ),
                   DecoratedFormField(
                     label: localization.phone,
                     controller: _phoneController,
-                    onSavePressed: viewModel.onSavePressed,
+                    onSavePressed: _onSavePressed,
+                    keyboardType: TextInputType.phone,
                   ),
                   /*
                   PasswordFormField(
                     controller: _passwordController,
                     autoValidate: autoValidate,
-                    onSavePressed: viewModel.onSavePressed,
+                    onSavePressed: _onSavePressed,
                   ),
                   */
                   CustomField(
                     controller: _custom1Controller,
                     field: CustomFieldType.user1,
                     value: user.customValue1,
-                    onSavePressed: viewModel.onSavePressed,
+                    onSavePressed: _onSavePressed,
                   ),
                   CustomField(
                     controller: _custom2Controller,
                     field: CustomFieldType.user2,
                     value: user.customValue2,
-                    onSavePressed: viewModel.onSavePressed,
+                    onSavePressed: _onSavePressed,
                   ),
                   CustomField(
                     controller: _custom3Controller,
                     field: CustomFieldType.user3,
                     value: user.customValue3,
-                    onSavePressed: viewModel.onSavePressed,
+                    onSavePressed: _onSavePressed,
                   ),
                   CustomField(
                     controller: _custom4Controller,
                     field: CustomFieldType.user4,
                     value: user.customValue4,
-                    onSavePressed: viewModel.onSavePressed,
+                    onSavePressed: _onSavePressed,
                   ),
                 ],
               ),
@@ -258,8 +259,14 @@ class _UserEditState extends State<UserEdit>
               NotificationSettings(
                 user: user,
                 onChanged: (channel, options) {
-                  viewModel.onUserChanged(user.rebuild((b) => b
-                    ..userCompany.notifications[channel] = BuiltList(options)));
+                  viewModel.onUserChanged(
+                    user.rebuild(
+                      (b) => b
+                        ..userCompany.notifications[channel] = BuiltList(
+                          options,
+                        ),
+                    ),
+                  );
                 },
               ),
             ],
@@ -271,10 +278,135 @@ class _UserEditState extends State<UserEdit>
                   SwitchListTile(
                     title: Text(localization.administrator),
                     subtitle: Text(localization.administratorHelp),
-                    value: userCompany.isAdmin ?? false,
+                    value: userCompany.isAdmin,
                     onChanged: (value) => viewModel.onUserChanged(
-                        user.rebuild((b) => b..userCompany.isAdmin = value)),
-                    activeColor: Theme.of(context).accentColor,
+                      user.rebuild((b) => b..userCompany.isAdmin = value),
+                    ),
+                    activeThumbColor: Theme.of(context).colorScheme.secondary,
+                  ),
+                  SwitchListTile(
+                    title: Text(localization.dashboard),
+                    subtitle: Text(localization.viewDashboardPermission),
+                    value: userCompany.isAdmin
+                        ? true
+                        : userCompany.permissions.contains(
+                            kPermissionViewDashboard,
+                          ),
+                    onChanged: userCompany.isAdmin
+                        ? null
+                        : (value) {
+                            final permissions = userCompany.permissions
+                                .split(',')
+                                .where((element) => element.isNotEmpty)
+                                .toList();
+                            if (value) {
+                              if (!permissions.contains(
+                                kPermissionViewDashboard,
+                              )) {
+                                permissions.add(kPermissionViewDashboard);
+                              }
+                            } else {
+                              if (!value) {
+                                if (permissions.contains(
+                                  kPermissionViewDashboard,
+                                )) {
+                                  permissions.remove(kPermissionViewDashboard);
+                                }
+                              }
+                            }
+
+                            viewModel.onUserChanged(
+                              user.rebuild(
+                                (b) => b
+                                  ..userCompany.permissions = permissions.join(
+                                    ',',
+                                  ),
+                              ),
+                            );
+                          },
+                    activeThumbColor: Theme.of(context).colorScheme.secondary,
+                  ),
+                  SwitchListTile(
+                    title: Text(localization.reports),
+                    subtitle: Text(localization.viewReportPermission),
+                    value: userCompany.isAdmin
+                        ? true
+                        : userCompany.permissions.contains(
+                            kPermissionViewReports,
+                          ),
+                    onChanged: userCompany.isAdmin
+                        ? null
+                        : (value) {
+                            final permissions = userCompany.permissions
+                                .split(',')
+                                .where((element) => element.isNotEmpty)
+                                .toList();
+                            if (value) {
+                              if (!permissions.contains(
+                                kPermissionViewReports,
+                              )) {
+                                permissions.add(kPermissionViewReports);
+                              }
+                            } else {
+                              if (!value) {
+                                if (permissions.contains(
+                                  kPermissionViewReports,
+                                )) {
+                                  permissions.remove(kPermissionViewReports);
+                                }
+                              }
+                            }
+
+                            viewModel.onUserChanged(
+                              user.rebuild(
+                                (b) => b
+                                  ..userCompany.permissions = permissions.join(
+                                    ',',
+                                  ),
+                              ),
+                            );
+                          },
+                    activeThumbColor: Theme.of(context).colorScheme.secondary,
+                  ),
+                  SwitchListTile(
+                    title: Text(localization.disableEmails),
+                    subtitle: Text(localization.disableEmailsHelp),
+                    value: userCompany.isAdmin
+                        ? false
+                        : userCompany.permissions.contains(
+                            kPermissionDisableEmails,
+                          ),
+                    onChanged: userCompany.isAdmin
+                        ? null
+                        : (value) {
+                            final permissions = userCompany.permissions
+                                .split(',')
+                                .where((element) => element.isNotEmpty)
+                                .toList();
+                            if (value) {
+                              if (!permissions.contains(
+                                kPermissionDisableEmails,
+                              )) {
+                                permissions.add(kPermissionDisableEmails);
+                              }
+                            } else {
+                              if (permissions.contains(
+                                kPermissionDisableEmails,
+                              )) {
+                                permissions.remove(kPermissionDisableEmails);
+                              }
+                            }
+
+                            viewModel.onUserChanged(
+                              user.rebuild(
+                                (b) => b
+                                  ..userCompany.permissions = permissions.join(
+                                    ',',
+                                  ),
+                              ),
+                            );
+                          },
+                    activeThumbColor: Theme.of(context).colorScheme.secondary,
                   ),
                 ],
               ),
@@ -284,33 +416,31 @@ class _UserEditState extends State<UserEdit>
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
                       columns: [
-                        DataColumn(
-                          label: SizedBox(),
-                        ),
-                        DataColumn(
-                          label: Text(localization.create),
-                        ),
-                        DataColumn(
-                          label: Text(localization.view),
-                        ),
-                        DataColumn(
-                          label: Text(localization.edit),
-                        ),
+                        DataColumn(label: SizedBox()),
+                        DataColumn(label: Text(localization.create)),
+                        DataColumn(label: Text(localization.viewAll)),
+                        DataColumn(label: Text(localization.editAll)),
                       ],
                       rows: [
-                        DataRow(cells: [
-                          DataCell(Text(localization.all), onTap: () {
-                            _togglePermission(kPermissionCreateAll);
-                            WidgetsBinding.instance
-                                .addPostFrameCallback((duration) {
-                              _togglePermission(kPermissionViewAll);
-                              WidgetsBinding.instance
-                                  .addPostFrameCallback((duration) {
-                                _togglePermission(kPermissionEditAll);
-                              });
-                            });
-                          }),
-                          DataCell(
+                        DataRow(
+                          cells: [
+                            DataCell(
+                              Text(localization.all),
+                              onTap: () {
+                                _togglePermission(kPermissionCreateAll);
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  duration,
+                                ) {
+                                  _togglePermission(kPermissionViewAll);
+                                  WidgetsBinding.instance.addPostFrameCallback((
+                                    duration,
+                                  ) {
+                                    _togglePermission(kPermissionEditAll);
+                                  });
+                                });
+                              },
+                            ),
+                            DataCell(
                               _PermissionCheckbox(
                                 userCompany: userCompany,
                                 permission: kPermissionCreateAll,
@@ -318,8 +448,9 @@ class _UserEditState extends State<UserEdit>
                                     _togglePermission(kPermissionCreateAll),
                               ),
                               onTap: () =>
-                                  _togglePermission(kPermissionCreateAll)),
-                          DataCell(
+                                  _togglePermission(kPermissionCreateAll),
+                            ),
+                            DataCell(
                               _PermissionCheckbox(
                                 userCompany: userCompany,
                                 permission: kPermissionViewAll,
@@ -327,8 +458,9 @@ class _UserEditState extends State<UserEdit>
                                     _togglePermission(kPermissionViewAll),
                               ),
                               onTap: () =>
-                                  _togglePermission(kPermissionViewAll)),
-                          DataCell(
+                                  _togglePermission(kPermissionViewAll),
+                            ),
+                            DataCell(
                               _PermissionCheckbox(
                                 userCompany: userCompany,
                                 permission: kPermissionEditAll,
@@ -336,83 +468,111 @@ class _UserEditState extends State<UserEdit>
                                     _togglePermission(kPermissionEditAll),
                               ),
                               onTap: () =>
-                                  _togglePermission(kPermissionEditAll)),
-                        ]),
+                                  _togglePermission(kPermissionEditAll),
+                            ),
+                          ],
+                        ),
                         ...<EntityType>[
-                          EntityType.client,
-                          EntityType.product,
-                          EntityType.invoice,
-                          EntityType.payment,
-                          EntityType.recurringInvoice,
-                          EntityType.quote,
-                          EntityType.credit,
-                          EntityType.project,
-                          EntityType.task,
-                          EntityType.vendor,
-                          EntityType.expense,
-                        ]
-                            .where((entityType) =>
-                                state.company.isModuleEnabled(entityType))
+                              EntityType.client,
+                              EntityType.product,
+                              EntityType.invoice,
+                              EntityType.recurringInvoice,
+                              EntityType.payment,
+                              EntityType.quote,
+                              EntityType.credit,
+                              EntityType.project,
+                              EntityType.task,
+                              EntityType.vendor,
+                              EntityType.purchaseOrder,
+                              EntityType.expense,
+                              EntityType.recurringExpense,
+                              EntityType.transaction,
+                            ]
+                            .where(
+                              (entityType) =>
+                                  state.company.isModuleEnabled(entityType),
+                            )
                             .map((EntityType type) {
-                          final createPermission =
-                              'create_' + toSnakeCase('$type');
-                          final editPermission = 'edit_' + toSnakeCase('$type');
-                          final viewPermission = 'view_' + toSnakeCase('$type');
-                          return DataRow(cells: [
-                            DataCell(Text(localization.lookup('$type')),
-                                onTap: () {
-                              _togglePermission(createPermission);
-                              WidgetsBinding.instance
-                                  .addPostFrameCallback((duration) {
-                                _togglePermission(viewPermission);
-                                WidgetsBinding.instance
-                                    .addPostFrameCallback((duration) {
-                                  _togglePermission(editPermission);
-                                });
-                              });
-                            }),
-                            DataCell(
-                                _PermissionCheckbox(
-                                  userCompany: userCompany,
-                                  permission: createPermission,
-                                  onChanged: (value) =>
-                                      _togglePermission(createPermission),
-                                  checkAll: userCompany.permissions
-                                      .contains(kPermissionCreateAll),
-                                ),
-                                onTap: userCompany.permissions
-                                        .contains(kPermissionCreateAll)
-                                    ? null
-                                    : () =>
-                                        _togglePermission(createPermission)),
-                            DataCell(
-                                _PermissionCheckbox(
-                                  userCompany: userCompany,
-                                  permission: viewPermission,
-                                  onChanged: (value) =>
-                                      _togglePermission(viewPermission),
-                                  checkAll: userCompany.permissions
-                                      .contains(kPermissionViewAll),
-                                ),
-                                onTap: userCompany.permissions
-                                        .contains(kPermissionViewAll)
-                                    ? null
-                                    : () => _togglePermission(viewPermission)),
-                            DataCell(
-                                _PermissionCheckbox(
-                                  userCompany: userCompany,
-                                  permission: editPermission,
-                                  onChanged: (value) =>
-                                      _togglePermission(editPermission),
-                                  checkAll: userCompany.permissions
-                                      .contains(kPermissionEditAll),
-                                ),
-                                onTap: userCompany.permissions
-                                        .contains(kPermissionEditAll)
-                                    ? null
-                                    : () => _togglePermission(editPermission)),
-                          ]);
-                        }).toList()
+                              final createPermission =
+                                  'create_' + type.apiValue;
+                              final editPermission = 'edit_' + type.apiValue;
+                              final viewPermission = 'view_' + type.apiValue;
+                              return DataRow(
+                                cells: [
+                                  DataCell(
+                                    Text(localization.lookup('$type')),
+                                    onTap: () {
+                                      _togglePermission(createPermission);
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((duration) {
+                                            _togglePermission(viewPermission);
+                                            WidgetsBinding.instance
+                                                .addPostFrameCallback((
+                                                  duration,
+                                                ) {
+                                                  _togglePermission(
+                                                    editPermission,
+                                                  );
+                                                });
+                                          });
+                                    },
+                                  ),
+                                  DataCell(
+                                    _PermissionCheckbox(
+                                      userCompany: userCompany,
+                                      permission: createPermission,
+                                      onChanged: (value) =>
+                                          _togglePermission(createPermission),
+                                      checkAll: userCompany.permissions
+                                          .contains(kPermissionCreateAll),
+                                    ),
+                                    onTap:
+                                        userCompany.permissions.contains(
+                                          kPermissionCreateAll,
+                                        )
+                                        ? null
+                                        : () => _togglePermission(
+                                            createPermission,
+                                          ),
+                                  ),
+                                  DataCell(
+                                    _PermissionCheckbox(
+                                      userCompany: userCompany,
+                                      permission: viewPermission,
+                                      onChanged: (value) =>
+                                          _togglePermission(viewPermission),
+                                      checkAll: userCompany.permissions
+                                          .contains(kPermissionViewAll),
+                                    ),
+                                    onTap:
+                                        userCompany.permissions.contains(
+                                          kPermissionViewAll,
+                                        )
+                                        ? null
+                                        : () =>
+                                              _togglePermission(viewPermission),
+                                  ),
+                                  DataCell(
+                                    _PermissionCheckbox(
+                                      userCompany: userCompany,
+                                      permission: editPermission,
+                                      onChanged: (value) =>
+                                          _togglePermission(editPermission),
+                                      checkAll: userCompany.permissions
+                                          .contains(kPermissionEditAll),
+                                    ),
+                                    onTap:
+                                        userCompany.permissions.contains(
+                                          kPermissionEditAll,
+                                        )
+                                        ? null
+                                        : () =>
+                                              _togglePermission(editPermission),
+                                  ),
+                                ],
+                              );
+                            })
+                            .toList(),
                       ],
                     ),
                   ),
@@ -427,25 +587,23 @@ class _UserEditState extends State<UserEdit>
 
 class _PermissionCheckbox extends StatelessWidget {
   const _PermissionCheckbox({
-    @required this.userCompany,
-    @required this.permission,
-    @required this.onChanged,
+    required this.userCompany,
+    required this.permission,
+    required this.onChanged,
     this.checkAll = false,
   });
 
   final UserCompanyEntity userCompany;
   final String permission;
-  final Function(bool) onChanged;
+  final Function(bool?) onChanged;
   final bool checkAll;
 
   @override
   Widget build(BuildContext context) {
     return Checkbox(
-      value: checkAll
-          ? true
-          : (userCompany.permissions ?? '').contains(permission),
+      value: checkAll ? true : userCompany.permissions.contains(permission),
       onChanged: checkAll ? null : onChanged,
-      activeColor: Theme.of(context).accentColor,
+      activeColor: Theme.of(context).colorScheme.secondary,
     );
   }
 }

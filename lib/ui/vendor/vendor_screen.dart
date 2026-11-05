@@ -1,22 +1,24 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
-import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/vendor/vendor_actions.dart';
+import 'package:invoiceninja_flutter/ui/app/app_bottom_bar.dart';
 import 'package:invoiceninja_flutter/ui/app/list_filter.dart';
+import 'package:invoiceninja_flutter/ui/app/list_scaffold.dart';
+import 'package:invoiceninja_flutter/ui/vendor/vendor_list_vm.dart';
 import 'package:invoiceninja_flutter/ui/vendor/vendor_presenter.dart';
 import 'package:invoiceninja_flutter/ui/vendor/vendor_screen_vm.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/ui/vendor/vendor_list_vm.dart';
-import 'package:invoiceninja_flutter/redux/vendor/vendor_actions.dart';
-import 'package:invoiceninja_flutter/ui/app/app_bottom_bar.dart';
 
 class VendorScreen extends StatelessWidget {
-  const VendorScreen({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const VendorScreen({Key? key, required this.viewModel}) : super(key: key);
 
   static const String route = '/vendor';
 
@@ -41,6 +43,9 @@ class VendorScreen extends StatelessWidget {
         onFilterChanged: (value) {
           store.dispatch(FilterVendors(value));
         },
+        onSelectedState: (EntityState state, value) {
+          store.dispatch(FilterVendorsByState(state));
+        },
       ),
       onCheckboxPressed: () {
         if (store.state.vendorListState.isInMultiselect()) {
@@ -55,14 +60,22 @@ class VendorScreen extends StatelessWidget {
         tableColumns: VendorPresenter.getAllTableFields(userCompany),
         defaultTableColumns: VendorPresenter.getDefaultTableFields(userCompany),
         onSelectedSortField: (value) => store.dispatch(SortVendors(value)),
-        customValues1: company.getCustomFieldValues(CustomFieldType.vendor1,
-            excludeBlank: true),
-        customValues2: company.getCustomFieldValues(CustomFieldType.vendor2,
-            excludeBlank: true),
-        customValues3: company.getCustomFieldValues(CustomFieldType.vendor3,
-            excludeBlank: true),
-        customValues4: company.getCustomFieldValues(CustomFieldType.vendor4,
-            excludeBlank: true),
+        customValues1: company.getCustomFieldValues(
+          CustomFieldType.vendor1,
+          excludeBlank: true,
+        ),
+        customValues2: company.getCustomFieldValues(
+          CustomFieldType.vendor2,
+          excludeBlank: true,
+        ),
+        customValues3: company.getCustomFieldValues(
+          CustomFieldType.vendor3,
+          excludeBlank: true,
+        ),
+        customValues4: company.getCustomFieldValues(
+          CustomFieldType.vendor4,
+          excludeBlank: true,
+        ),
         onSelectedCustom1: (value) =>
             store.dispatch(FilterVendorsByCustom1(value)),
         onSelectedCustom2: (value) =>
@@ -87,20 +100,20 @@ class VendorScreen extends StatelessWidget {
           }
         },
       ),
-      floatingActionButton: state.prefState.isMenuFloated &&
+      floatingActionButton:
+          state.prefState.isMenuFloated &&
               userCompany.canCreate(EntityType.vendor)
           ? FloatingActionButton(
               heroTag: 'vendor_fab',
               backgroundColor: Theme.of(context).primaryColorDark,
               onPressed: () {
                 createEntityByType(
-                    context: context, entityType: EntityType.vendor);
+                  context: context,
+                  entityType: EntityType.vendor,
+                );
               },
-              child: Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-              tooltip: localization.newVendor,
+              child: Icon(Icons.add, color: Colors.white),
+              tooltip: localization!.newVendor,
             )
           : null,
     );

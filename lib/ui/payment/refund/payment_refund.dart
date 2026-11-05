@@ -1,28 +1,29 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/company_model.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/invoice_model.dart';
 import 'package:invoiceninja_flutter/data/models/payment_model.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
+import 'package:invoiceninja_flutter/ui/app/edit_scaffold.dart';
+import 'package:invoiceninja_flutter/ui/app/entity_dropdown.dart';
 import 'package:invoiceninja_flutter/ui/app/form_card.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/date_picker.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/decorated_form_field.dart';
-import 'package:invoiceninja_flutter/ui/app/edit_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/payment/refund/payment_refund_vm.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:invoiceninja_flutter/ui/app/entity_dropdown.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
 
 class PaymentRefund extends StatefulWidget {
-  const PaymentRefund({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const PaymentRefund({Key? key, required this.viewModel}) : super(key: key);
 
   final PaymentRefundVM viewModel;
 
@@ -31,8 +32,9 @@ class PaymentRefund extends StatefulWidget {
 }
 
 class _PaymentRefundState extends State<PaymentRefund> {
-  static final GlobalKey<FormState> _formKey =
-      GlobalKey<FormState>(debugLabel: '_paymentRefund');
+  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>(
+    debugLabel: '_paymentRefund',
+  );
 
   final _amountController = TextEditingController();
 
@@ -42,16 +44,17 @@ class _PaymentRefundState extends State<PaymentRefund> {
 
   @override
   void didChangeDependencies() {
-    _controllers = [
-      _amountController,
-    ];
+    _controllers = [_amountController];
 
     _controllers.forEach((controller) => controller.removeListener(_onChanged));
 
     final payment = widget.viewModel.payment;
 
-    _amountController.text = formatNumber(payment.amount, context,
-        formatNumberType: FormatNumberType.inputMoney);
+    _amountController.text = formatNumber(
+      payment.amount,
+      context,
+      formatNumberType: FormatNumberType.inputMoney,
+    )!;
     _controllers.forEach((controller) => controller.addListener(_onChanged));
 
     super.didChangeDependencies();
@@ -69,8 +72,9 @@ class _PaymentRefundState extends State<PaymentRefund> {
 
   void _onChanged() {
     _debouncer.run(() {
-      final payment = widget.viewModel.payment
-          .rebuild((b) => b..amount = parseDouble(_amountController.text));
+      final payment = widget.viewModel.payment.rebuild(
+        (b) => b..amount = parseDouble(_amountController.text),
+      );
       if (payment != widget.viewModel.payment) {
         widget.viewModel.onChanged(payment);
       }
@@ -81,11 +85,12 @@ class _PaymentRefundState extends State<PaymentRefund> {
   Widget build(BuildContext context) {
     final viewModel = widget.viewModel;
     final payment = viewModel.payment;
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
 
     final paymentables = payment.invoices.toList();
-    final needsEmpty =
-        paymentables.where((paymentable) => paymentable.isEmpty).isEmpty;
+    final needsEmpty = paymentables
+        .where((paymentable) => paymentable.isEmpty)
+        .isEmpty;
     final hasMultipleInvoices = payment.invoicePaymentables.length > 1;
     final addBlank = needsEmpty && hasMultipleInvoices;
     if (addBlank) {
@@ -93,11 +98,12 @@ class _PaymentRefundState extends State<PaymentRefund> {
     }
 
     final state = viewModel.state;
-    final companyGateway =
-        state.companyGatewayState.get(payment.companyGatewayId);
+    final companyGateway = state.companyGatewayState.get(
+      payment.companyGatewayId,
+    );
     final GatewayEntity gateway =
         state.staticState.gatewayMap[companyGateway.gatewayId] ??
-            GatewayEntity();
+        GatewayEntity();
 
     final body = Form(
       key: _formKey,
@@ -110,14 +116,18 @@ class _PaymentRefundState extends State<PaymentRefund> {
                 DecoratedFormField(
                   controller: _amountController,
                   autocorrect: false,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
                   label: localization.amount,
                 ),
               if (payment.paymentables.isNotEmpty)
                 for (var index = 0; index < paymentables.length; index++)
                   PaymentableEditor(
                     key: ValueKey(
-                        '__paymentable_${index}_${paymentables[index].id}__'),
+                      '__paymentable_${index}_${paymentables[index].id}__',
+                    ),
                     viewModel: viewModel,
                     paymentable: paymentables[index],
                     index: index,
@@ -125,12 +135,12 @@ class _PaymentRefundState extends State<PaymentRefund> {
                   ),
               DatePicker(
                 validator: (String val) => val.trim().isEmpty
-                    ? AppLocalization.of(context).pleaseSelectADate
+                    ? AppLocalization.of(context)!.pleaseSelectADate
                     : null,
                 autoValidate: autoValidate,
                 labelText: localization.refundDate,
                 selectedDate: payment.date,
-                onSelected: (date) {
+                onSelected: (date, _) {
                   viewModel.onChanged(payment.rebuild((b) => b..date = date));
                 },
               ),
@@ -139,21 +149,23 @@ class _PaymentRefundState extends State<PaymentRefund> {
           FormCard(
             children: <Widget>[
               SwitchListTile(
-                activeColor: Theme.of(context).accentColor,
+                activeThumbColor: Theme.of(context).colorScheme.secondary,
                 title: Text(localization.sendEmail),
                 value: payment.sendEmail ?? false,
                 subtitle: Text(localization.emailReceipt),
-                onChanged: (value) => viewModel
-                    .onChanged(payment.rebuild((b) => b..sendEmail = value)),
+                onChanged: (value) => viewModel.onChanged(
+                  payment.rebuild((b) => b..sendEmail = value),
+                ),
               ),
-              if (gateway.supportsRefunds)
+              if (gateway.supportsRefunds(payment.gatewayTypeId))
                 SwitchListTile(
-                  activeColor: Theme.of(context).accentColor,
+                  activeThumbColor: Theme.of(context).colorScheme.secondary,
                   title: Text(localization.gatewayRefund),
                   value: payment.gatewayRefund ?? false,
                   subtitle: Text(localization.gatewayRefundHelp),
                   onChanged: (value) => viewModel.onChanged(
-                      payment.rebuild((b) => b..gatewayRefund = value)),
+                    payment.rebuild((b) => b..gatewayRefund = value),
+                  ),
                 ),
             ],
           ),
@@ -162,7 +174,7 @@ class _PaymentRefundState extends State<PaymentRefund> {
     );
 
     void onSavePressed(BuildContext context) {
-      final bool isValid = _formKey.currentState.validate();
+      final bool isValid = _formKey.currentState!.validate();
 
       setState(() {
         autoValidate = !isValid;
@@ -174,7 +186,7 @@ class _PaymentRefundState extends State<PaymentRefund> {
 
       final Completer<PaymentEntity> completer = Completer<PaymentEntity>();
       completer.future.then((value) {
-        Navigator.of(context).pop();
+        Navigator.of(navigatorKey.currentContext!).pop();
       });
 
       viewModel.onRefundPressed(context, completer);
@@ -191,48 +203,46 @@ class _PaymentRefundState extends State<PaymentRefund> {
       );
     } else {
       return AlertDialog(
-          backgroundColor: Theme.of(context).canvasColor,
-          contentPadding: const EdgeInsets.all(0),
-          actionsPadding: const EdgeInsets.only(right: 4),
-          title: Text(localization.refundPayment),
-          content: SingleChildScrollView(
-            child: SizedBox(
-              child: body,
-              width: kDialogWidth,
+        backgroundColor: Theme.of(context).canvasColor,
+        contentPadding: const EdgeInsets.all(0),
+        actionsPadding: const EdgeInsets.only(right: 4),
+        title: Text(localization.refundPayment),
+        content: SingleChildScrollView(
+          child: SizedBox(child: body, width: kDialogWidth),
+        ),
+        actions: <Widget>[
+          if (viewModel.state.isSaving)
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: SizedBox(
+                child: CircularProgressIndicator(),
+                height: 30,
+                width: 30,
+              ),
+            )
+          else ...[
+            TextButton(
+              child: Text(localization.cancel.toUpperCase()),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-          ),
-          actions: <Widget>[
-            if (viewModel.state.isSaving)
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: SizedBox(
-                  child: CircularProgressIndicator(),
-                  height: 30,
-                  width: 30,
-                ),
-              )
-            else ...[
-              TextButton(
-                child: Text(localization.cancel.toUpperCase()),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              TextButton(
-                child: Text(localization.refund.toUpperCase()),
-                onPressed: () => onSavePressed(context),
-              ),
-            ],
-          ]);
+            TextButton(
+              child: Text(localization.refund.toUpperCase()),
+              onPressed: () => onSavePressed(context),
+            ),
+          ],
+        ],
+      );
     }
   }
 }
 
 class PaymentableEditor extends StatefulWidget {
   const PaymentableEditor({
-    Key key,
-    @required this.viewModel,
-    @required this.paymentable,
-    @required this.onChanged,
-    @required this.index,
+    Key? key,
+    required this.viewModel,
+    required this.paymentable,
+    required this.onChanged,
+    required this.index,
   }) : super(key: key);
 
   final PaymentRefundVM viewModel;
@@ -246,20 +256,21 @@ class PaymentableEditor extends StatefulWidget {
 
 class _PaymentableEditorState extends State<PaymentableEditor> {
   final _amountController = TextEditingController();
-  String _invoiceId = '';
+  String? _invoiceId = '';
   List<TextEditingController> _controllers = [];
 
   @override
   void didChangeDependencies() {
-    _controllers = [
-      _amountController,
-    ];
+    _controllers = [_amountController];
 
     _controllers.forEach((controller) => controller.removeListener(_onChanged));
 
     _invoiceId = widget.paymentable.invoiceId;
-    _amountController.text = formatNumber(widget.paymentable.amount, context,
-        formatNumberType: FormatNumberType.inputMoney);
+    _amountController.text = formatNumber(
+      widget.paymentable.amount,
+      context,
+      formatNumberType: FormatNumberType.inputMoney,
+    )!;
 
     _controllers.forEach((controller) => controller.addListener(_onChanged));
 
@@ -276,10 +287,12 @@ class _PaymentableEditorState extends State<PaymentableEditor> {
     super.dispose();
   }
 
-  void _onChanged([String clientId]) {
-    final paymentable = widget.paymentable.rebuild((b) => b
-      ..invoiceId = _invoiceId
-      ..amount = parseDouble(_amountController.text));
+  void _onChanged([String? clientId]) {
+    final paymentable = widget.paymentable.rebuild(
+      (b) => b
+        ..invoiceId = _invoiceId
+        ..amount = parseDouble(_amountController.text),
+    );
 
     if (paymentable == widget.paymentable || paymentable.isEmpty) {
       return;
@@ -288,11 +301,13 @@ class _PaymentableEditorState extends State<PaymentableEditor> {
     PaymentEntity payment;
 
     if (widget.index == widget.viewModel.payment.invoices.length) {
-      payment =
-          widget.viewModel.payment.rebuild((b) => b..invoices.add(paymentable));
+      payment = widget.viewModel.payment.rebuild(
+        (b) => b..invoices.add(paymentable),
+      );
     } else {
-      payment = widget.viewModel.payment
-          .rebuild((b) => b..invoices[widget.index] = paymentable);
+      payment = widget.viewModel.payment.rebuild(
+        (b) => b..invoices[widget.index] = paymentable,
+      );
     }
 
     if (clientId != null) {
@@ -315,18 +330,20 @@ class _PaymentableEditorState extends State<PaymentableEditor> {
       children: <Widget>[
         Expanded(
           child: EntityDropdown(
-            key: ValueKey('__invoice_${paymentable.invoiceId}__'),
             allowClearing: false,
             entityType: EntityType.invoice,
-            labelText: AppLocalization.of(context).invoice,
+            labelText: AppLocalization.of(context)!.invoice,
             entityId: paymentable.invoiceId,
             entityList: payment.paymentables
                 .map((payment) => payment.invoiceId)
                 .toList(),
             overrideSuggestedAmount: (entity) {
               final invoice = entity as InvoiceEntity;
-              return formatNumber(invoice.amount, context,
-                  clientId: invoice.clientId);
+              return formatNumber(
+                invoice.amount,
+                context,
+                clientId: invoice.clientId,
+              );
             },
             onSelected: (selected) {
               final invoice = selected as InvoiceEntity;
@@ -342,19 +359,21 @@ class _PaymentableEditorState extends State<PaymentableEditor> {
           ),
         ),
         if ((_invoiceId ?? '').isNotEmpty) ...[
-          SizedBox(
-            width: kTableColumnGap,
-          ),
+          SizedBox(width: kTableColumnGap),
           Expanded(
             child: DecoratedFormField(
               showClear: false,
               enabled: (_invoiceId ?? '').isNotEmpty,
               controller: _amountController,
               autocorrect: false,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              label: localization.amount,
+              keyboardType: TextInputType.numberWithOptions(
+                decimal: true,
+                signed: true,
+              ),
+              label: localization!.amount,
               autofocus: !hasMultipleInvoices,
-              validator: (value) => !hasMultipleInvoices &&
+              validator: (value) =>
+                  !hasMultipleInvoices &&
                       (value.trim().isEmpty || parseDouble(value) == 0)
                   ? localization.pleaseEnterAValue
                   : null,
@@ -362,20 +381,21 @@ class _PaymentableEditorState extends State<PaymentableEditor> {
           ),
         ],
         if (hasMultipleInvoices && _invoiceId != null) ...[
-          SizedBox(
-            width: kTableColumnGap,
-          ),
+          SizedBox(width: kTableColumnGap),
           IconButton(
             icon: Icon(Icons.clear),
-            tooltip: localization.remove,
+            tooltip: localization!.remove,
             onPressed: paymentable.isEmpty
                 ? null
                 : () {
-                    viewModel.onChanged(payment
-                        .rebuild((b) => b..invoices.removeAt(widget.index)));
+                    viewModel.onChanged(
+                      payment.rebuild(
+                        (b) => b..invoices.removeAt(widget.index),
+                      ),
+                    );
                   },
           ),
-        ]
+        ],
       ],
     );
   }

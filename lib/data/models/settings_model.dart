@@ -1,6 +1,10 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+import 'package:invoiceninja_flutter/constants.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 
@@ -9,74 +13,127 @@ part 'settings_model.g.dart';
 abstract class SettingsEntity
     implements Built<SettingsEntity, SettingsEntityBuilder> {
   factory SettingsEntity({
-    SettingsEntity companySettings,
-    SettingsEntity groupSettings,
-    SettingsEntity clientSettings,
+    SettingsEntity? companySettings,
+    SettingsEntity? groupSettings,
+    SettingsEntity? clientSettings,
   }) {
     return _$SettingsEntity._(
-      defaultInvoiceDesignId: clientSettings?.defaultInvoiceDesignId ??
+      defaultInvoiceDesignId:
+          clientSettings?.defaultInvoiceDesignId ??
           groupSettings?.defaultInvoiceDesignId ??
           companySettings?.defaultInvoiceDesignId,
-      defaultQuoteDesignId: clientSettings?.defaultQuoteDesignId ??
+      defaultQuoteDesignId:
+          clientSettings?.defaultQuoteDesignId ??
           groupSettings?.defaultQuoteDesignId ??
           companySettings?.defaultQuoteDesignId,
-      defaultCreditDesignId: clientSettings?.defaultCreditDesignId ??
+      defaultCreditDesignId:
+          clientSettings?.defaultCreditDesignId ??
           groupSettings?.defaultCreditDesignId ??
           companySettings?.defaultCreditDesignId,
-      defaultInvoiceTerms: clientSettings?.defaultInvoiceTerms ??
+      defaultPurchaseOrderDesignId:
+          clientSettings?.defaultPurchaseOrderDesignId ??
+          groupSettings?.defaultPurchaseOrderDesignId ??
+          companySettings?.defaultPurchaseOrderDesignId,
+      defaultStatementDesignId:
+          clientSettings?.defaultStatementDesignId ??
+          groupSettings?.defaultStatementDesignId ??
+          companySettings?.defaultStatementDesignId,
+      defaultDeliveryNoteDesignId:
+          clientSettings?.defaultDeliveryNoteDesignId ??
+          groupSettings?.defaultDeliveryNoteDesignId ??
+          companySettings?.defaultDeliveryNoteDesignId,
+      defaultPaymentReceiptDesignId:
+          clientSettings?.defaultPaymentReceiptDesignId ??
+          groupSettings?.defaultPaymentReceiptDesignId ??
+          companySettings?.defaultPaymentReceiptDesignId,
+      defaultPaymentRefundDesignId:
+          clientSettings?.defaultPaymentRefundDesignId ??
+          groupSettings?.defaultPaymentRefundDesignId ??
+          companySettings?.defaultPaymentRefundDesignId,
+      defaultInvoiceTerms:
+          clientSettings?.defaultInvoiceTerms ??
           groupSettings?.defaultInvoiceTerms ??
           companySettings?.defaultInvoiceTerms,
-      defaultInvoiceFooter: clientSettings?.defaultInvoiceFooter ??
+      defaultInvoiceFooter:
+          clientSettings?.defaultInvoiceFooter ??
           groupSettings?.defaultInvoiceFooter ??
           companySettings?.defaultInvoiceFooter,
-      defaultQuoteTerms: clientSettings?.defaultQuoteTerms ??
+      defaultQuoteTerms:
+          clientSettings?.defaultQuoteTerms ??
           groupSettings?.defaultQuoteTerms ??
           companySettings?.defaultQuoteTerms,
-      defaultQuoteFooter: clientSettings?.defaultQuoteFooter ??
+      defaultQuoteFooter:
+          clientSettings?.defaultQuoteFooter ??
           groupSettings?.defaultQuoteFooter ??
           companySettings?.defaultQuoteFooter,
-      defaultCreditTerms: clientSettings?.defaultCreditTerms ??
+      defaultCreditTerms:
+          clientSettings?.defaultCreditTerms ??
           groupSettings?.defaultCreditTerms ??
           companySettings?.defaultCreditTerms,
-      defaultCreditFooter: clientSettings?.defaultCreditFooter ??
+      defaultCreditFooter:
+          clientSettings?.defaultCreditFooter ??
           groupSettings?.defaultCreditFooter ??
           companySettings?.defaultCreditFooter,
-      lockInvoices: clientSettings?.lockInvoices ??
+      lockInvoices:
+          clientSettings?.lockInvoices ??
           groupSettings?.lockInvoices ??
           companySettings?.lockInvoices,
-      emailSubjectCustom1: clientSettings?.emailSubjectCustom1 ??
+      emailSubjectCustom1:
+          clientSettings?.emailSubjectCustom1 ??
           groupSettings?.emailSubjectCustom1 ??
           companySettings?.emailSubjectCustom1,
-      emailSubjectCustom2: clientSettings?.emailSubjectCustom2 ??
+      emailSubjectCustom2:
+          clientSettings?.emailSubjectCustom2 ??
           groupSettings?.emailSubjectCustom2 ??
           companySettings?.emailSubjectCustom2,
-      emailSubjectCustom3: clientSettings?.emailSubjectCustom3 ??
+      emailSubjectCustom3:
+          clientSettings?.emailSubjectCustom3 ??
           groupSettings?.emailSubjectCustom3 ??
           companySettings?.emailSubjectCustom3,
-      defaultPaymentTerms: clientSettings?.defaultPaymentTerms ??
+      defaultPaymentTerms:
+          clientSettings?.defaultPaymentTerms ??
           groupSettings?.defaultPaymentTerms ??
           companySettings?.defaultPaymentTerms,
-      defaultValidUntil: clientSettings?.defaultValidUntil ??
+      defaultValidUntil:
+          clientSettings?.defaultValidUntil ??
           groupSettings?.defaultValidUntil ??
           companySettings?.defaultValidUntil,
-      defaultTaxRate1: clientSettings?.defaultTaxRate1 ??
+      defaultTaxRate1:
+          clientSettings?.defaultTaxRate1 ??
           groupSettings?.defaultTaxRate1 ??
           companySettings?.defaultTaxRate1,
-      defaultTaxName1: clientSettings?.defaultTaxName1 ??
+      defaultTaxName1:
+          clientSettings?.defaultTaxName1 ??
           groupSettings?.defaultTaxName1 ??
           companySettings?.defaultTaxName1,
-      defaultTaxRate2: clientSettings?.defaultTaxRate2 ??
+      defaultTaxRate2:
+          clientSettings?.defaultTaxRate2 ??
           groupSettings?.defaultTaxRate2 ??
           companySettings?.defaultTaxRate2,
-      defaultTaxName2: clientSettings?.defaultTaxName2 ??
+      defaultTaxName2:
+          clientSettings?.defaultTaxName2 ??
           groupSettings?.defaultTaxName2 ??
           companySettings?.defaultTaxName2,
-      defaultTaxRate3: clientSettings?.defaultTaxRate3 ??
+      defaultTaxRate3:
+          clientSettings?.defaultTaxRate3 ??
           groupSettings?.defaultTaxRate3 ??
           companySettings?.defaultTaxRate3,
-      defaultTaxName3: clientSettings?.defaultTaxName3 ??
+      defaultTaxName3:
+          clientSettings?.defaultTaxName3 ??
           groupSettings?.defaultTaxName3 ??
           companySettings?.defaultTaxName3,
+      clientManualPaymentNotification:
+          clientSettings?.clientManualPaymentNotification ??
+          groupSettings?.clientManualPaymentNotification ??
+          companySettings?.clientManualPaymentNotification,
+      defaultPaymentTypeId:
+          clientSettings?.defaultPaymentTypeId ??
+          groupSettings?.defaultPaymentTypeId ??
+          companySettings?.defaultPaymentTypeId,
+      autoBillStandardInvoices:
+          clientSettings?.autoBillStandardInvoices ??
+          groupSettings?.autoBillStandardInvoices ??
+          companySettings?.autoBillStandardInvoices,
     );
   }
 
@@ -86,17 +143,30 @@ abstract class SettingsEntity
   @memoized
   int get hashCode;
 
-  static const EMAIL_SENDING_METHOD_DEFAULT = 'default';
+  static const PAGE_NUMBER_ALIGN_LEFT = 'L';
+  static const PAGE_NUMBER_ALIGN_RIGHT = 'R';
+  static const PAGE_NUMBER_ALIGN_CENTER = 'C';
+
+  static const EMAIL_SENDING_METHOD_POSTMARK_HOSTED = 'default';
+  static const EMAIL_SENDING_METHOD_MAILGUN_HOSTED = 'mailgun';
+  static const EMAIL_SENDING_METHOD_SES_HOSTED = 'ses';
   static const EMAIL_SENDING_METHOD_GMAIL = 'gmail';
+  static const EMAIL_SENDING_METHOD_MICROSOFT = 'office365';
+  static const EMAIL_SENDING_METHOD_POSTMARK = 'client_postmark';
+  static const EMAIL_SENDING_METHOD_MAILGUN = 'client_mailgun';
+  static const EMAIL_SENDING_METHOD_BREVO = 'client_brevo';
+  static const EMAIL_SENDING_METHOD_SMTP = 'smtp';
+  static const EMAIL_SENDING_METHOD_SES = 'client_ses';
 
   static const LOCK_INVOICES_OFF = 'off';
-  static const LOCK_INVOICES_SENT = 'when_sent';
-  static const LOCK_INVOICES_PAID = 'when_paid';
+  static const LOCK_INVOICES_WHEN_SENT = 'when_sent';
+  static const LOCK_INVOICES_WHEN_PAID = 'when_paid';
+  static const LOCK_INVOICES_END_OF_MONTH = 'end_of_month';
 
-  static const AUTO_BILL_OFF = 'off';
+  static const AUTO_BILL_ALWAYS = 'always';
   static const AUTO_BILL_OPT_IN = 'optin';
   static const AUTO_BILL_OPT_OUT = 'optout';
-  static const AUTO_BILL_ALWAYS = 'always';
+  static const AUTO_BILL_OFF = 'off';
 
   static const AUTO_BILL_ON_SEND_DATE = 'on_send_date';
   static const AUTO_BILL_ON_DUE_DATE = 'on_due_date';
@@ -105,759 +175,813 @@ abstract class SettingsEntity
   static const PORTAL_TASKS_INVOICED = 'invoiced';
   static const PORTAL_TASKS_UNINVOICED = 'uninvoiced';
 
-  @nullable
+  static const EMAIL_ALIGNMENT_CENTER = 'center';
+  static const EMAIL_ALIGNMENT_LEFT = 'left';
+  static const EMAIL_ALIGNMENT_RIGHT = 'right';
+
+  static const MAILGUN_ENDPOINT_US = 'api.mailgun.net';
+  static const MAILGUN_ENDPOINT_EU = 'api.eu.mailgun.net';
+
+  static const PAYMENT_FLOW_DEFAULT = 'default';
+  static const PAYMENT_FLOW_SMOOTH = 'smooth';
+
   @BuiltValueField(wireName: 'timezone_id')
-  String get timezoneId;
+  String? get timezoneId;
 
-  @nullable
   @BuiltValueField(wireName: 'date_format_id')
-  String get dateFormatId;
+  String? get dateFormatId;
 
-  @nullable
   @BuiltValueField(wireName: 'military_time')
-  bool get enableMilitaryTime;
+  bool? get enableMilitaryTime;
 
-  @nullable
   @BuiltValueField(wireName: 'language_id')
-  String get languageId;
+  String? get languageId;
 
-  @nullable
   @BuiltValueField(wireName: 'show_currency_code')
-  bool get showCurrencyCode;
+  bool? get showCurrencyCode;
 
-  @nullable
   @BuiltValueField(wireName: 'currency_id')
-  String get currencyId;
+  String? get currencyId;
 
-  @nullable
   @BuiltValueField(wireName: 'custom_value1')
-  String get customValue1;
+  String? get customValue1;
 
-  @nullable
   @BuiltValueField(wireName: 'custom_value2')
-  String get customValue2;
+  String? get customValue2;
 
-  @nullable
   @BuiltValueField(wireName: 'custom_value3')
-  String get customValue3;
+  String? get customValue3;
 
-  @nullable
   @BuiltValueField(wireName: 'custom_value4')
-  String get customValue4;
+  String? get customValue4;
 
-  @nullable
   @BuiltValueField(wireName: 'payment_terms')
-  String get defaultPaymentTerms;
+  String? get defaultPaymentTerms;
 
-  @nullable
   @BuiltValueField(wireName: 'valid_until')
-  String get defaultValidUntil;
+  String? get defaultValidUntil;
 
-  @nullable
   @BuiltValueField(wireName: 'company_gateway_ids')
-  String get companyGatewayIds;
+  String? get companyGatewayIds;
 
-  @nullable
   @BuiltValueField(wireName: 'default_task_rate')
-  double get defaultTaskRate;
+  double? get defaultTaskRate;
 
-  @nullable
   @BuiltValueField(wireName: 'send_reminders')
-  bool get sendReminders;
+  bool? get sendReminders;
 
-  @nullable
   @BuiltValueField(wireName: 'enable_client_portal')
-  bool get enablePortal;
+  bool? get enablePortal;
 
-  @nullable
   @BuiltValueField(wireName: 'enable_client_portal_dashboard')
-  bool get enablePortalDashboard;
+  bool? get enablePortalDashboard;
 
-  @nullable
   @BuiltValueField(wireName: 'enable_client_portal_tasks')
-  bool get enablePortalTasks;
+  bool? get enablePortalTasks;
 
-  @nullable
   @BuiltValueField(wireName: 'client_portal_enable_uploads')
-  bool get enablePortalUploads;
+  bool? get enableClientPortalUploads;
 
-  @nullable
+  @BuiltValueField(wireName: 'vendor_portal_enable_uploads')
+  bool? get enableVendorPortalUploads;
+
   @BuiltValueField(wireName: 'email_style')
-  String get emailStyle;
+  String? get emailStyle;
 
-  @nullable
   @BuiltValueField(wireName: 'reply_to_email')
-  String get replyToEmail;
+  String? get replyToEmail;
 
-  @nullable
   @BuiltValueField(wireName: 'reply_to_name')
-  String get replyToName;
+  String? get replyToName;
 
-  @nullable
   @BuiltValueField(wireName: 'email_from_name')
-  String get emailFromName;
+  String? get emailFromName;
 
-  @nullable
   @BuiltValueField(wireName: 'bcc_email')
-  String get bccEmail;
+  String? get bccEmail;
 
-  @nullable
   @BuiltValueField(wireName: 'pdf_email_attachment')
-  bool get pdfEmailAttachment;
+  bool? get pdfEmailAttachment;
 
-  @nullable
   @BuiltValueField(wireName: 'ubl_email_attachment')
-  bool get ublEmailAttachment;
+  bool? get ublEmailAttachment;
 
-  @nullable
   @BuiltValueField(wireName: 'document_email_attachment')
-  bool get documentEmailAttachment;
+  bool? get documentEmailAttachment;
 
-  @nullable
   @BuiltValueField(wireName: 'email_style_custom')
-  String get emailStyleCustom;
+  String? get emailStyleCustom;
 
-  @nullable
   @BuiltValueField(wireName: 'custom_message_dashboard')
-  String get customMessageDashboard;
+  String? get customMessageDashboard;
 
-  @nullable
   @BuiltValueField(wireName: 'custom_message_unpaid_invoice')
-  String get customMessageUnpaidInvoice;
+  String? get customMessageUnpaidInvoice;
 
-  @nullable
   @BuiltValueField(wireName: 'custom_message_paid_invoice')
-  String get customMessagePaidInvoice;
+  String? get customMessagePaidInvoice;
 
-  @nullable
   @BuiltValueField(wireName: 'custom_message_unapproved_quote')
-  String get customMessageUnapprovedQuote;
+  String? get customMessageUnapprovedQuote;
 
-  @nullable
   @BuiltValueField(wireName: 'auto_archive_invoice')
-  bool get autoArchiveInvoice;
+  bool? get autoArchiveInvoice;
 
-  @nullable
+  @BuiltValueField(wireName: 'auto_archive_invoice_cancelled')
+  bool? get autoArchiveInvoiceCancelled;
+
   @BuiltValueField(wireName: 'auto_archive_quote')
-  bool get autoArchiveQuote;
+  bool? get autoArchiveQuote;
 
-  @nullable
   @BuiltValueField(wireName: 'auto_email_invoice')
-  bool get autoEmailInvoice;
+  bool? get autoEmailInvoice;
 
-  @nullable
   @BuiltValueField(wireName: 'auto_convert_quote')
-  bool get autoConvertQuote;
+  bool? get autoConvertQuote;
 
-  @nullable
   @BuiltValueField(wireName: 'inclusive_taxes')
-  bool get enableInclusiveTaxes;
+  bool? get enableInclusiveTaxes;
 
-  @nullable
-  BuiltMap<String, String> get translations;
+  BuiltMap<String?, String>? get translations;
 
-  @nullable
   @BuiltValueField(wireName: 'task_number_pattern')
-  String get taskNumberPattern;
+  String? get taskNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'task_number_counter')
-  int get taskNumberCounter;
+  int? get taskNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'expense_number_pattern')
-  String get expenseNumberPattern;
+  String? get expenseNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'expense_number_counter')
-  int get expenseNumberCounter;
+  int? get expenseNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'recurring_expense_number_pattern')
-  String get recurringExpenseNumberPattern;
+  String? get recurringExpenseNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'recurring_expense_number_counter')
-  int get recurringExpenseNumberCounter;
+  int? get recurringExpenseNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'vendor_number_pattern')
-  String get vendorNumberPattern;
+  String? get vendorNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'vendor_number_counter')
-  int get vendorNumberCounter;
+  int? get vendorNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'ticket_number_pattern')
-  String get ticketNumberPattern;
+  String? get ticketNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'ticket_number_counter')
-  int get ticketNumberCounter;
+  int? get ticketNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'payment_number_pattern')
-  String get paymentNumberPattern;
+  String? get paymentNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'payment_number_counter')
-  int get paymentNumberCounter;
+  int? get paymentNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'project_number_pattern')
-  String get projectNumberPattern;
+  String? get projectNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'project_number_counter')
-  int get projectNumberCounter;
+  int? get projectNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'invoice_number_pattern')
-  String get invoiceNumberPattern;
+  String? get invoiceNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'invoice_number_counter')
-  int get invoiceNumberCounter;
+  int? get invoiceNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'recurring_invoice_number_pattern')
-  String get recurringInvoiceNumberPattern;
+  String? get recurringInvoiceNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'recurring_invoice_number_counter')
-  int get recurringInvoiceNumberCounter;
+  int? get recurringInvoiceNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'quote_number_pattern')
-  String get quoteNumberPattern;
+  String? get quoteNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'quote_number_counter')
-  int get quoteNumberCounter;
+  int? get quoteNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'client_number_pattern')
-  String get clientNumberPattern;
+  String? get clientNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'client_number_counter')
-  int get clientNumberCounter;
+  int? get clientNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'credit_number_pattern')
-  String get creditNumberPattern;
+  String? get creditNumberPattern;
 
-  @nullable
   @BuiltValueField(wireName: 'credit_number_counter')
-  int get creditNumberCounter;
+  int? get creditNumberCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'recurring_number_prefix')
-  String get recurringNumberPrefix;
+  String? get recurringNumberPrefix;
 
-  @nullable
   @BuiltValueField(wireName: 'reset_counter_frequency_id')
-  String get resetCounterFrequencyId;
+  String? get resetCounterFrequencyId;
 
-  @nullable
   @BuiltValueField(wireName: 'reset_counter_date')
-  String get resetCounterDate;
+  String? get resetCounterDate;
 
-  @nullable
   @BuiltValueField(wireName: 'counter_padding')
-  int get counterPadding;
+  int? get counterPadding;
 
-  @nullable
   @BuiltValueField(wireName: 'shared_invoice_quote_counter')
-  bool get sharedInvoiceQuoteCounter;
+  bool? get sharedInvoiceQuoteCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'shared_invoice_credit_counter')
-  bool get sharedInvoiceCreditCounter;
+  bool? get sharedInvoiceCreditCounter;
 
-  @nullable
   @BuiltValueField(wireName: 'invoice_terms')
-  String get defaultInvoiceTerms;
+  String? get defaultInvoiceTerms;
 
-  @nullable
   @BuiltValueField(wireName: 'quote_terms')
-  String get defaultQuoteTerms;
+  String? get defaultQuoteTerms;
 
-  @nullable
   @BuiltValueField(wireName: 'quote_footer')
-  String get defaultQuoteFooter;
+  String? get defaultQuoteFooter;
 
-  @nullable
   @BuiltValueField(wireName: 'credit_terms')
-  String get defaultCreditTerms;
+  String? get defaultCreditTerms;
 
-  @nullable
   @BuiltValueField(wireName: 'credit_footer')
-  String get defaultCreditFooter;
+  String? get defaultCreditFooter;
 
-  @nullable
   @BuiltValueField(wireName: 'invoice_design_id')
-  String get defaultInvoiceDesignId;
+  String? get defaultInvoiceDesignId;
 
-  @nullable
   @BuiltValueField(wireName: 'quote_design_id')
-  String get defaultQuoteDesignId;
+  String? get defaultQuoteDesignId;
 
-  @nullable
   @BuiltValueField(wireName: 'credit_design_id')
-  String get defaultCreditDesignId;
+  String? get defaultCreditDesignId;
 
-  @nullable
+  @BuiltValueField(wireName: 'delivery_note_design_id')
+  String? get defaultDeliveryNoteDesignId;
+
+  @BuiltValueField(wireName: 'statement_design_id')
+  String? get defaultStatementDesignId;
+
+  @BuiltValueField(wireName: 'payment_receipt_design_id')
+  String? get defaultPaymentReceiptDesignId;
+
+  @BuiltValueField(wireName: 'payment_refund_design_id')
+  String? get defaultPaymentRefundDesignId;
+
   @BuiltValueField(wireName: 'invoice_footer')
-  String get defaultInvoiceFooter;
+  String? get defaultInvoiceFooter;
 
-  @nullable
   @BuiltValueField(wireName: 'tax_name1')
-  String get defaultTaxName1;
+  String? get defaultTaxName1;
 
-  @nullable
   @BuiltValueField(wireName: 'tax_rate1')
-  double get defaultTaxRate1;
+  double? get defaultTaxRate1;
 
-  @nullable
   @BuiltValueField(wireName: 'tax_name2')
-  String get defaultTaxName2;
+  String? get defaultTaxName2;
 
-  @nullable
   @BuiltValueField(wireName: 'tax_rate2')
-  double get defaultTaxRate2;
+  double? get defaultTaxRate2;
 
-  @nullable
   @BuiltValueField(wireName: 'tax_name3')
-  String get defaultTaxName3;
+  String? get defaultTaxName3;
 
-  @nullable
   @BuiltValueField(wireName: 'tax_rate3')
-  double get defaultTaxRate3;
+  double? get defaultTaxRate3;
 
-  @nullable
   @BuiltValueField(wireName: 'payment_type_id')
-  String get defaultPaymentTypeId;
+  String? get defaultPaymentTypeId;
 
-  @nullable
   @BuiltValueField(wireName: 'pdf_variables')
-  BuiltMap<String, BuiltList<String>> get pdfVariables;
+  BuiltMap<String, BuiltList<String>>? get pdfVariables;
 
-  @nullable
   @BuiltValueField(wireName: 'email_signature')
-  String get emailSignature;
+  String? get emailSignature;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_invoice')
-  String get emailSubjectInvoice;
+  String? get emailSubjectInvoice;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_quote')
-  String get emailSubjectQuote;
+  String? get emailSubjectQuote;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_credit')
-  String get emailSubjectCredit;
+  String? get emailSubjectCredit;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_payment')
-  String get emailSubjectPayment;
+  String? get emailSubjectPayment;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_payment_partial')
-  String get emailSubjectPaymentPartial;
+  String? get emailSubjectPaymentPartial;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_invoice')
-  String get emailBodyInvoice;
+  String? get emailBodyInvoice;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_quote')
-  String get emailBodyQuote;
+  String? get emailBodyQuote;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_credit')
-  String get emailBodyCredit;
+  String? get emailBodyCredit;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_payment')
-  String get emailBodyPayment;
+  String? get emailBodyPayment;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_payment_partial')
-  String get emailBodyPaymentPartial;
+  String? get emailBodyPaymentPartial;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_reminder1')
-  String get emailSubjectReminder1;
+  String? get emailSubjectReminder1;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_reminder2')
-  String get emailSubjectReminder2;
+  String? get emailSubjectReminder2;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_reminder3')
-  String get emailSubjectReminder3;
+  String? get emailSubjectReminder3;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_reminder1')
-  String get emailBodyReminder1;
+  String? get emailBodyReminder1;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_reminder2')
-  String get emailBodyReminder2;
+  String? get emailBodyReminder2;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_reminder3')
-  String get emailBodyReminder3;
+  String? get emailBodyReminder3;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_custom1')
-  String get emailSubjectCustom1;
+  String? get emailSubjectCustom1;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_custom1')
-  String get emailBodyCustom1;
+  String? get emailBodyCustom1;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_custom2')
-  String get emailSubjectCustom2;
+  String? get emailSubjectCustom2;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_custom2')
-  String get emailBodyCustom2;
+  String? get emailBodyCustom2;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_custom3')
-  String get emailSubjectCustom3;
+  String? get emailSubjectCustom3;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_custom3')
-  String get emailBodyCustom3;
+  String? get emailBodyCustom3;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_statement')
-  String get emailSubjectStatement;
+  String? get emailSubjectStatement;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_statement')
-  String get emailBodyStatement;
+  String? get emailBodyStatement;
 
-  @nullable
+  @BuiltValueField(wireName: 'email_subject_purchase_order')
+  String? get emailSubjectPurchaseOrder;
+
+  @BuiltValueField(wireName: 'email_template_purchase_order')
+  String? get emailBodyPurchaseOrder;
+
   @BuiltValueField(wireName: 'enable_client_portal_password')
-  bool get enablePortalPassword;
+  bool? get enablePortalPassword;
 
-  @nullable
   @BuiltValueField(wireName: 'signature_on_pdf')
-  bool get signatureOnPdf;
+  bool? get signatureOnPdf;
 
-  @nullable
   @BuiltValueField(wireName: 'enable_email_markup')
-  bool get enableEmailMarkup;
+  bool? get enableEmailMarkup;
 
-  @nullable
   @BuiltValueField(wireName: 'show_accept_invoice_terms')
-  bool get showAcceptInvoiceTerms;
+  bool? get showAcceptInvoiceTerms;
 
-  @nullable
   @BuiltValueField(wireName: 'show_accept_quote_terms')
-  bool get showAcceptQuoteTerms;
+  bool? get showAcceptQuoteTerms;
 
-  @nullable
   @BuiltValueField(wireName: 'require_invoice_signature')
-  bool get requireInvoiceSignature;
+  bool? get requireInvoiceSignature;
 
-  @nullable
   @BuiltValueField(wireName: 'require_quote_signature')
-  bool get requireQuoteSignature;
+  bool? get requireQuoteSignature;
 
-  @nullable
-  String get name;
+  String? get name;
 
-  @nullable
   @BuiltValueField(wireName: 'company_logo')
-  String get companyLogo;
+  String? get companyLogo;
 
-  @nullable
   @BuiltValueField(wireName: 'website')
-  String get website;
+  String? get website;
 
-  @nullable
-  String get address1;
+  String? get address1;
 
-  @nullable
-  String get address2;
+  String? get address2;
 
-  @nullable
-  String get city;
+  String? get city;
 
-  @nullable
-  String get state;
+  String? get state;
 
-  @nullable
   @BuiltValueField(wireName: 'postal_code')
-  String get postalCode;
+  String? get postalCode;
 
-  @nullable
-  String get phone;
+  String? get phone;
 
-  @nullable
-  String get email;
+  String? get email;
 
-  @nullable
   @BuiltValueField(wireName: 'country_id')
-  String get countryId;
+  String? get countryId;
 
-  @nullable
   @BuiltValueField(wireName: 'vat_number')
-  String get vatNumber;
+  String? get vatNumber;
 
-  @nullable
   @BuiltValueField(wireName: 'id_number')
-  String get idNumber;
+  String? get idNumber;
 
-  @nullable
   @BuiltValueField(wireName: 'page_size')
-  String get pageSize;
+  String? get pageSize;
 
-  @nullable
   @BuiltValueField(wireName: 'page_layout')
-  String get pageLayout;
+  String? get pageLayout;
 
-  @nullable
   @BuiltValueField(wireName: 'font_size')
-  int get fontSize;
+  int? get fontSize;
 
-  @nullable
   @BuiltValueField(wireName: 'primary_color')
-  String get primaryColor;
+  String? get primaryColor;
 
-  @nullable
   @BuiltValueField(wireName: 'secondary_color')
-  String get secondaryColor;
+  String? get secondaryColor;
 
-  @nullable
   @BuiltValueField(wireName: 'primary_font')
-  String get primaryFont;
+  String? get primaryFont;
 
-  @nullable
   @BuiltValueField(wireName: 'secondary_font')
-  String get secondaryFont;
+  String? get secondaryFont;
 
-  @nullable
   @BuiltValueField(wireName: 'hide_paid_to_date')
-  bool get hidePaidToDate;
+  bool? get hidePaidToDate;
 
-  @nullable
   @BuiltValueField(wireName: 'embed_documents')
-  bool get embedDocuments;
+  bool? get embedDocuments;
 
-  @nullable
   @BuiltValueField(wireName: 'all_pages_header')
-  bool get allPagesHeader;
+  bool? get allPagesHeader;
 
-  @nullable
   @BuiltValueField(wireName: 'all_pages_footer')
-  bool get allPagesFooter;
+  bool? get allPagesFooter;
 
-  @nullable
   @BuiltValueField(wireName: 'enable_reminder1')
-  bool get enableReminder1;
+  bool? get enableReminder1;
 
-  @nullable
   @BuiltValueField(wireName: 'enable_reminder2')
-  bool get enableReminder2;
+  bool? get enableReminder2;
 
-  @nullable
   @BuiltValueField(wireName: 'enable_reminder3')
-  bool get enableReminder3;
+  bool? get enableReminder3;
 
-  @nullable
   @BuiltValueField(wireName: 'enable_reminder_endless')
-  bool get enableReminderEndless;
+  bool? get enableReminderEndless;
 
-  @nullable
   @BuiltValueField(wireName: 'num_days_reminder1')
-  int get numDaysReminder1;
+  int? get numDaysReminder1;
 
-  @nullable
   @BuiltValueField(wireName: 'num_days_reminder2')
-  int get numDaysReminder2;
+  int? get numDaysReminder2;
 
-  @nullable
   @BuiltValueField(wireName: 'num_days_reminder3')
-  int get numDaysReminder3;
+  int? get numDaysReminder3;
 
-  @nullable
   @BuiltValueField(wireName: 'schedule_reminder1')
-  String get scheduleReminder1;
+  String? get scheduleReminder1;
 
-  @nullable
   @BuiltValueField(wireName: 'schedule_reminder2')
-  String get scheduleReminder2;
+  String? get scheduleReminder2;
 
-  @nullable
   @BuiltValueField(wireName: 'schedule_reminder3')
-  String get scheduleReminder3;
+  String? get scheduleReminder3;
 
-  @nullable
   @BuiltValueField(wireName: 'endless_reminder_frequency_id')
-  String get endlessReminderFrequencyId;
+  String? get endlessReminderFrequencyId;
 
-  @nullable
   @BuiltValueField(wireName: 'late_fee_amount1')
-  double get lateFeeAmount1;
+  double? get lateFeeAmount1;
 
-  @nullable
   @BuiltValueField(wireName: 'late_fee_amount2')
-  double get lateFeeAmount2;
+  double? get lateFeeAmount2;
 
-  @nullable
   @BuiltValueField(wireName: 'late_fee_amount3')
-  double get lateFeeAmount3;
+  double? get lateFeeAmount3;
 
-  @nullable
   @BuiltValueField(wireName: 'late_fee_endless_amount')
-  double get lateFeeAmountEndless;
+  double? get lateFeeAmountEndless;
 
-  @nullable
   @BuiltValueField(wireName: 'late_fee_percent1')
-  double get lateFeePercent1;
+  double? get lateFeePercent1;
 
-  @nullable
   @BuiltValueField(wireName: 'late_fee_percent2')
-  double get lateFeePercent2;
+  double? get lateFeePercent2;
 
-  @nullable
   @BuiltValueField(wireName: 'late_fee_percent3')
-  double get lateFeePercent3;
+  double? get lateFeePercent3;
 
-  @nullable
   @BuiltValueField(wireName: 'late_fee_endless_percent')
-  double get lateFeePercentEndless;
+  double? get lateFeePercentEndless;
 
-  @nullable
   @BuiltValueField(wireName: 'email_subject_reminder_endless')
-  String get emailSubjectReminderEndless;
+  String? get emailSubjectReminderEndless;
 
-  @nullable
   @BuiltValueField(wireName: 'email_template_reminder_endless')
-  String get emailBodyReminderEndless;
+  String? get emailBodyReminderEndless;
 
-  @nullable
   @BuiltValueField(wireName: 'client_online_payment_notification')
-  bool get clientOnlinePaymentNotification;
+  bool? get clientOnlinePaymentNotification;
 
-  @nullable
   @BuiltValueField(wireName: 'client_manual_payment_notification')
-  bool get clientManualPaymentNotification;
+  bool? get clientManualPaymentNotification;
 
-  @nullable
+  @BuiltValueField(wireName: 'send_email_on_mark_paid')
+  bool? get clientMarkPaidPaymentNotification;
+
   @BuiltValueField(wireName: 'counter_number_applied')
-  String get counterNumberApplied;
+  String? get counterNumberApplied;
 
-  @nullable
   @BuiltValueField(wireName: 'email_sending_method')
-  String get emailSendingMethod;
+  String? get emailSendingMethod;
 
-  @nullable
   @BuiltValueField(wireName: 'gmail_sending_user_id')
-  String get gmailSendingUserId;
+  String? get gmailSendingUserId;
 
-  @nullable
   @BuiltValueField(wireName: 'client_portal_terms')
-  String get clientPortalTerms;
+  String? get clientPortalTerms;
 
-  @nullable
   @BuiltValueField(wireName: 'client_portal_privacy_policy')
-  String get clientPortalPrivacy;
+  String? get clientPortalPrivacy;
 
-  @nullable
   @BuiltValueField(wireName: 'lock_invoices')
-  String get lockInvoices;
+  String? get lockInvoices;
 
-  @nullable
   @BuiltValueField(wireName: 'auto_bill')
-  String get autoBill;
+  String? get autoBill;
 
-  @nullable
+  @BuiltValueField(wireName: 'auto_bill_standard_invoices')
+  bool? get autoBillStandardInvoices;
+
   @BuiltValueField(wireName: 'client_portal_allow_under_payment')
-  bool get clientPortalAllowUnderPayment;
+  bool? get clientPortalAllowUnderPayment;
 
-  @nullable
   @BuiltValueField(wireName: 'client_portal_allow_over_payment')
-  bool get clientPortalAllowOverPayment;
+  bool? get clientPortalAllowOverPayment;
 
-  @nullable
   @BuiltValueField(wireName: 'auto_bill_date')
-  String get autoBillDate;
+  String? get autoBillDate;
 
-  @nullable
   @BuiltValueField(wireName: 'client_portal_under_payment_minimum')
-  double get clientPortalUnderPaymentMinimum;
+  double? get clientPortalUnderPaymentMinimum;
 
-  @nullable
   @BuiltValueField(wireName: 'use_credits_payment')
-  String get useCreditsPayment;
+  String? get useCreditsPayment;
 
-  @nullable
   @BuiltValueField(wireName: 'portal_custom_head')
-  String get clientPortalCustomHeader;
+  String? get clientPortalCustomHeader;
 
-  @nullable
   @BuiltValueField(wireName: 'portal_custom_css')
-  String get clientPortalCustomCss;
+  String? get clientPortalCustomCss;
 
-  @nullable
   @BuiltValueField(wireName: 'portal_custom_footer')
-  String get clientPortalCustomFooter;
+  String? get clientPortalCustomFooter;
 
-  @nullable
   @BuiltValueField(wireName: 'portal_custom_js')
-  String get clientPortalCustomJs;
+  String? get clientPortalCustomJs;
 
-  @nullable
   @BuiltValueField(wireName: 'hide_empty_columns_on_pdf')
-  bool get hideEmptyColumnsOnPdf;
+  bool? get hideEmptyColumnsOnPdf;
 
-  @nullable
   @BuiltValueField(wireName: 'entity_send_time')
-  int get entitySendTime;
+  int? get entitySendTime;
 
-  @nullable
   @BuiltValueField(wireName: 'show_all_tasks_client_portal')
-  String get clientPortalTasks;
+  String? get clientPortalTasks;
 
-  bool get hasAddress => address1 != null && address1.isNotEmpty;
+  @BuiltValueField(wireName: 'page_numbering')
+  bool? get pageNumbering;
 
-  bool get hasLogo => companyLogo != null && companyLogo.isNotEmpty;
+  @BuiltValueField(wireName: 'page_numbering_alignment')
+  String? get pageNumberingAlignment;
 
-  bool get hasTimezone => timezoneId != null && timezoneId.isNotEmpty;
+  @BuiltValueField(wireName: 'require_purchase_order_signature')
+  bool? get requirePurchaseOrderSignature;
 
-  bool get hasDateFormat => dateFormatId != null && dateFormatId.isNotEmpty;
+  @BuiltValueField(wireName: 'purchase_order_terms')
+  String? get defaultPurchaseOrderTerms;
 
-  bool get hasLanguage => languageId != null && languageId.isNotEmpty;
+  @BuiltValueField(wireName: 'purchase_order_design_id')
+  String? get defaultPurchaseOrderDesignId;
 
-  bool get hasCurrency => currencyId != null && currencyId.isNotEmpty;
+  @BuiltValueField(wireName: 'purchase_order_footer')
+  String? get defaultPurchaseOrderFooter;
+
+  @BuiltValueField(wireName: 'purchase_order_number_pattern')
+  String? get purchaseOrderNumberPattern;
+
+  @BuiltValueField(wireName: 'purchase_order_number_counter')
+  int? get purchaseOrderNumberCounter;
+
+  @BuiltValueField(wireName: 'qr_iban')
+  String? get qrIban;
+
+  @BuiltValueField(wireName: 'besr_id')
+  String? get besrId;
+
+  @BuiltValueField(wireName: 'postmark_secret')
+  String? get postmarkSecret;
+
+  @BuiltValueField(wireName: 'mailgun_secret')
+  String? get mailgunSecret;
+
+  @BuiltValueField(wireName: 'mailgun_domain')
+  String? get mailgunDomain;
+
+  @BuiltValueField(wireName: 'mailgun_endpoint')
+  String? get mailgunEndpoint;
+
+  @BuiltValueField(wireName: 'email_alignment')
+  String? get emailAlignment;
+
+  @BuiltValueField(wireName: 'show_email_footer')
+  bool? get showEmailFooter;
+
+  @BuiltValueField(wireName: 'company_logo_size')
+  String? get companyLogoSize;
+
+  @BuiltValueField(wireName: 'show_paid_stamp')
+  bool? get showPaidStamp;
+
+  @BuiltValueField(wireName: 'show_shipping_address')
+  bool? get showShippingAddress;
+
+  @BuiltValueField(wireName: 'custom_sending_email')
+  String? get customSendingEmail;
+
+  @BuiltValueField(wireName: 'accept_client_input_quote_approval')
+  bool? get acceptPurchaseOrderNumber;
+
+  @BuiltValueField(wireName: 'client_initiated_payments')
+  bool? get clientInitiatedPayments;
+
+  @BuiltValueField(wireName: 'client_initiated_payments_minimum')
+  double? get clientInitiatedPaymentsMinimum;
+
+  @BuiltValueField(wireName: 'sync_invoice_quote_columns')
+  bool? get shareInvoiceQuoteColumns;
+
+  @BuiltValueField(wireName: 'allow_billable_task_items')
+  bool? get allowBillableTaskItems;
+
+  @BuiltValueField(wireName: 'show_task_item_description')
+  bool? get showTaskItemDescription;
+
+  @BuiltValueField(wireName: 'enable_e_invoice')
+  bool? get enableEInvoice;
+
+  @BuiltValueField(wireName: 'e_invoice_type')
+  String? get eInvoiceType;
+
+  @BuiltValueField(wireName: 'e_quote_type')
+  String? get eQuoteType;
+
+  @BuiltValueField(wireName: 'france_reporting_enabled')
+  bool? get franceReportingEnabled;
+
+  @BuiltValueField(wireName: 'france_reporting_schedule')
+  String? get franceReportingSchedule;
+
+  @BuiltValueField(wireName: 'default_expense_payment_type_id')
+  String? get defaultExpensePaymentTypeId;
+
+  String? get classification;
+
+  @BuiltValueField(wireName: 'payment_email_all_contacts')
+  bool? get paymentEmailAllContacts;
+
+  @BuiltValueField(wireName: 'show_pdfhtml_on_mobile')
+  bool? get showPdfhtmlOnMobile;
+
+  @BuiltValueField(wireName: 'enable_rappen_rounding')
+  bool? get enableRappenRounding;
+
+  @BuiltValueField(wireName: 'use_unapplied_payment')
+  String? get useUnappliedPayment;
+
+  @BuiltValueField(wireName: 'brevo_secret')
+  String? get brevoSecret;
+
+  @BuiltValueField(wireName: 'task_round_up')
+  bool? get taskRoundUp;
+
+  @BuiltValueField(wireName: 'task_round_to_nearest')
+  int? get taskRoundToNearest;
+
+  @BuiltValueField(wireName: 'email_quote_template_reminder1')
+  String? get emailBodyQuoteReminder1;
+
+  @BuiltValueField(wireName: 'email_quote_subject_reminder1')
+  String? get emailSubjectQuoteReminder1;
+
+  @BuiltValueField(wireName: 'enable_quote_reminder1')
+  bool? get enableQuoteReminder1;
+
+  @BuiltValueField(wireName: 'quote_num_days_reminder1')
+  int? get numDaysQuoteReminder1;
+
+  @BuiltValueField(wireName: 'quote_schedule_reminder1')
+  String? get scheduleQuoteReminder1;
+
+  @BuiltValueField(wireName: 'quote_late_fee_amount1')
+  double? get quoteLateFeeAmount1;
+
+  @BuiltValueField(wireName: 'quote_late_fee_percent1')
+  double? get quoteLateFeePercent1;
+
+  @BuiltValueField(wireName: 'merge_e_invoice_to_pdf')
+  bool? get mergeEInvoiceToPdf;
+
+  @BuiltValueField(wireName: 'payment_flow')
+  String? get paymentFlow;
+
+  @BuiltValueField(wireName: 'email_subject_payment_failed')
+  String? get emailSubjectPaymentFailed;
+
+  @BuiltValueField(wireName: 'email_template_payment_failed')
+  String? get emailBodyPaymentFailed;
+
+  @BuiltValueField(wireName: 'enable_client_profile_update')
+  bool? get enableClientProfileUpdate;
+
+  @BuiltValueField(wireName: 'preference_product_notes_for_html_view')
+  bool? get preferenceProductNotesForHtmlView;
+
+  @BuiltValueField(wireName: 'ses_secret_key')
+  String? get sesSecretKey;
+
+  @BuiltValueField(wireName: 'ses_access_key')
+  String? get sesAccessKey;
+
+  @BuiltValueField(wireName: 'ses_region')
+  String? get sesRegion;
+
+  @BuiltValueField(wireName: 'ses_topic_arn')
+  String? get sesTopicArn;
+
+  @BuiltValueField(wireName: 'ses_from_address')
+  String? get sesFromAddress;
+
+  @BuiltValueField(wireName: 'e_invoice_forward_email')
+  String? get eInvoiceForwardEmail;
+
+  @BuiltValueField(wireName: 'e_expense_forward_email')
+  String? get eExpenseForwardEmail;
+
+  @BuiltValueField(wireName: 'skip_automatic_email_with_peppol')
+  bool? get skipAutomaticEmailWithPeppol;
+
+  // Default visibility for newly uploaded documents. Read company-level;
+  // `null` means the server's historical default, public.
+  @BuiltValueField(wireName: 'documents_public_by_default')
+  bool? get documentsPublicByDefault;
+
+  bool? get taskRoundingEnabled =>
+      taskRoundToNearest == null ? null : taskRoundToNearest != 1;
+
+  bool get isTaskRoundingCustom =>
+      taskRoundingEnabled == true &&
+      (taskRoundToNearest == 0 ||
+          !kTaskRoundingOptions.values.contains(taskRoundToNearest));
+
+  bool get hasAddress => address1 != null && address1!.isNotEmpty;
+
+  bool get hasLogo => companyLogo != null && companyLogo!.isNotEmpty;
+
+  bool get hasTimezone => timezoneId != null && timezoneId!.isNotEmpty;
+
+  bool get hasDateFormat => dateFormatId != null && dateFormatId!.isNotEmpty;
+
+  bool get hasLanguage => languageId != null && languageId!.isNotEmpty;
+
+  bool get hasCurrency => currencyId != null && currencyId!.isNotEmpty;
 
   bool get hasDefaultPaymentTypeId =>
-      defaultPaymentTypeId != null && defaultPaymentTypeId.isNotEmpty;
+      defaultPaymentTypeId != null && defaultPaymentTypeId!.isNotEmpty;
 
   List<String> getFieldsForSection(String section) =>
-      pdfVariables != null && pdfVariables.containsKey(section)
-          ? pdfVariables[section].toList()
-          : [];
+      pdfVariables != null && pdfVariables!.containsKey(section)
+      ? pdfVariables![section]!.toList()
+      : [];
 
   SettingsEntity setFieldsForSection(String section, List<String> fields) {
     if (pdfVariables == null) {
-      return rebuild((b) => b..pdfVariables.replace({section: fields}));
+      return rebuild(
+        (b) => b..pdfVariables.replace({section: BuiltList<String>(fields)}),
+      );
     } else {
       return rebuild((b) => b..pdfVariables[section] = BuiltList(fields));
     }
   }
 
-  String getDesignId(EntityType entityType) {
+  String? getDesignId(EntityType entityType) {
     switch (entityType) {
       case EntityType.invoice:
         return defaultInvoiceDesignId;
@@ -865,6 +989,8 @@ abstract class SettingsEntity
         return defaultQuoteDesignId;
       case EntityType.credit:
         return defaultCreditDesignId;
+      case EntityType.purchaseOrder:
+        return defaultPurchaseOrderDesignId;
     }
 
     print('## Error: unhandled entity type: $entityType for design id');
@@ -872,7 +998,7 @@ abstract class SettingsEntity
     return '';
   }
 
-  String getDefaultTerms(EntityType entityType) {
+  String? getDefaultTerms(EntityType? entityType) {
     switch (entityType) {
       case EntityType.invoice:
       case EntityType.recurringInvoice:
@@ -881,13 +1007,15 @@ abstract class SettingsEntity
         return defaultQuoteTerms;
       case EntityType.credit:
         return defaultCreditTerms;
+      case EntityType.purchaseOrder:
+        return defaultPurchaseOrderTerms;
       default:
         print('## ERROR: getDefaultTerms not defined for $entityType');
         return '';
     }
   }
 
-  String getDefaultFooter(EntityType entityType) {
+  String? getDefaultFooter(EntityType? entityType) {
     switch (entityType) {
       case EntityType.invoice:
       case EntityType.recurringInvoice:
@@ -896,13 +1024,15 @@ abstract class SettingsEntity
         return defaultQuoteFooter;
       case EntityType.credit:
         return defaultCreditFooter;
+      case EntityType.purchaseOrder:
+        return defaultPurchaseOrderFooter;
       default:
         print('## ERROR: getDefaultFooter not defined for $entityType');
         return '';
     }
   }
 
-  String getEmailSubject(EmailTemplate emailTemplate) {
+  String? getEmailSubject(EmailTemplate emailTemplate) {
     switch (emailTemplate) {
       case EmailTemplate.invoice:
         return emailSubjectInvoice;
@@ -914,6 +1044,8 @@ abstract class SettingsEntity
         return emailSubjectPayment;
       case EmailTemplate.payment_partial:
         return emailSubjectPaymentPartial;
+      case EmailTemplate.payment_failed:
+        return emailSubjectPaymentFailed;
       case EmailTemplate.reminder1:
         return emailSubjectReminder1;
       case EmailTemplate.reminder2:
@@ -922,18 +1054,24 @@ abstract class SettingsEntity
         return emailSubjectReminder3;
       case EmailTemplate.reminder_endless:
         return emailSubjectReminderEndless;
+      case EmailTemplate.statement:
+        return emailSubjectStatement;
       case EmailTemplate.custom1:
         return emailSubjectCustom1;
       case EmailTemplate.custom2:
         return emailSubjectCustom2;
       case EmailTemplate.custom3:
         return emailSubjectCustom3;
+      case EmailTemplate.purchase_order:
+        return emailSubjectPurchaseOrder;
+      case EmailTemplate.quote_reminder1:
+        return emailSubjectQuoteReminder1;
       default:
-        return 'Error: template not defined for $emailTemplate';
+        return 'Error: subject template not defined for $emailTemplate';
     }
   }
 
-  String getEmailBody(EmailTemplate template) {
+  String? getEmailBody(EmailTemplate template) {
     switch (template) {
       case EmailTemplate.invoice:
         return emailBodyInvoice;
@@ -945,6 +1083,8 @@ abstract class SettingsEntity
         return emailBodyPayment;
       case EmailTemplate.payment_partial:
         return emailBodyPaymentPartial;
+      case EmailTemplate.payment_failed:
+        return emailBodyPaymentFailed;
       case EmailTemplate.reminder1:
         return emailBodyReminder1;
       case EmailTemplate.reminder2:
@@ -953,17 +1093,65 @@ abstract class SettingsEntity
         return emailBodyReminder3;
       case EmailTemplate.reminder_endless:
         return emailBodyReminderEndless;
+      case EmailTemplate.statement:
+        return emailBodyStatement;
       case EmailTemplate.custom1:
         return emailBodyCustom1;
       case EmailTemplate.custom2:
         return emailBodyCustom2;
       case EmailTemplate.custom3:
         return emailBodyCustom3;
+      case EmailTemplate.purchase_order:
+        return emailBodyPurchaseOrder;
+      case EmailTemplate.quote_reminder1:
+        return emailBodyQuoteReminder1;
       default:
-        return 'Error: template not defined for $template';
+        return 'Error: body template not defined for $template';
     }
   }
 
   static Serializer<SettingsEntity> get serializer =>
       _$settingsEntitySerializer;
+}
+
+abstract class PdfPreviewRequest
+    implements Built<PdfPreviewRequest, PdfPreviewRequestBuilder> {
+  factory PdfPreviewRequest({
+    required String entityType,
+    required String settingsType,
+    required SettingsEntity settings,
+    required String groupId,
+    required String clientId,
+  }) {
+    return _$PdfPreviewRequest._(
+      entityType: entityType,
+      settingsType: settingsType,
+      settings: settings,
+      groupId: groupId,
+      clientId: clientId,
+    );
+  }
+
+  PdfPreviewRequest._();
+
+  @override
+  @memoized
+  int get hashCode;
+
+  @BuiltValueField(wireName: 'entity_type')
+  String get entityType;
+
+  @BuiltValueField(wireName: 'settings_type')
+  String get settingsType;
+
+  SettingsEntity get settings;
+
+  @BuiltValueField(wireName: 'group_id')
+  String get groupId;
+
+  @BuiltValueField(wireName: 'client_id')
+  String get clientId;
+
+  static Serializer<PdfPreviewRequest> get serializer =>
+      _$pdfPreviewRequestSerializer;
 }

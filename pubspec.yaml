@@ -1,13 +1,12 @@
 name: invoiceninja_flutter
 description: Client for Invoice Ninja
-version: 5.0.67+67
-author: Hillel Coren
+version: 5.0.204+204
 homepage: https://invoiceninja.com
 documentation: https://invoiceninja.github.io
 publish_to: none
 
 environment:
-  sdk: ">=2.9.0 <3.0.0"
+  sdk: '>=3.9.0 <4.0.0'
 
 flutter_icons:
   android: true
@@ -21,51 +20,114 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  google_sign_in: ^5.0.7
-  flutter_redux: ^0.8.2
+  web: ^1.0.0
+  google_sign_in: ^7.2.0
+  in_app_review: ^2.0.4
+  in_app_purchase: ^3.3.0
+  pinput: ^3.0.1
+  flutter_redux: ^0.10.0
   redux_logging: ^0.5.0
-  http: ^0.13.3
+  http: ^1.5.0
   path_provider: ^2.0.2
   shared_preferences: ^2.0.6
-  material_design_icons_flutter: ^4.0.5345
-  built_value: ^8.1.2
+  material_design_icons_flutter: ^7.0.7296
+  built_value: ^8.12.2
   built_collection: ^5.1.0
   memoize: ^3.0.0
-  cached_network_image: 3.0.0 # imageRenderMethodForWeb: ImageRenderMethodForWeb.HttpGet,
-  url_launcher: ^6.0.9
-  share: ^2.0.4
-  intl: ^0.17.0
-  flutter_slidable: ^0.6.0
-  charts_flutter: ^0.11.0
-  qr_flutter: ^4.0.0
-  local_auth: ^1.1.6
-  sentry_flutter: ^5.1.0
-  image_picker: ^0.8.3+1
-  flutter_colorpicker: 0.4.0
-  flutter_json_viewer: ^1.0.1
-  webview_flutter: ^2.0.10
-  timeago: ^3.1.0
-  native_pdf_view: ^4.1.0
-  # flutter_typeahead: 1.8.0
-  flutter_typeahead:
+  url_launcher: ^6.3.1
+  url_launcher_ios: ^6.3.2
+  share_plus: ^12.0.1
+  intl: 0.17.0
+  flutter_slidable: ^3.1.2
+  nimble_charts: ^0.5.0-beta
+  qr_flutter: # https://github.com/theyakka/qr.flutter/issues/174#issuecomment-1084235757
     git:
-      url: git://github.com/hillelcoren/flutter_typeahead.git
-  package_info: ^2.0.2
-  rounded_loading_button: ^2.0.5
-  version: ^2.0.0
-  flutter_launcher_icons: ^0.9.1
-  overflow_view: ^0.3.1
+      url: https://github.com/theyakka/qr.flutter.git
+  local_auth: ^2.3.0
+  sentry_flutter: ^9.6.0
+  image_picker: ^1.2.0
+  flutter_colorpicker: ^1.1.0
+  flutter_json_viewer: ^1.0.1
+  webview_flutter: ^4.4.1
+  timeago: ^3.1.0
+  package_info_plus: ^8.3.1
+  #rounded_loading_button: ^2.1.0
+  rounded_loading_button: #https://github.com/chrisedg87/flutter_rounded_loading_button/issues/73
+    git:
+      url: https://github.com/scopendo/flutter_rounded_loading_button.git
+      ref: master      
+  version: ^3.0.2
+  # flutter_launcher_icons: ^0.9.1
+  overflow_view: ^0.5.0
   flutter_styled_toast: ^2.0.0
-  permission_handler: ^8.1.4+2
-  file_picker: ^3.0.4
-  draggable_scrollbar: ^0.1.0
-  boardview: ^0.2.2
+  permission_handler: ^11.0.1 # Disables Windows support to fix crash
+  file_picker: ^10.3.2
+  boardview:
+    git:
+      url: https://github.com/BenPoell/FlutterBoardView.git
   pointer_interceptor: ^0.9.0
-  contacts_service: ^0.6.1
-  super_editor: ^0.1.0
-  filepicker_windows: ^2.0.0
+  contacts_service_plus: ^0.0.3
+  diacritic: ^0.1.3
+  states_rebuilder: ^6.2.0
+  html2md: ^1.2.6
+  printing: ^5.14.3
+  image_cropper: ^11.0.0
+  msal_js: ^2.14.0
+  sign_in_with_apple: ^7.0.1
+  window_manager: ^0.3.0
+  # bitsdojo_window: ^0.1.5
+  intl_phone_field: ^3.1.0
+  flutter_staggered_grid_view: ^0.7.0
+  desktop_drop: ^0.7.0
+  widget_kit_plugin: ^0.1.1
+  pinch_zoom: ^1.0.0
   # quick_actions: ^0.2.1
   # idb_shim: ^1.11.1+1
+  collection: ^1.15.0-nullsafety.4
+  filesystem_picker: ^4.0.0
+  device_info_plus: ^12.2.0
+  ios_open_subscriptions_settings: ^0.0.4
+  redux: any
+  # Pinned: 0.5.0 is the newest release that still resolves on the Flutter
+  # version this repo pins (3.41.9 / Dart 3.11.5 — set in BOTH codemagic.yaml
+  # and .flutter-version); 0.5.0+1 and later require Dart ^3.12 / Flutter
+  # >=3.44. 0.5.0 already carries Google Play Billing Library 8.0.0, which
+  # Play requires for uploads from 2026-08-31.
+  # Relax back to `any` once both Flutter pins move to 3.44+.
+  in_app_purchase_android: 0.5.0
+  in_app_purchase_storekit: any
+  overlord: any
+  super_editor: any
+  follow_the_leader: any
+  super_editor_markdown: any
+  archive: any
+  
+dependency_overrides:
+  intl: any
+  navigation_builder: ^0.0.3
+  states_rebuilder: ^6.3.0
+  win32: ^5.5.1
+  image: ^4.5.4
+  super_editor:
+    git:
+      url: https://github.com/superlistapp/super_editor
+      path: super_editor
+      ref: 9655c7f987968d680f83fc095a604f86d9ad15a1
+  super_editor_markdown:
+    git:
+      url: https://github.com/superlistapp/super_editor
+      path: super_editor_markdown
+      ref: 9655c7f987968d680f83fc095a604f86d9ad15a1
+  super_text_layout:
+    git:
+      url: https://github.com/superlistapp/super_editor
+      path: super_text_layout
+      ref: 9655c7f987968d680f83fc095a604f86d9ad15a1
+  attributed_text:
+    git:
+      url: https://github.com/superlistapp/super_editor
+      path: attributed_text
+      ref: 9655c7f987968d680f83fc095a604f86d9ad15a1
 
 dev_dependencies:
   flutter_driver:
@@ -74,9 +136,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   build_runner: ^2.1.0
-  built_value_generator: ^8.1.1
+  built_value_generator: ^8.12.2
   faker: ^2.0.0
-  msix: ^2.1.3
+  msix: ^3.5.1
+  import_sorter: ^4.6.0
 
 flutter:
 
@@ -88,16 +151,19 @@ flutter:
     - assets/images/logo_dark.png
     - assets/images/google_logo.png
     - assets/images/payment_types/
+    - assets/images/beta/
+
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/google_fonts/Roboto-Regular.ttf
 
 msix_config:
   display_name: Invoice Ninja
   publisher_display_name: Invoice Ninja
   identity_name: InvoiceNinja.InvoiceNinja
-  msix_version: 5.0.67.0
   publisher: CN=2B7AA393-06A0-46F5-AF85-1917142440C3
   architecture: x64
   capabilities: 'internetClient'
   store: true
-  logo_path: assets/images/logo_light.png
-  start_menu_icon_path: assets/images/icon.png
-  tile_icon_path: assets/images/icon.png
+  logo_path: assets/images/icon.png

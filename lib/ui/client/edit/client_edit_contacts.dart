@@ -1,6 +1,7 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/ui/app/buttons/elevated_button.dart';
@@ -17,9 +18,9 @@ import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class ClientEditContacts extends StatefulWidget {
   const ClientEditContacts({
-    Key key,
-    @required this.viewModel,
-    @required this.clientViewModel,
+    Key? key,
+    required this.viewModel,
+    required this.clientViewModel,
   }) : super(key: key);
 
   final ClientEditContactsVM viewModel;
@@ -30,32 +31,34 @@ class ClientEditContacts extends StatefulWidget {
 }
 
 class _ClientEditContactsState extends State<ClientEditContacts> {
-  ContactEntity selectedContact;
+  ClientContactEntity? selectedContact;
 
-  void _showContactEditor(ContactEntity contact, BuildContext context) {
+  void _showContactEditor(ClientContactEntity? contact, BuildContext context) {
     showDialog<ResponsivePadding>(
-        context: context,
-        builder: (BuildContext context) {
-          final viewModel = widget.viewModel;
-          final client = viewModel.client;
+      context: context,
+      builder: (BuildContext context) {
+        final viewModel = widget.viewModel;
+        final client = viewModel.client!;
 
-          return ContactEditDetails(
-            viewModel: viewModel,
-            clientViewModel: widget.clientViewModel,
-            key: Key(contact.entityKey),
-            contact: contact,
-            isDialog: client.contacts.length > 1,
-            index: client.contacts
-                .indexOf(client.contacts.firstWhere((c) => c.id == contact.id)),
-          );
-        });
+        return ContactEditDetails(
+          viewModel: viewModel,
+          clientViewModel: widget.clientViewModel,
+          key: Key(contact!.entityKey),
+          contact: contact,
+          isDialog: client.contacts.length > 1,
+          index: client.contacts.indexOf(
+            client.contacts.firstWhere((c) => c.id == contact.id),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalization.of(context);
     final viewModel = widget.viewModel;
-    final client = viewModel.client;
+    final client = viewModel.client!;
     final state = widget.clientViewModel.state;
     final prefState = state.prefState;
     final isFullscreen = prefState.isEditorFullScreen(EntityType.client);
@@ -64,10 +67,12 @@ class _ClientEditContactsState extends State<ClientEditContacts> {
 
     if (client.contacts.length > 1) {
       contacts = client.contacts
-          .map((contact) => ContactListTile(
-                contact: contact,
-                onTap: () => _showContactEditor(contact, context),
-              ))
+          .map(
+            (contact) => ContactListTile(
+              contact: contact,
+              onTap: () => _showContactEditor(contact, context),
+            ),
+          )
           .toList();
     } else {
       final contact = client.contacts[0];
@@ -83,8 +88,9 @@ class _ClientEditContactsState extends State<ClientEditContacts> {
       ];
     }
 
-    final contact =
-        client.contacts.contains(viewModel.contact) ? viewModel.contact : null;
+    final contact = client.contacts.contains(viewModel.contact)
+        ? viewModel.contact
+        : null;
 
     if (contact != null && contact != selectedContact) {
       selectedContact = contact;
@@ -95,83 +101,81 @@ class _ClientEditContactsState extends State<ClientEditContacts> {
 
     final children = <Widget>[]
       ..addAll(contacts)
-      ..add(Padding(
-        padding: const EdgeInsets.only(
-          left: 25,
-          top: 0,
-          right: 25,
-          bottom: 6,
+      ..add(
+        Padding(
+          padding: const EdgeInsets.only(
+            left: 25,
+            top: 0,
+            right: 25,
+            bottom: 6,
+          ),
+          child: AppButton(
+            label:
+                (client.contacts.length == 1
+                        ? localization!.addSecondContact
+                        : localization!.addContact)
+                    .toUpperCase(),
+            onPressed: () => viewModel.onAddContactPressed(),
+          ),
         ),
-        child: AppButton(
-          label: (client.contacts.length == 1
-                  ? localization.addSecondContact
-                  : localization.addContact)
-              .toUpperCase(),
-          onPressed: () => viewModel.onAddContactPressed(),
-        ),
-      ));
+      );
 
     return isFullscreen
         ? Column(
             children: children,
             crossAxisAlignment: CrossAxisAlignment.stretch,
           )
-        : ScrollableListView(
-            children: children,
-          );
+        : ScrollableListView(children: children);
   }
 }
 
 class ContactListTile extends StatelessWidget {
-  const ContactListTile({
-    @required this.contact,
-    @required this.onTap,
-  });
+  const ContactListTile({required this.contact, required this.onTap});
 
   final Function onTap;
-  final ContactEntity contact;
+  final ClientContactEntity? contact;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-        color: Theme.of(context).canvasColor,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
-          child: Column(
-            children: <Widget>[
-              ListTile(
-                onTap: onTap,
-                title: contact.fullName.isNotEmpty
-                    ? Text(contact.fullName)
-                    : Text(AppLocalization.of(context).blankContact,
-                        style: TextStyle(
-                          fontStyle: FontStyle.italic,
-                        )),
-                subtitle: Text(
-                    contact.email.isNotEmpty ? contact.email : contact.phone),
-                trailing: Icon(Icons.navigate_next),
+      color: Theme.of(context).canvasColor,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              onTap: onTap as void Function()?,
+              title: contact!.fullName.isNotEmpty
+                  ? Text(contact!.fullName)
+                  : Text(
+                      AppLocalization.of(context)!.blankContact,
+                      style: TextStyle(fontStyle: FontStyle.italic),
+                    ),
+              subtitle: Text(
+                contact!.email.isNotEmpty ? contact!.email : contact!.phone,
               ),
-              Divider(
-                height: 1.0,
-              ),
-            ],
-          ),
-        ));
+              trailing: Icon(Icons.navigate_next),
+            ),
+            Divider(height: 1.0),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 class ContactEditDetails extends StatefulWidget {
   const ContactEditDetails({
-    Key key,
-    @required this.index,
-    @required this.contact,
-    @required this.viewModel,
-    @required this.clientViewModel,
-    @required this.isDialog,
+    Key? key,
+    required this.index,
+    required this.contact,
+    required this.viewModel,
+    required this.clientViewModel,
+    required this.isDialog,
   }) : super(key: key);
 
   final int index;
-  final ContactEntity contact;
+  final ClientContactEntity? contact;
   final ClientEditContactsVM viewModel;
   final ClientEditVM clientViewModel;
   final bool isDialog;
@@ -193,10 +197,11 @@ class ContactEditDetailsState extends State<ContactEditDetails> {
 
   final _debouncer = Debouncer();
   List<TextEditingController> _controllers = [];
-  bool _sendEmail = false;
+  ClientContactEntity? _contact;
 
   void _onDoneContactPressed() {
     if (widget.isDialog) {
+      Debouncer.complete();
       widget.viewModel.onDoneContactPressed(context);
       Navigator.of(context).pop();
     } else {
@@ -222,10 +227,11 @@ class ContactEditDetailsState extends State<ContactEditDetails> {
       _custom4Controller,
     ];
 
-    _controllers
-        .forEach((dynamic controller) => controller.removeListener(_onChanged));
+    _controllers.forEach(
+      (dynamic controller) => controller.removeListener(_onChanged),
+    );
 
-    final contact = widget.contact;
+    final contact = (_contact = widget.contact)!;
     _firstNameController.text = contact.firstName;
     _lastNameController.text = contact.lastName;
     _emailController.text = contact.email;
@@ -235,10 +241,10 @@ class ContactEditDetailsState extends State<ContactEditDetails> {
     _custom2Controller.text = contact.customValue2;
     _custom3Controller.text = contact.customValue3;
     _custom4Controller.text = contact.customValue4;
-    _sendEmail = contact.sendEmail;
 
-    _controllers
-        .forEach((dynamic controller) => controller.addListener(_onChanged));
+    _controllers.forEach(
+      (dynamic controller) => controller.addListener(_onChanged),
+    );
 
     super.didChangeDependencies();
   }
@@ -255,16 +261,18 @@ class ContactEditDetailsState extends State<ContactEditDetails> {
 
   void _onChanged() {
     final viewModel = widget.viewModel;
-    final contact = widget.contact.rebuild((b) => b
-      ..firstName = _firstNameController.text.trim()
-      ..lastName = _lastNameController.text.trim()
-      ..email = _emailController.text.trim()
-      ..password = _passwordController.text.trim()
-      ..phone = _phoneController.text.trim()
-      ..customValue1 = _custom1Controller.text.trim()
-      ..customValue2 = _custom2Controller.text.trim()
-      ..customValue3 = _custom3Controller.text.trim()
-      ..customValue4 = _custom4Controller.text.trim());
+    final contact = _contact = widget.contact!.rebuild(
+      (b) => b
+        ..firstName = _firstNameController.text.trim()
+        ..lastName = _lastNameController.text.trim()
+        ..email = _emailController.text.trim()
+        ..password = _passwordController.text.trim()
+        ..phone = _phoneController.text.trim()
+        ..customValue1 = _custom1Controller.text.trim()
+        ..customValue2 = _custom2Controller.text.trim()
+        ..customValue3 = _custom3Controller.text.trim()
+        ..customValue4 = _custom4Controller.text.trim(),
+    );
     if (contact != widget.contact) {
       _debouncer.run(() {
         viewModel.onChangedContact(contact, widget.index);
@@ -274,9 +282,9 @@ class ContactEditDetailsState extends State<ContactEditDetails> {
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final viewModel = widget.viewModel;
-    final company = viewModel.company;
+    final company = viewModel.company!;
     final state = widget.clientViewModel.state;
     final isFullscreen = state.prefState.isEditorFullScreen(EntityType.client);
 
@@ -286,19 +294,25 @@ class ContactEditDetailsState extends State<ContactEditDetails> {
         DecoratedFormField(
           autofocus: widget.isDialog,
           controller: _firstNameController,
-          validator: (String val) => !viewModel.client.hasNameSet
-              ? AppLocalization.of(context).pleaseEnterAClientOrContactName
+          validator: (String val) =>
+              val.trim().isEmpty && !viewModel.client!.hasNameSet
+              ? AppLocalization.of(context)!.pleaseEnterAClientOrContactName
               : null,
           onSavePressed: (_) => _onDoneContactPressed(),
           label: localization.firstName,
+          keyboardType: TextInputType.text,
+          textCapitalization: TextCapitalization.words,
         ),
         DecoratedFormField(
           controller: _lastNameController,
           label: localization.lastName,
-          validator: (String val) => !viewModel.client.hasNameSet
-              ? AppLocalization.of(context).pleaseEnterAClientOrContactName
+          validator: (String val) =>
+              val.trim().isEmpty && !viewModel.client!.hasNameSet
+              ? AppLocalization.of(context)!.pleaseEnterAClientOrContactName
               : null,
           onSavePressed: (_) => _onDoneContactPressed(),
+          keyboardType: TextInputType.text,
+          textCapitalization: TextCapitalization.words,
         ),
         DecoratedFormField(
           controller: _emailController,
@@ -331,42 +345,68 @@ class ContactEditDetailsState extends State<ContactEditDetails> {
         CustomField(
           controller: _custom1Controller,
           field: CustomFieldType.contact1,
-          value: widget.contact.customValue1,
+          value: widget.contact!.customValue1,
           onSavePressed: (_) => _onDoneContactPressed(),
         ),
         CustomField(
           controller: _custom2Controller,
           field: CustomFieldType.contact2,
-          value: widget.contact.customValue2,
+          value: widget.contact!.customValue2,
           onSavePressed: (_) => _onDoneContactPressed(),
         ),
         CustomField(
           controller: _custom3Controller,
           field: CustomFieldType.contact3,
-          value: widget.contact.customValue3,
+          value: widget.contact!.customValue3,
           onSavePressed: (_) => _onDoneContactPressed(),
         ),
         CustomField(
           controller: _custom4Controller,
           field: CustomFieldType.contact4,
-          value: widget.contact.customValue4,
+          value: widget.contact!.customValue4,
           onSavePressed: (_) => _onDoneContactPressed(),
         ),
-        if (widget.isDialog)
+        if (widget.isDialog) ...[
           Padding(
             padding: const EdgeInsets.only(top: 20),
             child: SwitchListTile(
-                activeColor: Theme.of(context).accentColor,
-                title: Text(localization.addToInvoices),
-                value: _sendEmail,
+              activeThumbColor: Theme.of(context).colorScheme.secondary,
+              title: Text(localization.addToInvoices),
+              value: _contact!.sendEmail,
+              onChanged: (value) {
+                setState(
+                  () =>
+                      _contact = _contact!.rebuild((b) => b..sendEmail = value),
+                );
+
+                viewModel.onChangedContact(
+                  _contact!.rebuild((b) => b..sendEmail = value),
+                  widget.index,
+                );
+              },
+            ),
+          ),
+          if (state.isProPlan)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: SwitchListTile(
+                activeThumbColor: Theme.of(context).colorScheme.secondary,
+                title: Text(localization.ccOnly),
+                value: _contact!.ccOnly,
                 onChanged: (value) {
+                  setState(
+                    () =>
+                        _contact = _contact!.rebuild((b) => b..ccOnly = value),
+                  );
+
                   viewModel.onChangedContact(
-                    widget.contact.rebuild((b) => b..sendEmail = value),
+                    _contact!.rebuild((b) => b..ccOnly = value),
                     widget.index,
                   );
-                  setState(() => _sendEmail = value);
-                }),
-          ),
+                },
+              ),
+            ),
+        ],
       ],
     );
 
@@ -377,16 +417,17 @@ class ContactEditDetailsState extends State<ContactEditDetails> {
               TextButton(
                 child: Text(localization.remove.toUpperCase()),
                 onPressed: () => confirmCallback(
-                    context: context,
-                    callback: (_) {
-                      widget.viewModel.onRemoveContactPressed(widget.index);
-                      Navigator.pop(context);
-                    }),
+                  context: context,
+                  callback: (_) {
+                    widget.viewModel.onRemoveContactPressed(widget.index);
+                    Navigator.pop(context);
+                  },
+                ),
               ),
               TextButton(
                 child: Text(localization.done.toUpperCase()),
                 onPressed: () => _onDoneContactPressed(),
-              )
+              ),
             ],
           )
         : FormCard(
@@ -397,6 +438,7 @@ class ContactEditDetailsState extends State<ContactEditDetails> {
                     top: kMobileDialogPadding,
                     right: kMobileDialogPadding / 2,
                   )
-                : null);
+                : null,
+          );
   }
 }

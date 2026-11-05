@@ -1,16 +1,21 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/static/color_theme_model.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-
-//import 'package:flutter_colorpicker/block_picker.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/decorated_form_field.dart';
 import 'package:invoiceninja_flutter/utils/colors.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
+
+//import 'package:flutter_colorpicker/block_picker.dart';
 
 class FormColorPicker extends StatefulWidget {
   const FormColorPicker({
@@ -20,9 +25,9 @@ class FormColorPicker extends StatefulWidget {
     this.showClear = true,
   });
 
-  final String labelText;
-  final String initialValue;
-  final Function(String) onSelected;
+  final String? labelText;
+  final String? initialValue;
+  final Function(String?)? onSelected;
   final bool showClear;
 
   @override
@@ -32,33 +37,34 @@ class FormColorPicker extends StatefulWidget {
 class _FormColorPickerState extends State<FormColorPicker> {
   final _textController = TextEditingController();
 
-  String _pendingColor;
-  String _selectedColor;
+  String? _pendingColor;
+  String? _selectedColor;
 
   final _debouncer = Debouncer();
-  List<TextEditingController> _controllers;
+  late List<TextEditingController> _controllers;
 
-  final _defaultColors = [
+  final _defaultColors = <Color>[
     Colors.red,
     Colors.pink,
     Colors.purple,
     Colors.deepPurple,
     Colors.indigo,
-    convertHexStringToColor(kDefaultAccentColor),
+    convertHexStringToColor(kDefaultAccentColor) ?? Colors.black,
     Colors.blue,
-    //Colors.lightBlue,
+    Colors.lightBlue,
     Colors.cyan,
     Colors.teal,
     Colors.green,
     Colors.lightGreen,
-    Colors.lime,
-    Colors.yellow,
-    Colors.amber,
+    //Colors.lime,
+    //Colors.yellow,
+    //Colors.amber,
     Colors.orange,
     Colors.deepOrange,
-    //Colors.brown,
+    Colors.brown,
     Colors.grey,
     Colors.blueGrey,
+    Colors.grey.shade700,
     Colors.black,
   ];
 
@@ -71,13 +77,15 @@ class _FormColorPickerState extends State<FormColorPicker> {
   void didChangeDependencies() {
     _controllers = [_textController];
 
-    _controllers
-        .forEach((dynamic controller) => controller.removeListener(_onChanged));
+    _controllers.forEach(
+      (dynamic controller) => controller.removeListener(_onChanged),
+    );
 
-    _selectedColor = _textController.text = widget.initialValue;
+    _selectedColor = _textController.text = widget.initialValue ?? '';
 
-    _controllers
-        .forEach((dynamic controller) => controller.addListener(_onChanged));
+    _controllers.forEach(
+      (dynamic controller) => controller.addListener(_onChanged),
+    );
 
     super.didChangeDependencies();
   }
@@ -88,14 +96,14 @@ class _FormColorPickerState extends State<FormColorPicker> {
     });
   }
 
-  void _selectColor(String color) {
+  void _selectColor(String? color) {
     if (color != null && color.length != 7) {
       return;
     }
 
     setState(() {
       _selectedColor = color;
-      widget.onSelected(color);
+      widget.onSelected!(color);
     });
   }
 
@@ -111,7 +119,7 @@ class _FormColorPickerState extends State<FormColorPicker> {
     _selectedColor = null;
 
     Color color = Colors.black;
-    if (widget.initialValue != null && widget.initialValue.isNotEmpty) {
+    if (widget.initialValue != null && widget.initialValue!.isNotEmpty) {
       color = convertHexStringToColor(widget.initialValue) ?? Colors.black;
     }
 
@@ -128,11 +136,11 @@ class _FormColorPickerState extends State<FormColorPicker> {
             child: BlockPicker(
               availableColors: [
                 ..._defaultColors,
-                colors.colorInfo,
-                colors.colorPrimary,
-                colors.colorSuccess,
-                colors.colorWarning,
-                colors.colorDanger,
+                colors!.colorInfo!,
+                colors.colorPrimary!,
+                colors.colorSuccess!,
+                colors.colorWarning!,
+                colors.colorDanger!,
               ],
               pickerColor: color,
               onColorChanged: (color) {
@@ -142,14 +150,14 @@ class _FormColorPickerState extends State<FormColorPicker> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text(localization.cancel.toUpperCase()),
+              child: Text(localization!.cancel.toUpperCase()),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
               child: Text(localization.done.toUpperCase()),
               onPressed: () {
                 _selectColor(_pendingColor);
-                _textController.text = _pendingColor;
+                _textController.text = _pendingColor!;
                 Navigator.of(context).pop();
               },
             ),
@@ -166,8 +174,9 @@ class _FormColorPickerState extends State<FormColorPicker> {
       children: <Widget>[
         DecoratedFormField(
           controller: _textController,
-          label: widget.labelText ?? AppLocalization.of(context).color,
+          label: widget.labelText ?? AppLocalization.of(context)!.color,
           hint: '#000000',
+          keyboardType: TextInputType.text,
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -179,9 +188,7 @@ class _FormColorPickerState extends State<FormColorPicker> {
                   color: _selectedColor == null
                       ? Colors.grey
                       : convertHexStringToColor(_selectedColor) ?? Colors.grey,
-                  border: Border.all(
-                    color: Colors.black38,
-                  ),
+                  border: Border.all(color: Colors.black38),
                 ),
                 width: isMobile(context) ? 25 : 100,
                 height: 25,
@@ -197,12 +204,7 @@ class _FormColorPickerState extends State<FormColorPicker> {
                 },
               )
             else
-              IconButton(
-                icon: Icon(
-                  Icons.color_lens,
-                ),
-                onPressed: _showPicker,
-              )
+              IconButton(icon: Icon(Icons.color_lens), onPressed: _showPicker),
           ],
         ),
       ],

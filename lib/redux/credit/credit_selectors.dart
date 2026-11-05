@@ -1,86 +1,147 @@
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:memoize/memoize.dart';
+// Package imports:
 import 'package:built_collection/built_collection.dart';
+import 'package:memoize/memoize.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
 
-var memoizedDropdownCreditList = memo6(
-    (BuiltMap<String, InvoiceEntity> creditMap,
-            BuiltMap<String, ClientEntity> clientMap,
-            BuiltList<String> creditList,
-            String clientId,
-            BuiltMap<String, UserEntity> userMap,
-            List<String> excludedIds) =>
-        dropdownCreditSelector(
-            creditMap, clientMap, creditList, clientId, userMap, excludedIds));
+ClientContactEntity? creditContactSelector(
+  InvoiceEntity credit,
+  ClientEntity client,
+) {
+  var contactIds = credit.invitations
+      .map((invitation) => invitation.clientContactId)
+      .toList();
+  if (contactIds.contains(client.primaryContact.id)) {
+    contactIds = [client.primaryContact.id];
+  }
+  return client.contacts.firstWhere(
+    (contact) => contactIds.contains(contact.id),
+    orElse: null,
+  );
+}
 
-List<String> dropdownCreditSelector(
+var memoizedDropdownCreditList = memo7(
+  (
     BuiltMap<String, InvoiceEntity> creditMap,
     BuiltMap<String, ClientEntity> clientMap,
+    BuiltMap<String, VendorEntity> vendorMap,
     BuiltList<String> creditList,
     String clientId,
     BuiltMap<String, UserEntity> userMap,
-    List<String> excludedIds) {
+    List<String?> excludedIds,
+  ) => dropdownCreditSelector(
+    creditMap,
+    clientMap,
+    vendorMap,
+    creditList,
+    clientId,
+    userMap,
+    excludedIds,
+  ),
+);
+
+List<String> dropdownCreditSelector(
+  BuiltMap<String, InvoiceEntity> creditMap,
+  BuiltMap<String, ClientEntity> clientMap,
+  BuiltMap<String, VendorEntity> vendorMap,
+  BuiltList<String> creditList,
+  String clientId,
+  BuiltMap<String, UserEntity> userMap,
+  List<String?> excludedIds,
+) {
   final list = creditList.where((creditId) {
     final credit = creditMap[creditId];
     if (excludedIds.contains(creditId)) {
       return false;
     }
-    if (clientId != null &&
-        clientId.isNotEmpty &&
-        credit.clientId != clientId) {
+    if (clientId.isNotEmpty && credit!.clientId != clientId) {
       return false;
     }
-    if (!clientMap.containsKey(credit.clientId) ||
-        !clientMap[credit.clientId].isActive) {
+    if (!clientMap.containsKey(credit!.clientId) ||
+        !clientMap[credit.clientId]!.isActive) {
       return false;
     }
-    if (credit.balance == 0) {
+    if (credit.balanceOrAmount == 0) {
       return false;
     }
     return credit.isActive && credit.isUnpaid;
   }).toList();
 
   list.sort((creditAId, creditBId) {
-    final creditA = creditMap[creditAId];
+    final creditA = creditMap[creditAId]!;
     final creditB = creditMap[creditBId];
     return creditA.compareTo(
-        invoice: creditB,
-        clientMap: clientMap,
-        sortAscending: true,
-        sortField: ClientFields.name,
-        userMap: userMap);
+      invoice: creditB,
+      clientMap: clientMap,
+      vendorMap: vendorMap,
+      sortAscending: true,
+      sortField: CreditFields.number,
+      userMap: userMap,
+    );
   });
 
   return list;
 }
 
-ClientEntity creditClientSelector(
-    InvoiceEntity credit, BuiltMap<String, ClientEntity> clientMap) {
+ClientEntity? creditClientSelector(
+  InvoiceEntity credit,
+  BuiltMap<String, ClientEntity> clientMap,
+) {
   return clientMap[credit.clientId];
 }
 
-var memoizedFilteredCreditList = memo6((SelectionState selectionState,
-        BuiltMap<String, InvoiceEntity> creditMap,
-        BuiltList<String> creditList,
-        BuiltMap<String, ClientEntity> clientMap,
-        ListUIState creditListState,
-        BuiltMap<String, UserEntity> userMap) =>
-    filteredCreditsSelector(selectionState, creditMap, creditList, clientMap,
-        creditListState, userMap));
-
-List<String> filteredCreditsSelector(
+var memoizedFilteredCreditList = memo8(
+  (
     SelectionState selectionState,
     BuiltMap<String, InvoiceEntity> creditMap,
     BuiltList<String> creditList,
     BuiltMap<String, ClientEntity> clientMap,
+    BuiltMap<String, VendorEntity> vendorMap,
+    BuiltMap<String, PaymentEntity> paymentMap,
     ListUIState creditListState,
-    BuiltMap<String, UserEntity> userMap) {
+    BuiltMap<String, UserEntity> userMap,
+  ) => filteredCreditsSelector(
+    selectionState,
+    creditMap,
+    creditList,
+    clientMap,
+    vendorMap,
+    paymentMap,
+    creditListState,
+    userMap,
+  ),
+);
+
+List<String> filteredCreditsSelector(
+  SelectionState selectionState,
+  BuiltMap<String, InvoiceEntity> creditMap,
+  BuiltList<String> creditList,
+  BuiltMap<String, ClientEntity> clientMap,
+  BuiltMap<String, VendorEntity> vendorMap,
+  BuiltMap<String, PaymentEntity> paymentMap,
+  ListUIState creditListState,
+  BuiltMap<String, UserEntity> userMap,
+) {
   final filterEntityId = selectionState.filterEntityId;
   final filterEntityType = selectionState.filterEntityType;
 
+  final Map<String?, List<String>> creditPaymentMap = {};
+  if (filterEntityType == EntityType.payment) {
+    paymentMap.forEach((paymentId, payment) {
+      payment.creditPaymentables.forEach((creditPaymentable) {
+        final List<String> paymentIds =
+            creditPaymentMap[creditPaymentable.creditId] ?? [];
+        paymentIds.add(payment.id);
+        creditPaymentMap[creditPaymentable.creditId] = paymentIds;
+      });
+    });
+  }
+
   final list = creditList.where((creditId) {
-    final credit = creditMap[creditId];
+    final credit = creditMap[creditId]!;
     final client =
         clientMap[credit.clientId] ?? ClientEntity(id: credit.clientId);
 
@@ -104,6 +165,20 @@ List<String> filteredCreditsSelector(
     } else if (filterEntityType == EntityType.group &&
         client.groupId != filterEntityId) {
       return false;
+    } else if (filterEntityType == EntityType.project &&
+        credit.projectId != filterEntityId) {
+      return false;
+    } else if (filterEntityType == EntityType.payment) {
+      bool isMatch = false;
+      (creditPaymentMap[creditId] ?? []).forEach((paymentId) {
+        if (filterEntityId == paymentId) {
+          isMatch = true;
+        }
+      });
+
+      if (!isMatch) {
+        return false;
+      }
     }
 
     if (!credit.matchesStates(creditListState.stateFilters)) {
@@ -113,7 +188,7 @@ List<String> filteredCreditsSelector(
       return false;
     }
     if (!credit.matchesFilter(creditListState.filter) &&
-        !client.matchesName(creditListState.filter)) {
+        !client.matchesNameOrEmail(creditListState.filter)) {
       return false;
     }
 
@@ -135,23 +210,28 @@ List<String> filteredCreditsSelector(
   }).toList();
 
   list.sort((creditAId, creditBId) {
-    return creditMap[creditAId].compareTo(
-        invoice: creditMap[creditBId],
-        sortField: creditListState.sortField,
-        sortAscending: creditListState.sortAscending,
-        clientMap: clientMap,
-        userMap: userMap);
+    return creditMap[creditAId]!.compareTo(
+      invoice: creditMap[creditBId],
+      sortField: creditListState.sortField,
+      sortAscending: creditListState.sortAscending,
+      clientMap: clientMap,
+      vendorMap: vendorMap,
+      userMap: userMap,
+    );
   });
 
   return list;
 }
 
 var memoizedCreditStatsForDesign = memo2(
-    (String designId, BuiltMap<String, InvoiceEntity> creditMap) =>
-        creditStatsForDesign(designId, creditMap));
+  (String designId, BuiltMap<String, InvoiceEntity> creditMap) =>
+      creditStatsForDesign(designId, creditMap),
+);
 
 EntityStats creditStatsForDesign(
-    String designId, BuiltMap<String, InvoiceEntity> creditMap) {
+  String designId,
+  BuiltMap<String, InvoiceEntity> creditMap,
+) {
   int countActive = 0;
   int countArchived = 0;
   creditMap.forEach((creditId, credit) {
@@ -168,11 +248,14 @@ EntityStats creditStatsForDesign(
 }
 
 var memoizedCreditStatsForClient = memo2(
-    (String clientId, BuiltMap<String, InvoiceEntity> creditMap) =>
-        creditStatsForClient(clientId, creditMap));
+  (String clientId, BuiltMap<String, InvoiceEntity> creditMap) =>
+      creditStatsForClient(clientId, creditMap),
+);
 
 EntityStats creditStatsForClient(
-    String clientId, BuiltMap<String, InvoiceEntity> creditMap) {
+  String clientId,
+  BuiltMap<String, InvoiceEntity> creditMap,
+) {
   int countActive = 0;
   int countArchived = 0;
   creditMap.forEach((creditId, credit) {
@@ -189,8 +272,9 @@ EntityStats creditStatsForClient(
 }
 
 var memoizedCreditStatsForUser = memo2(
-    (String userId, BuiltMap<String, InvoiceEntity> creditMap) =>
-        creditStatsForUser(userId, creditMap));
+  (String userId, BuiltMap<String, InvoiceEntity> creditMap) =>
+      creditStatsForUser(userId, creditMap),
+);
 
 EntityStats creditStatsForUser(
   String userId,
@@ -210,7 +294,3 @@ EntityStats creditStatsForUser(
 
   return EntityStats(countActive: countActive, countArchived: countArchived);
 }
-
-bool hasCreditChanges(
-        InvoiceEntity credit, BuiltMap<String, InvoiceEntity> creditMap) =>
-    credit.isNew ? credit.isChanged : credit != creditMap[credit.id];

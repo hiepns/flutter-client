@@ -1,24 +1,29 @@
+// Dart imports:
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
+import 'package:redux/redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/main_app.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
-import 'package:invoiceninja_flutter/redux/ui/ui_actions.dart';
-import 'package:invoiceninja_flutter/utils/completers.dart';
-import 'package:redux/redux.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/ui/app/dialogs/error_dialog.dart';
-import 'package:invoiceninja_flutter/ui/webhook/view/webhook_view_vm.dart';
-import 'package:invoiceninja_flutter/redux/webhook/webhook_actions.dart';
-import 'package:invoiceninja_flutter/data/models/webhook_model.dart';
-import 'package:invoiceninja_flutter/ui/webhook/edit/webhook_edit.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/ui/ui_actions.dart';
+import 'package:invoiceninja_flutter/redux/webhook/webhook_actions.dart';
+import 'package:invoiceninja_flutter/ui/app/dialogs/error_dialog.dart';
+import 'package:invoiceninja_flutter/ui/webhook/edit/webhook_edit.dart';
+import 'package:invoiceninja_flutter/ui/webhook/view/webhook_view_vm.dart';
+import 'package:invoiceninja_flutter/utils/completers.dart';
 
 class WebhookEditScreen extends StatelessWidget {
-  const WebhookEditScreen({Key key}) : super(key: key);
+  const WebhookEditScreen({Key? key}) : super(key: key);
 
   static const String route = '/$kSettings/$kSettingsWebhookEdit';
 
@@ -40,20 +45,20 @@ class WebhookEditScreen extends StatelessWidget {
 
 class WebhookEditVM {
   WebhookEditVM({
-    @required this.state,
-    @required this.webhook,
-    @required this.company,
-    @required this.onChanged,
-    @required this.isSaving,
-    @required this.origWebhook,
-    @required this.onSavePressed,
-    @required this.onCancelPressed,
-    @required this.isLoading,
+    required this.state,
+    required this.webhook,
+    required this.company,
+    required this.onChanged,
+    required this.isSaving,
+    required this.origWebhook,
+    required this.onSavePressed,
+    required this.onCancelPressed,
+    required this.isLoading,
   });
 
   factory WebhookEditVM.fromStore(Store<AppState> store) {
     final state = store.state;
-    final webhook = state.webhookUIState.editing;
+    final webhook = state.webhookUIState.editing!;
 
     return WebhookEditVM(
       state: state,
@@ -66,9 +71,9 @@ class WebhookEditVM {
         store.dispatch(UpdateWebhook(webhook));
       },
       onCancelPressed: (BuildContext context) {
-        createEntity(context: context, entity: WebhookEntity(), force: true);
+        createEntity(entity: WebhookEntity(), force: true);
         if (state.webhookUIState.cancelCompleter != null) {
-          state.webhookUIState.cancelCompleter.complete();
+          state.webhookUIState.cancelCompleter!.complete();
         } else {
           store.dispatch(UpdateCurrentRoute(state.uiState.previousRoute));
         }
@@ -81,44 +86,47 @@ class WebhookEditVM {
           final Completer<WebhookEntity> completer =
               new Completer<WebhookEntity>();
           store.dispatch(
-              SaveWebhookRequest(completer: completer, webhook: webhook));
-          return completer.future.then((savedWebhook) {
-            showToast(webhook.isNew
-                ? localization.createdWebhook
-                : localization.updatedWebhook);
+            SaveWebhookRequest(completer: completer, webhook: webhook),
+          );
+          return completer.future
+              .then((savedWebhook) {
+                showToast(
+                  webhook!.isNew
+                      ? localization!.createdWebhook
+                      : localization!.updatedWebhook,
+                );
 
-            if (state.prefState.isMobile) {
-              store.dispatch(UpdateCurrentRoute(WebhookViewScreen.route));
-              if (webhook.isNew) {
-                navigator.pushReplacementNamed(WebhookViewScreen.route);
-              } else {
-                navigator.pop(savedWebhook);
-              }
-            } else {
-              viewEntity(
-                entity: savedWebhook,
-                force: true,
-              );
-            }
-          }).catchError((Object error) {
-            showDialog<ErrorDialog>(
-                context: navigatorKey.currentContext,
-                builder: (BuildContext context) {
-                  return ErrorDialog(error);
-                });
-          });
+                if (state.prefState.isMobile) {
+                  store.dispatch(UpdateCurrentRoute(WebhookViewScreen.route));
+                  if (webhook.isNew) {
+                    navigator!.pushReplacementNamed(WebhookViewScreen.route);
+                  } else {
+                    navigator!.pop(savedWebhook);
+                  }
+                } else {
+                  viewEntity(entity: savedWebhook, force: true);
+                }
+              })
+              .catchError((Object error) {
+                showDialog<ErrorDialog>(
+                  context: navigatorKey.currentContext!,
+                  builder: (BuildContext context) {
+                    return ErrorDialog(error);
+                  },
+                );
+              });
         });
       },
     );
   }
 
   final WebhookEntity webhook;
-  final CompanyEntity company;
+  final CompanyEntity? company;
   final Function(WebhookEntity) onChanged;
   final Function(BuildContext) onSavePressed;
   final Function(BuildContext) onCancelPressed;
   final bool isLoading;
   final bool isSaving;
-  final WebhookEntity origWebhook;
+  final WebhookEntity? origWebhook;
   final AppState state;
 }

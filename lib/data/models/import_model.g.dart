@@ -31,31 +31,145 @@ ImportType _$typeValueOf(String name) {
     case 'zoho':
       return _$zoho;
     default:
-      throw new ArgumentError(name);
+      throw ArgumentError(name);
   }
 }
 
-final BuiltSet<ImportType> _$typeValues =
-    new BuiltSet<ImportType>(const <ImportType>[
-  _$csv,
-  _$json,
-  _$freshbooks,
-  _$invoice2go,
-  _$invoicely,
-  _$waveaccounting,
-  _$zoho,
-]);
+final BuiltSet<ImportType> _$typeValues = BuiltSet<ImportType>(
+  const <ImportType>[
+    _$csv,
+    _$json,
+    _$freshbooks,
+    _$invoice2go,
+    _$invoicely,
+    _$waveaccounting,
+    _$zoho,
+  ],
+);
+
+const ExportType _$activities = const ExportType._('activities');
+const ExportType _$clients = const ExportType._('clients');
+const ExportType _$client_contacts = const ExportType._('client_contacts');
+const ExportType _$credits = const ExportType._('credits');
+const ExportType _$documents = const ExportType._('documents');
+const ExportType _$expenses = const ExportType._('expenses');
+const ExportType _$invoices = const ExportType._('invoices');
+const ExportType _$invoice_items = const ExportType._('invoice_items');
+const ExportType _$quotes = const ExportType._('quotes');
+const ExportType _$quote_items = const ExportType._('quote_items');
+const ExportType _$recurring_invoices = const ExportType._(
+  'recurring_invoices',
+);
+const ExportType _$payments = const ExportType._('payments');
+const ExportType _$products = const ExportType._('products');
+const ExportType _$tasks = const ExportType._('tasks');
+const ExportType _$profitloss = const ExportType._('profitloss');
+const ExportType _$vendors = const ExportType._('vendors');
+const ExportType _$purchase_orders = const ExportType._('purchase_orders');
+const ExportType _$purchase_order_items = const ExportType._(
+  'purchase_order_items',
+);
+const ExportType _$ar_detailed = const ExportType._('ar_detailed');
+const ExportType _$ar_summary = const ExportType._('ar_summary');
+const ExportType _$client_balance = const ExportType._('client_balance');
+const ExportType _$client_sales = const ExportType._('client_sales');
+const ExportType _$tax_summary = const ExportType._('tax_summary');
+const ExportType _$user_sales = const ExportType._('user_sales');
+
+ExportType _$exportValueOf(String name) {
+  switch (name) {
+    case 'activities':
+      return _$activities;
+    case 'clients':
+      return _$clients;
+    case 'client_contacts':
+      return _$client_contacts;
+    case 'credits':
+      return _$credits;
+    case 'documents':
+      return _$documents;
+    case 'expenses':
+      return _$expenses;
+    case 'invoices':
+      return _$invoices;
+    case 'invoice_items':
+      return _$invoice_items;
+    case 'quotes':
+      return _$quotes;
+    case 'quote_items':
+      return _$quote_items;
+    case 'recurring_invoices':
+      return _$recurring_invoices;
+    case 'payments':
+      return _$payments;
+    case 'products':
+      return _$products;
+    case 'tasks':
+      return _$tasks;
+    case 'profitloss':
+      return _$profitloss;
+    case 'vendors':
+      return _$vendors;
+    case 'purchase_orders':
+      return _$purchase_orders;
+    case 'purchase_order_items':
+      return _$purchase_order_items;
+    case 'ar_detailed':
+      return _$ar_detailed;
+    case 'ar_summary':
+      return _$ar_summary;
+    case 'client_balance':
+      return _$client_balance;
+    case 'client_sales':
+      return _$client_sales;
+    case 'tax_summary':
+      return _$tax_summary;
+    case 'user_sales':
+      return _$user_sales;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<ExportType> _$exportValues =
+    BuiltSet<ExportType>(const <ExportType>[
+      _$activities,
+      _$clients,
+      _$client_contacts,
+      _$credits,
+      _$documents,
+      _$expenses,
+      _$invoices,
+      _$invoice_items,
+      _$quotes,
+      _$quote_items,
+      _$recurring_invoices,
+      _$payments,
+      _$products,
+      _$tasks,
+      _$profitloss,
+      _$vendors,
+      _$purchase_orders,
+      _$purchase_order_items,
+      _$ar_detailed,
+      _$ar_summary,
+      _$client_balance,
+      _$client_sales,
+      _$tax_summary,
+      _$user_sales,
+    ]);
 
 Serializer<PreImportResponse> _$preImportResponseSerializer =
-    new _$PreImportResponseSerializer();
+    _$PreImportResponseSerializer();
 Serializer<PreImportResponseEntityDetails>
-    _$preImportResponseEntityDetailsSerializer =
-    new _$PreImportResponseEntityDetailsSerializer();
+_$preImportResponseEntityDetailsSerializer =
+    _$PreImportResponseEntityDetailsSerializer();
 Serializer<ImportRequest> _$importRequestSerializer =
-    new _$ImportRequestSerializer();
+    _$ImportRequestSerializer();
 Serializer<ImportRequestMapping> _$importRequestMappingSerializer =
-    new _$ImportRequestMappingSerializer();
-Serializer<ImportType> _$importTypeSerializer = new _$ImportTypeSerializer();
+    _$ImportRequestMappingSerializer();
+Serializer<ImportType> _$importTypeSerializer = _$ImportTypeSerializer();
+Serializer<ExportType> _$exportTypeSerializer = _$ExportTypeSerializer();
 
 class _$PreImportResponseSerializer
     implements StructuredSerializer<PreImportResponse> {
@@ -65,17 +179,22 @@ class _$PreImportResponseSerializer
   final String wireName = 'PreImportResponse';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, PreImportResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    PreImportResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'hash',
       serializers.serialize(object.hash, specifiedType: const FullType(String)),
       'mappings',
-      serializers.serialize(object.mappings,
-          specifiedType: const FullType(BuiltMap, const [
-            const FullType(String),
-            const FullType(PreImportResponseEntityDetails)
-          ])),
+      serializers.serialize(
+        object.mappings,
+        specifiedType: const FullType(BuiltMap, const [
+          const FullType(String),
+          const FullType(PreImportResponseEntityDetails),
+        ]),
+      ),
     ];
 
     return result;
@@ -83,26 +202,36 @@ class _$PreImportResponseSerializer
 
   @override
   PreImportResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new PreImportResponseBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = PreImportResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'hash':
-          result.hash = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.hash =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'mappings':
-          result.mappings.replace(serializers.deserialize(value,
+          result.mappings.replace(
+            serializers.deserialize(
+              value,
               specifiedType: const FullType(BuiltMap, const [
                 const FullType(String),
-                const FullType(PreImportResponseEntityDetails)
-              ])));
+                const FullType(PreImportResponseEntityDetails),
+              ]),
+            )!,
+          );
           break;
       }
     }
@@ -116,25 +245,32 @@ class _$PreImportResponseEntityDetailsSerializer
   @override
   final Iterable<Type> types = const [
     PreImportResponseEntityDetails,
-    _$PreImportResponseEntityDetails
+    _$PreImportResponseEntityDetails,
   ];
   @override
   final String wireName = 'PreImportResponseEntityDetails';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, PreImportResponseEntityDetails object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    PreImportResponseEntityDetails object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'available',
-      serializers.serialize(object.available,
-          specifiedType:
-              const FullType(BuiltList, const [const FullType(String)])),
+      serializers.serialize(
+        object.available,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(String),
+        ]),
+      ),
       'headers',
-      serializers.serialize(object.headers,
-          specifiedType: const FullType(BuiltList, const [
-            const FullType(BuiltList, const [const FullType(String)])
-          ])),
+      serializers.serialize(
+        object.headers,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(BuiltList, const [const FullType(String)]),
+        ]),
+      ),
     ];
 
     return result;
@@ -142,27 +278,39 @@ class _$PreImportResponseEntityDetailsSerializer
 
   @override
   PreImportResponseEntityDetails deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new PreImportResponseEntityDetailsBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = PreImportResponseEntityDetailsBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'available':
-          result.available.replace(serializers.deserialize(value,
-                  specifiedType:
-                      const FullType(BuiltList, const [const FullType(String)]))
-              as BuiltList<Object>);
+          result.available.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(String),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'headers':
-          result.headers.replace(serializers.deserialize(value,
-              specifiedType: const FullType(BuiltList, const [
-                const FullType(BuiltList, const [const FullType(String)])
-              ])) as BuiltList<Object>);
+          result.headers.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(BuiltList, const [const FullType(String)]),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
       }
     }
@@ -178,23 +326,37 @@ class _$ImportRequestSerializer implements StructuredSerializer<ImportRequest> {
   final String wireName = 'ImportRequest';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, ImportRequest object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ImportRequest object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'hash',
       serializers.serialize(object.hash, specifiedType: const FullType(String)),
       'import_type',
-      serializers.serialize(object.importType,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.importType,
+        specifiedType: const FullType(String),
+      ),
+      'bank_integration_id',
+      serializers.serialize(
+        object.bankAccountId,
+        specifiedType: const FullType(String),
+      ),
       'skip_header',
-      serializers.serialize(object.skipHeader,
-          specifiedType: const FullType(bool)),
+      serializers.serialize(
+        object.skipHeader,
+        specifiedType: const FullType(bool),
+      ),
       'column_map',
-      serializers.serialize(object.columnMap,
-          specifiedType: const FullType(BuiltMap, const [
-            const FullType(String),
-            const FullType(ImportRequestMapping)
-          ])),
+      serializers.serialize(
+        object.columnMap,
+        specifiedType: const FullType(BuiltMap, const [
+          const FullType(String),
+          const FullType(ImportRequestMapping),
+        ]),
+      ),
     ];
 
     return result;
@@ -202,34 +364,60 @@ class _$ImportRequestSerializer implements StructuredSerializer<ImportRequest> {
 
   @override
   ImportRequest deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ImportRequestBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ImportRequestBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'hash':
-          result.hash = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.hash =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'import_type':
-          result.importType = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.importType =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
+          break;
+        case 'bank_integration_id':
+          result.bankAccountId =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'skip_header':
-          result.skipHeader = serializers.deserialize(value,
-              specifiedType: const FullType(bool)) as bool;
+          result.skipHeader =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(bool),
+                  )!
+                  as bool;
           break;
         case 'column_map':
-          result.columnMap.replace(serializers.deserialize(value,
+          result.columnMap.replace(
+            serializers.deserialize(
+              value,
               specifiedType: const FullType(BuiltMap, const [
                 const FullType(String),
-                const FullType(ImportRequestMapping)
-              ])));
+                const FullType(ImportRequestMapping),
+              ]),
+            )!,
+          );
           break;
       }
     }
@@ -243,20 +431,26 @@ class _$ImportRequestMappingSerializer
   @override
   final Iterable<Type> types = const [
     ImportRequestMapping,
-    _$ImportRequestMapping
+    _$ImportRequestMapping,
   ];
   @override
   final String wireName = 'ImportRequestMapping';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, ImportRequestMapping object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    ImportRequestMapping object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'mapping',
-      serializers.serialize(object.mapping,
-          specifiedType: const FullType(
-              BuiltMap, const [const FullType(int), const FullType(String)])),
+      serializers.serialize(
+        object.mapping,
+        specifiedType: const FullType(BuiltMap, const [
+          const FullType(int),
+          const FullType(String),
+        ]),
+      ),
     ];
 
     return result;
@@ -264,20 +458,28 @@ class _$ImportRequestMappingSerializer
 
   @override
   ImportRequestMapping deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new ImportRequestMappingBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = ImportRequestMappingBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'mapping':
-          result.mapping.replace(serializers.deserialize(value,
-              specifiedType: const FullType(BuiltMap,
-                  const [const FullType(int), const FullType(String)])));
+          result.mapping.replace(
+            serializers.deserialize(
+              value,
+              specifiedType: const FullType(BuiltMap, const [
+                const FullType(int),
+                const FullType(String),
+              ]),
+            )!,
+          );
           break;
       }
     }
@@ -293,14 +495,39 @@ class _$ImportTypeSerializer implements PrimitiveSerializer<ImportType> {
   final String wireName = 'ImportType';
 
   @override
-  Object serialize(Serializers serializers, ImportType object,
-          {FullType specifiedType = FullType.unspecified}) =>
-      object.name;
+  Object serialize(
+    Serializers serializers,
+    ImportType object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => object.name;
 
   @override
-  ImportType deserialize(Serializers serializers, Object serialized,
-          {FullType specifiedType = FullType.unspecified}) =>
-      ImportType.valueOf(serialized as String);
+  ImportType deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => ImportType.valueOf(serialized as String);
+}
+
+class _$ExportTypeSerializer implements PrimitiveSerializer<ExportType> {
+  @override
+  final Iterable<Type> types = const <Type>[ExportType];
+  @override
+  final String wireName = 'ExportType';
+
+  @override
+  Object serialize(
+    Serializers serializers,
+    ExportType object, {
+    FullType specifiedType = FullType.unspecified,
+  }) => object.name;
+
+  @override
+  ExportType deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) => ExportType.valueOf(serialized as String);
 }
 
 class _$PreImportResponse extends PreImportResponse {
@@ -309,23 +536,19 @@ class _$PreImportResponse extends PreImportResponse {
   @override
   final BuiltMap<String, PreImportResponseEntityDetails> mappings;
 
-  factory _$PreImportResponse(
-          [void Function(PreImportResponseBuilder) updates]) =>
-      (new PreImportResponseBuilder()..update(updates)).build();
+  factory _$PreImportResponse([
+    void Function(PreImportResponseBuilder)? updates,
+  ]) => (PreImportResponseBuilder()..update(updates))._build();
 
-  _$PreImportResponse._({this.hash, this.mappings}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(hash, 'PreImportResponse', 'hash');
-    BuiltValueNullFieldError.checkNotNull(
-        mappings, 'PreImportResponse', 'mappings');
-  }
-
+  _$PreImportResponse._({required this.hash, required this.mappings})
+    : super._();
   @override
   PreImportResponse rebuild(void Function(PreImportResponseBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   PreImportResponseBuilder toBuilder() =>
-      new PreImportResponseBuilder()..replace(this);
+      PreImportResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -335,15 +558,20 @@ class _$PreImportResponse extends PreImportResponse {
         mappings == other.mappings;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc($jc(0, hash.hashCode), mappings.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, hash.hashCode);
+    _$hash = $jc(_$hash, mappings.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('PreImportResponse')
+    return (newBuiltValueToStringHelper(r'PreImportResponse')
           ..add('hash', hash)
           ..add('mappings', mappings))
         .toString();
@@ -352,17 +580,16 @@ class _$PreImportResponse extends PreImportResponse {
 
 class PreImportResponseBuilder
     implements Builder<PreImportResponse, PreImportResponseBuilder> {
-  _$PreImportResponse _$v;
+  _$PreImportResponse? _$v;
 
-  String _hash;
-  String get hash => _$this._hash;
-  set hash(String hash) => _$this._hash = hash;
+  String? _hash;
+  String? get hash => _$this._hash;
+  set hash(String? hash) => _$this._hash = hash;
 
-  MapBuilder<String, PreImportResponseEntityDetails> _mappings;
+  MapBuilder<String, PreImportResponseEntityDetails>? _mappings;
   MapBuilder<String, PreImportResponseEntityDetails> get mappings =>
-      _$this._mappings ??=
-          new MapBuilder<String, PreImportResponseEntityDetails>();
-  set mappings(MapBuilder<String, PreImportResponseEntityDetails> mappings) =>
+      _$this._mappings ??= MapBuilder<String, PreImportResponseEntityDetails>();
+  set mappings(MapBuilder<String, PreImportResponseEntityDetails>? mappings) =>
       _$this._mappings = mappings;
 
   PreImportResponseBuilder();
@@ -379,32 +606,41 @@ class PreImportResponseBuilder
 
   @override
   void replace(PreImportResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$PreImportResponse;
   }
 
   @override
-  void update(void Function(PreImportResponseBuilder) updates) {
+  void update(void Function(PreImportResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$PreImportResponse build() {
+  PreImportResponse build() => _build();
+
+  _$PreImportResponse _build() {
     _$PreImportResponse _$result;
     try {
-      _$result = _$v ??
-          new _$PreImportResponse._(
-              hash: BuiltValueNullFieldError.checkNotNull(
-                  hash, 'PreImportResponse', 'hash'),
-              mappings: mappings.build());
+      _$result =
+          _$v ??
+          _$PreImportResponse._(
+            hash: BuiltValueNullFieldError.checkNotNull(
+              hash,
+              r'PreImportResponse',
+              'hash',
+            ),
+            mappings: mappings.build(),
+          );
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'mappings';
         mappings.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'PreImportResponse', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'PreImportResponse',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -419,26 +655,22 @@ class _$PreImportResponseEntityDetails extends PreImportResponseEntityDetails {
   @override
   final BuiltList<BuiltList<String>> headers;
 
-  factory _$PreImportResponseEntityDetails(
-          [void Function(PreImportResponseEntityDetailsBuilder) updates]) =>
-      (new PreImportResponseEntityDetailsBuilder()..update(updates)).build();
+  factory _$PreImportResponseEntityDetails([
+    void Function(PreImportResponseEntityDetailsBuilder)? updates,
+  ]) => (PreImportResponseEntityDetailsBuilder()..update(updates))._build();
 
-  _$PreImportResponseEntityDetails._({this.available, this.headers})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        available, 'PreImportResponseEntityDetails', 'available');
-    BuiltValueNullFieldError.checkNotNull(
-        headers, 'PreImportResponseEntityDetails', 'headers');
-  }
-
+  _$PreImportResponseEntityDetails._({
+    required this.available,
+    required this.headers,
+  }) : super._();
   @override
   PreImportResponseEntityDetails rebuild(
-          void Function(PreImportResponseEntityDetailsBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(PreImportResponseEntityDetailsBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   PreImportResponseEntityDetailsBuilder toBuilder() =>
-      new PreImportResponseEntityDetailsBuilder()..replace(this);
+      PreImportResponseEntityDetailsBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -448,16 +680,20 @@ class _$PreImportResponseEntityDetails extends PreImportResponseEntityDetails {
         headers == other.headers;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??=
-        $jf($jc($jc(0, available.hashCode), headers.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, available.hashCode);
+    _$hash = $jc(_$hash, headers.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('PreImportResponseEntityDetails')
+    return (newBuiltValueToStringHelper(r'PreImportResponseEntityDetails')
           ..add('available', available)
           ..add('headers', headers))
         .toString();
@@ -466,19 +702,22 @@ class _$PreImportResponseEntityDetails extends PreImportResponseEntityDetails {
 
 class PreImportResponseEntityDetailsBuilder
     implements
-        Builder<PreImportResponseEntityDetails,
-            PreImportResponseEntityDetailsBuilder> {
-  _$PreImportResponseEntityDetails _$v;
+        Builder<
+          PreImportResponseEntityDetails,
+          PreImportResponseEntityDetailsBuilder
+        > {
+  _$PreImportResponseEntityDetails? _$v;
 
-  ListBuilder<String> _available;
+  ListBuilder<String>? _available;
   ListBuilder<String> get available =>
-      _$this._available ??= new ListBuilder<String>();
-  set available(ListBuilder<String> available) => _$this._available = available;
+      _$this._available ??= ListBuilder<String>();
+  set available(ListBuilder<String>? available) =>
+      _$this._available = available;
 
-  ListBuilder<BuiltList<String>> _headers;
+  ListBuilder<BuiltList<String>>? _headers;
   ListBuilder<BuiltList<String>> get headers =>
-      _$this._headers ??= new ListBuilder<BuiltList<String>>();
-  set headers(ListBuilder<BuiltList<String>> headers) =>
+      _$this._headers ??= ListBuilder<BuiltList<String>>();
+  set headers(ListBuilder<BuiltList<String>>? headers) =>
       _$this._headers = headers;
 
   PreImportResponseEntityDetailsBuilder();
@@ -495,32 +734,39 @@ class PreImportResponseEntityDetailsBuilder
 
   @override
   void replace(PreImportResponseEntityDetails other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$PreImportResponseEntityDetails;
   }
 
   @override
-  void update(void Function(PreImportResponseEntityDetailsBuilder) updates) {
+  void update(void Function(PreImportResponseEntityDetailsBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$PreImportResponseEntityDetails build() {
+  PreImportResponseEntityDetails build() => _build();
+
+  _$PreImportResponseEntityDetails _build() {
     _$PreImportResponseEntityDetails _$result;
     try {
-      _$result = _$v ??
-          new _$PreImportResponseEntityDetails._(
-              available: available.build(), headers: headers.build());
+      _$result =
+          _$v ??
+          _$PreImportResponseEntityDetails._(
+            available: available.build(),
+            headers: headers.build(),
+          );
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'available';
         available.build();
         _$failedField = 'headers';
         headers.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'PreImportResponseEntityDetails', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'PreImportResponseEntityDetails',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -535,31 +781,28 @@ class _$ImportRequest extends ImportRequest {
   @override
   final String importType;
   @override
+  final String bankAccountId;
+  @override
   final bool skipHeader;
   @override
   final BuiltMap<String, ImportRequestMapping> columnMap;
 
-  factory _$ImportRequest([void Function(ImportRequestBuilder) updates]) =>
-      (new ImportRequestBuilder()..update(updates)).build();
+  factory _$ImportRequest([void Function(ImportRequestBuilder)? updates]) =>
+      (ImportRequestBuilder()..update(updates))._build();
 
-  _$ImportRequest._(
-      {this.hash, this.importType, this.skipHeader, this.columnMap})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(hash, 'ImportRequest', 'hash');
-    BuiltValueNullFieldError.checkNotNull(
-        importType, 'ImportRequest', 'importType');
-    BuiltValueNullFieldError.checkNotNull(
-        skipHeader, 'ImportRequest', 'skipHeader');
-    BuiltValueNullFieldError.checkNotNull(
-        columnMap, 'ImportRequest', 'columnMap');
-  }
-
+  _$ImportRequest._({
+    required this.hash,
+    required this.importType,
+    required this.bankAccountId,
+    required this.skipHeader,
+    required this.columnMap,
+  }) : super._();
   @override
   ImportRequest rebuild(void Function(ImportRequestBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  ImportRequestBuilder toBuilder() => new ImportRequestBuilder()..replace(this);
+  ImportRequestBuilder toBuilder() => ImportRequestBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -567,24 +810,31 @@ class _$ImportRequest extends ImportRequest {
     return other is ImportRequest &&
         hash == other.hash &&
         importType == other.importType &&
+        bankAccountId == other.bankAccountId &&
         skipHeader == other.skipHeader &&
         columnMap == other.columnMap;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(
-        $jc($jc($jc(0, hash.hashCode), importType.hashCode),
-            skipHeader.hashCode),
-        columnMap.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, hash.hashCode);
+    _$hash = $jc(_$hash, importType.hashCode);
+    _$hash = $jc(_$hash, bankAccountId.hashCode);
+    _$hash = $jc(_$hash, skipHeader.hashCode);
+    _$hash = $jc(_$hash, columnMap.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ImportRequest')
+    return (newBuiltValueToStringHelper(r'ImportRequest')
           ..add('hash', hash)
           ..add('importType', importType)
+          ..add('bankAccountId', bankAccountId)
           ..add('skipHeader', skipHeader)
           ..add('columnMap', columnMap))
         .toString();
@@ -593,24 +843,29 @@ class _$ImportRequest extends ImportRequest {
 
 class ImportRequestBuilder
     implements Builder<ImportRequest, ImportRequestBuilder> {
-  _$ImportRequest _$v;
+  _$ImportRequest? _$v;
 
-  String _hash;
-  String get hash => _$this._hash;
-  set hash(String hash) => _$this._hash = hash;
+  String? _hash;
+  String? get hash => _$this._hash;
+  set hash(String? hash) => _$this._hash = hash;
 
-  String _importType;
-  String get importType => _$this._importType;
-  set importType(String importType) => _$this._importType = importType;
+  String? _importType;
+  String? get importType => _$this._importType;
+  set importType(String? importType) => _$this._importType = importType;
 
-  bool _skipHeader;
-  bool get skipHeader => _$this._skipHeader;
-  set skipHeader(bool skipHeader) => _$this._skipHeader = skipHeader;
+  String? _bankAccountId;
+  String? get bankAccountId => _$this._bankAccountId;
+  set bankAccountId(String? bankAccountId) =>
+      _$this._bankAccountId = bankAccountId;
 
-  MapBuilder<String, ImportRequestMapping> _columnMap;
+  bool? _skipHeader;
+  bool? get skipHeader => _$this._skipHeader;
+  set skipHeader(bool? skipHeader) => _$this._skipHeader = skipHeader;
+
+  MapBuilder<String, ImportRequestMapping>? _columnMap;
   MapBuilder<String, ImportRequestMapping> get columnMap =>
-      _$this._columnMap ??= new MapBuilder<String, ImportRequestMapping>();
-  set columnMap(MapBuilder<String, ImportRequestMapping> columnMap) =>
+      _$this._columnMap ??= MapBuilder<String, ImportRequestMapping>();
+  set columnMap(MapBuilder<String, ImportRequestMapping>? columnMap) =>
       _$this._columnMap = columnMap;
 
   ImportRequestBuilder();
@@ -620,6 +875,7 @@ class ImportRequestBuilder
     if ($v != null) {
       _hash = $v.hash;
       _importType = $v.importType;
+      _bankAccountId = $v.bankAccountId;
       _skipHeader = $v.skipHeader;
       _columnMap = $v.columnMap.toBuilder();
       _$v = null;
@@ -629,36 +885,56 @@ class ImportRequestBuilder
 
   @override
   void replace(ImportRequest other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ImportRequest;
   }
 
   @override
-  void update(void Function(ImportRequestBuilder) updates) {
+  void update(void Function(ImportRequestBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ImportRequest build() {
+  ImportRequest build() => _build();
+
+  _$ImportRequest _build() {
     _$ImportRequest _$result;
     try {
-      _$result = _$v ??
-          new _$ImportRequest._(
-              hash: BuiltValueNullFieldError.checkNotNull(
-                  hash, 'ImportRequest', 'hash'),
-              importType: BuiltValueNullFieldError.checkNotNull(
-                  importType, 'ImportRequest', 'importType'),
-              skipHeader: BuiltValueNullFieldError.checkNotNull(
-                  skipHeader, 'ImportRequest', 'skipHeader'),
-              columnMap: columnMap.build());
+      _$result =
+          _$v ??
+          _$ImportRequest._(
+            hash: BuiltValueNullFieldError.checkNotNull(
+              hash,
+              r'ImportRequest',
+              'hash',
+            ),
+            importType: BuiltValueNullFieldError.checkNotNull(
+              importType,
+              r'ImportRequest',
+              'importType',
+            ),
+            bankAccountId: BuiltValueNullFieldError.checkNotNull(
+              bankAccountId,
+              r'ImportRequest',
+              'bankAccountId',
+            ),
+            skipHeader: BuiltValueNullFieldError.checkNotNull(
+              skipHeader,
+              r'ImportRequest',
+              'skipHeader',
+            ),
+            columnMap: columnMap.build(),
+          );
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'columnMap';
         columnMap.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'ImportRequest', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'ImportRequest',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -671,23 +947,19 @@ class _$ImportRequestMapping extends ImportRequestMapping {
   @override
   final BuiltMap<int, String> mapping;
 
-  factory _$ImportRequestMapping(
-          [void Function(ImportRequestMappingBuilder) updates]) =>
-      (new ImportRequestMappingBuilder()..update(updates)).build();
+  factory _$ImportRequestMapping([
+    void Function(ImportRequestMappingBuilder)? updates,
+  ]) => (ImportRequestMappingBuilder()..update(updates))._build();
 
-  _$ImportRequestMapping._({this.mapping}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        mapping, 'ImportRequestMapping', 'mapping');
-  }
-
+  _$ImportRequestMapping._({required this.mapping}) : super._();
   @override
   ImportRequestMapping rebuild(
-          void Function(ImportRequestMappingBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(ImportRequestMappingBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   ImportRequestMappingBuilder toBuilder() =>
-      new ImportRequestMappingBuilder()..replace(this);
+      ImportRequestMappingBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -695,28 +967,32 @@ class _$ImportRequestMapping extends ImportRequestMapping {
     return other is ImportRequestMapping && mapping == other.mapping;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, mapping.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, mapping.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('ImportRequestMapping')
-          ..add('mapping', mapping))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'ImportRequestMapping',
+    )..add('mapping', mapping)).toString();
   }
 }
 
 class ImportRequestMappingBuilder
     implements Builder<ImportRequestMapping, ImportRequestMappingBuilder> {
-  _$ImportRequestMapping _$v;
+  _$ImportRequestMapping? _$v;
 
-  MapBuilder<int, String> _mapping;
+  MapBuilder<int, String>? _mapping;
   MapBuilder<int, String> get mapping =>
-      _$this._mapping ??= new MapBuilder<int, String>();
-  set mapping(MapBuilder<int, String> mapping) => _$this._mapping = mapping;
+      _$this._mapping ??= MapBuilder<int, String>();
+  set mapping(MapBuilder<int, String>? mapping) => _$this._mapping = mapping;
 
   ImportRequestMappingBuilder();
 
@@ -731,28 +1007,32 @@ class ImportRequestMappingBuilder
 
   @override
   void replace(ImportRequestMapping other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$ImportRequestMapping;
   }
 
   @override
-  void update(void Function(ImportRequestMappingBuilder) updates) {
+  void update(void Function(ImportRequestMappingBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$ImportRequestMapping build() {
+  ImportRequestMapping build() => _build();
+
+  _$ImportRequestMapping _build() {
     _$ImportRequestMapping _$result;
     try {
-      _$result = _$v ?? new _$ImportRequestMapping._(mapping: mapping.build());
+      _$result = _$v ?? _$ImportRequestMapping._(mapping: mapping.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'mapping';
         mapping.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'ImportRequestMapping', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'ImportRequestMapping',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -761,4 +1041,4 @@ class ImportRequestMappingBuilder
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

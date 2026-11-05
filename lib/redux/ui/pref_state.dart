@@ -1,7 +1,11 @@
+// Flutter imports:
+
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:flutter/foundation.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/static/color_theme_model.dart';
@@ -9,33 +13,56 @@ import 'package:invoiceninja_flutter/data/models/static/color_theme_model.dart';
 part 'pref_state.g.dart';
 
 abstract class PrefState implements Built<PrefState, PrefStateBuilder> {
-  factory PrefState({ModuleLayout moduleLayout}) {
+  factory PrefState() {
     return _$PrefState._(
       appLayout: AppLayout.desktop,
       moduleLayout: ModuleLayout.table,
       isPreviewVisible: false,
       useSidebarEditor: BuiltMap<EntityType, bool>(),
+      useSidebarViewer: BuiltMap<EntityType, bool>(),
       menuSidebarMode: AppSidebarMode.collapse,
       historySidebarMode: AppSidebarMode.float,
       rowsPerPage: 10,
       isMenuVisible: true,
       isHistoryVisible: false,
-      enableDarkMode: false,
+      darkModeType: kBrightnessSytem,
+      enableDarkModeSystem: false,
+      enableFlexibleSearch: false,
+      editAfterSaving: true,
       requireAuthentication: false,
       colorTheme: kColorThemeLight,
+      darkColorTheme: kColorThemeDark,
+      enableTouchEvents: false,
+      enableTooltips: true,
       isFilterVisible: false,
+      textScaleFactor: 1,
       longPressSelectionIsDefault: true,
       tapSelectedToEdit: false,
+      hideGatewayWarning: false,
+      hideReviewApp: false,
+      hideOneYearReviewApp: false,
+      hideTwoYearReviewApp: false,
+      hideTaskExtensionBanner: false,
       showKanban: false,
-      persistData: false,
-      persistUI: true,
+      showPdfPreview: true,
+      showPdfPreviewSideBySide: false,
+      persistData: true,
+      enableNativeBrowser: false,
+      donwloadsFolder: '',
+      statementIncludes: BuiltList(<String>[kStatementIncludePayments]),
       companyPrefs: BuiltMap<String, CompanyPrefState>(),
       sortFields: BuiltMap<EntityType, PrefStateSortField>(),
       customColors: BuiltMap<String, String>(CONTRAST_COLORS),
+      darkCustomColors: BuiltMap<String, String>(),
     );
   }
 
   PrefState._();
+
+  static const TEXT_SCALING_SMALL = 0.8;
+  static const TEXT_SCALING_NORMAL = 1.0;
+  static const TEXT_SCALING_LARGE = 1.2;
+  static const TEXT_SCALING_EXTRA_LARGE = 1.4;
 
   static const THEME_SIDEBAR_ACTIVE_BACKGROUND_COLOR =
       'sidebar_active_background_color';
@@ -61,9 +88,9 @@ abstract class PrefState implements Built<PrefState, PrefStateBuilder> {
   ];
 
   static const CONTRAST_COLORS = {
-    PrefState.THEME_SIDEBAR_ACTIVE_BACKGROUND_COLOR: '#444444',
+    PrefState.THEME_SIDEBAR_ACTIVE_BACKGROUND_COLOR: '#2F2E2E',
     PrefState.THEME_SIDEBAR_ACTIVE_FONT_COLOR: '#FFFFFF',
-    PrefState.THEME_SIDEBAR_INACTIVE_BACKGROUND_COLOR: '#2F2F2F',
+    PrefState.THEME_SIDEBAR_INACTIVE_BACKGROUND_COLOR: '#454544',
     PrefState.THEME_SIDEBAR_INACTIVE_FONT_COLOR: '#FFFFFF',
     PrefState.THEME_INVOICE_HEADER_BACKGROUND_COLOR: '#777777',
     PrefState.THEME_INVOICE_HEADER_FONT_COLOR: '#FFFFFF',
@@ -84,7 +111,13 @@ abstract class PrefState implements Built<PrefState, PrefStateBuilder> {
 
   BuiltMap<EntityType, bool> get useSidebarEditor;
 
+  BuiltMap<EntityType, bool> get useSidebarViewer;
+
   BuiltMap<String, String> get customColors;
+
+  BuiltMap<String, String> get darkCustomColors;
+
+  BuiltList<String> get statementIncludes;
 
   bool get isPreviewVisible;
 
@@ -92,15 +125,23 @@ abstract class PrefState implements Built<PrefState, PrefStateBuilder> {
 
   bool get showKanban;
 
+  bool get showPdfPreview;
+
+  bool get showPdfPreviewSideBySide;
+
+  bool get enableTouchEvents;
+
+  bool get enableFlexibleSearch;
+
   bool get isHistoryVisible;
 
-  bool get enableDarkMode;
+  String get darkModeType;
+
+  bool get enableDarkModeSystem;
 
   bool get isFilterVisible;
 
   bool get persistData;
-
-  bool get persistUI;
 
   bool get longPressSelectionIsDefault;
 
@@ -110,29 +151,81 @@ abstract class PrefState implements Built<PrefState, PrefStateBuilder> {
 
   int get rowsPerPage;
 
+  bool get enableTooltips;
+
   String get colorTheme;
+
+  String get darkColorTheme;
+
+  bool get hideGatewayWarning;
+
+  bool get hideReviewApp;
+
+  bool get hideOneYearReviewApp;
+
+  bool get hideTwoYearReviewApp;
+
+  bool get hideTaskExtensionBanner;
+
+  bool get editAfterSaving;
+
+  bool get enableNativeBrowser;
+
+  double get textScaleFactor;
+
+  String get donwloadsFolder;
 
   BuiltMap<EntityType, PrefStateSortField> get sortFields;
 
-  ColorTheme get colorThemeModel => colorThemesMap.containsKey(colorTheme)
-      ? colorThemesMap[colorTheme]
-      : colorThemesMap[kColorThemeLight];
+  bool get enableDarkMode => darkModeType == kBrightnessSytem
+      ? enableDarkModeSystem
+      : darkModeType == kBrightnessDark;
+
+  ColorTheme? get colorThemeModel {
+    final theme = enableDarkMode ? darkColorTheme : colorTheme;
+
+    if (colorThemesMap.containsKey(theme)) {
+      return colorThemesMap[theme];
+    } else if (enableDarkMode) {
+      return colorThemesMap[kColorThemeDark];
+    } else {
+      return colorThemesMap[kColorThemeLight];
+    }
+  }
+
+  BuiltMap<String, String> get activeCustomColors =>
+      enableDarkMode ? darkCustomColors : customColors;
 
   BuiltMap<String, CompanyPrefState> get companyPrefs;
 
   bool get isDesktop => appLayout == AppLayout.desktop;
 
-  bool isEditorFullScreen(EntityType entityType) {
+  bool isEditorFullScreen(EntityType? entityType) {
     if (!isDesktop) {
       return false;
     }
 
-    if ([EntityType.product, EntityType.payment, EntityType.project]
-        .contains(entityType)) {
+    if ([
+      EntityType.product,
+      EntityType.payment,
+      EntityType.project,
+    ].contains(entityType)) {
       return false;
     }
 
-    return !(useSidebarEditor[entityType.baseType] ?? false);
+    return !(useSidebarEditor[entityType!.baseType] ?? false);
+  }
+
+  bool isViewerFullScreen(EntityType? entityType) {
+    if (!isDesktop || entityType == null) {
+      return false;
+    }
+
+    if (!entityType.hasFullWidthViewer) {
+      return false;
+    }
+
+    return !(useSidebarViewer[entityType.baseType] ?? false);
   }
 
   bool get isNotDesktop => !isDesktop;
@@ -166,19 +259,37 @@ abstract class PrefState implements Built<PrefState, PrefStateBuilder> {
 
   // ignore: unused_element
   static void _initializeBuilder(PrefStateBuilder builder) => builder
+    ..statementIncludes.replace(
+      BuiltList<String>(<String>[kStatementIncludePayments]),
+    )
     ..useSidebarEditor.replace(BuiltMap<EntityType, bool>())
+    ..useSidebarViewer.replace(BuiltMap<EntityType, bool>())
     ..sortFields.replace(BuiltMap<EntityType, PrefStateSortField>())
-    ..customColors.replace(builder.enableDarkMode == true
-        ? BuiltMap<String, String>()
-        : BuiltMap<String, String>(PrefState.CONTRAST_COLORS))
+    ..customColors.replace(BuiltMap<String, String>(PrefState.CONTRAST_COLORS))
+    ..darkCustomColors.replace(BuiltMap<String, String>())
     ..showKanban = false
     ..isPreviewVisible = false
     ..isFilterVisible = false
+    ..hideGatewayWarning = false
+    ..hideReviewApp = false
+    ..hideOneYearReviewApp = false
+    ..hideTwoYearReviewApp = false
     ..tapSelectedToEdit = false
-    ..persistData = false
-    ..persistUI = true
-    ..colorTheme =
-        builder.enableDarkMode == true ? kColorThemeLight : kColorThemeLight;
+    ..persistData = true
+    ..editAfterSaving = true
+    ..showPdfPreview = true
+    ..showPdfPreviewSideBySide = false
+    ..enableTouchEvents = false
+    ..enableFlexibleSearch = false
+    ..enableTooltips = true
+    ..enableNativeBrowser = false
+    ..textScaleFactor = 1
+    ..darkModeType = kBrightnessSytem
+    ..colorTheme = kColorThemeLight
+    ..darkColorTheme = kColorThemeDark
+    ..enableDarkModeSystem = false
+    ..donwloadsFolder = ''
+    ..hideTaskExtensionBanner = false;
 
   static Serializer<PrefState> get serializer => _$prefStateSerializer;
 }
@@ -186,10 +297,7 @@ abstract class PrefState implements Built<PrefState, PrefStateBuilder> {
 abstract class PrefStateSortField
     implements Built<PrefStateSortField, PrefStateSortFieldBuilder> {
   factory PrefStateSortField(String field, bool ascending) {
-    return _$PrefStateSortField._(
-      field: field,
-      ascending: ascending,
-    );
+    return _$PrefStateSortField._(field: field, ascending: ascending);
   }
 
   PrefStateSortField._();
@@ -208,12 +316,8 @@ abstract class PrefStateSortField
 
 abstract class CompanyPrefState
     implements Built<CompanyPrefState, CompanyPrefStateBuilder> {
-  factory CompanyPrefState({
-    String accentColor,
-  }) {
-    return _$CompanyPrefState._(
-      historyList: BuiltList<HistoryRecord>(),
-    );
+  factory CompanyPrefState({String? accentColor}) {
+    return _$CompanyPrefState._(historyList: BuiltList<HistoryRecord>());
   }
 
   CompanyPrefState._();
@@ -284,13 +388,15 @@ class AppSidebarMode extends EnumClass {
 abstract class HistoryRecord
     implements Built<HistoryRecord, HistoryRecordBuilder> {
   factory HistoryRecord({
-    @required EntityType entityType,
-    String id,
+    required EntityType entityType,
+    String? id,
+    int? page,
   }) {
     return _$HistoryRecord._(
       id: id,
       entityType: entityType,
       timestamp: DateTime.now().millisecondsSinceEpoch,
+      page: page ?? 0,
     );
   }
 
@@ -300,10 +406,11 @@ abstract class HistoryRecord
   @memoized
   int get hashCode;
 
-  @nullable
-  String get id;
+  String? get id;
 
   EntityType get entityType;
+
+  int? get page;
 
   int get timestamp;
 
@@ -312,8 +419,8 @@ abstract class HistoryRecord
   bool matchesRecord(HistoryRecord record) =>
       isEqualTo(entityId: record.id, entityType: record.entityType);
 
-  bool isEqualTo({EntityType entityType, String entityId}) =>
-      entityType == this.entityType && entityId == id;
+  bool isEqualTo({EntityType? entityType, String? entityId}) =>
+      entityType == this.entityType && (entityId ?? '') == (id ?? '');
 
   static Serializer<HistoryRecord> get serializer => _$historyRecordSerializer;
 }

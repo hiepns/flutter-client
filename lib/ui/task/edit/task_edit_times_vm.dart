@@ -1,14 +1,18 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:invoiceninja_flutter/redux/task/task_actions.dart';
-import 'package:invoiceninja_flutter/ui/task/edit/task_edit_times.dart';
 import 'package:redux/redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/task/task_actions.dart';
+import 'package:invoiceninja_flutter/ui/task/edit/task_edit_times.dart';
 
 class TaskEditTimesScreen extends StatelessWidget {
-  const TaskEditTimesScreen({Key key}) : super(key: key);
+  const TaskEditTimesScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -17,9 +21,7 @@ class TaskEditTimesScreen extends StatelessWidget {
         return TaskEditTimesVM.fromStore(store);
       },
       builder: (context, viewModel) {
-        return TaskEditTimes(
-          viewModel: viewModel,
-        );
+        return TaskEditTimes(viewModel: viewModel);
       },
     );
   }
@@ -27,13 +29,13 @@ class TaskEditTimesScreen extends StatelessWidget {
 
 class TaskEditTimesVM {
   TaskEditTimesVM({
-    @required this.company,
-    @required this.task,
-    @required this.taskTimeIndex,
-    @required this.onRemoveTaskTimePressed,
-    @required this.onDoneTaskTimePressed,
-    @required this.onUpdatedTaskTime,
-    @required this.clearSelectedTaskTime,
+    required this.company,
+    required this.task,
+    required this.taskTimeIndex,
+    required this.onRemoveTaskTimePressed,
+    required this.onDoneTaskTimePressed,
+    required this.onUpdatedTaskTime,
+    required this.clearSelectedTaskTime,
   });
 
   factory TaskEditTimesVM.fromStore(Store<AppState> store) {
@@ -55,11 +57,11 @@ class TaskEditTimesVM {
     );
   }
 
-  final CompanyEntity company;
-  final TaskEntity task;
-  final int taskTimeIndex;
+  final CompanyEntity? company;
+  final TaskEntity? task;
+  final int? taskTimeIndex;
   final Function(int) onRemoveTaskTimePressed;
   final Function onDoneTaskTimePressed;
-  final Function(TaskTime, int) onUpdatedTaskTime;
+  final Function(TaskTime?, int) onUpdatedTaskTime;
   final Function clearSelectedTaskTime;
 }

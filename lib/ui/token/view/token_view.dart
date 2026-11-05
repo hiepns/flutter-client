@@ -1,7 +1,8 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/data/models/token_model.dart';
 import 'package:invoiceninja_flutter/redux/token/token_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/entity_header.dart';
 import 'package:invoiceninja_flutter/ui/app/lists/list_divider.dart';
@@ -12,11 +13,8 @@ import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class TokenView extends StatefulWidget {
-  const TokenView({
-    Key key,
-    @required this.viewModel,
-    @required this.isFilter,
-  }) : super(key: key);
+  const TokenView({Key? key, required this.viewModel, required this.isFilter})
+    : super(key: key);
 
   final TokenViewVM viewModel;
   final bool isFilter;
@@ -28,10 +26,10 @@ class TokenView extends StatefulWidget {
 class _TokenViewState extends State<TokenView> {
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final viewModel = widget.viewModel;
     final token = viewModel.token;
-    final user = viewModel.state.userState.get(token.createdUserId);
+    final user = viewModel.state.userState.get(token.createdUserId!);
 
     return ViewScaffold(
       isFilter: widget.isFilter,
@@ -45,7 +43,9 @@ class _TokenViewState extends State<TokenView> {
             value: user.listDisplayName,
             secondLabel: localization.createdOn,
             secondValue: formatDate(
-                convertTimestampToDateString(token.createdAt), context),
+              convertTimestampToDateString(token.createdAt),
+              context,
+            ),
           ),
           ListDivider(),
           _TokenListTile(token),

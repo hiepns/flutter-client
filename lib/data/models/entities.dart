@@ -1,6 +1,9 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/ui/reports/reports_screen.dart';
@@ -39,13 +42,16 @@ class EntityType extends EnumClass {
   static const EntityType invoiceItem = _$invoiceItem;
   static const EntityType design = _$design;
   // STARTER: entity type - do not remove comment
+  static const EntityType schedule = _$schedule;
+  static const EntityType transactionRule = _$transactionRule;
+  static const EntityType transaction = _$transaction;
+  static const EntityType bankAccount = _$bankAccount;
   static const EntityType recurringExpense = _$recurringExpense;
   static const EntityType recurringQuote = _$recurringQuote;
-  static const EntityType subscription = _$subscription;
+  static const EntityType paymentLink = _$paymentLink;
   static const EntityType webhook = _$webhook;
   static const EntityType token = _$token;
   static const EntityType paymentTerm = _$paymentTerm;
-  static const EntityType quoteItem = _$quoteItem;
   static const EntityType contact = _$contact;
   static const EntityType vendorContact = _$vendorContact;
   static const EntityType country = _$country;
@@ -59,6 +65,8 @@ class EntityType extends EnumClass {
   static const EntityType timezone = _$timezone;
   static const EntityType dateFormat = _$dateFormat;
   static const EntityType font = _$font;
+  static const EntityType purchaseOrder = _$purchaseOrder;
+  static const EntityType location = _$location;
 
   String get plural {
     if (this == EntityType.expenseCategory) {
@@ -67,22 +75,25 @@ class EntityType extends EnumClass {
       return 'taskStatuses';
     }
 
-    return toString() + 's';
+    return readableValue + 's';
   }
 
   bool get isSetting => [
-        EntityType.paymentTerm,
-        EntityType.taxRate,
-        EntityType.companyGateway,
-        EntityType.user,
-        EntityType.group,
-        EntityType.design,
-        EntityType.token,
-        EntityType.webhook,
-        EntityType.expenseCategory,
-        EntityType.taskStatus,
-        EntityType.subscription,
-      ].contains(this);
+    EntityType.paymentTerm,
+    EntityType.taxRate,
+    EntityType.companyGateway,
+    EntityType.user,
+    EntityType.group,
+    EntityType.design,
+    EntityType.token,
+    EntityType.webhook,
+    EntityType.expenseCategory,
+    EntityType.taskStatus,
+    EntityType.paymentLink,
+    EntityType.bankAccount,
+    EntityType.transactionRule,
+    EntityType.schedule,
+  ].contains(this);
 
   List<EntityType> get relatedTypes {
     switch (this) {
@@ -97,23 +108,22 @@ class EntityType extends EnumClass {
           EntityType.project,
           EntityType.recurringInvoice,
           EntityType.recurringExpense,
+          EntityType.document,
         ];
       case EntityType.invoice:
-        return [
-          EntityType.payment,
-        ];
+        return [EntityType.payment, EntityType.transaction];
+      case EntityType.quote:
+        return [EntityType.invoice];
       case EntityType.recurringInvoice:
-        return [
-          EntityType.invoice,
-        ];
+        return [EntityType.invoice];
       case EntityType.payment:
-        return [
-          EntityType.invoice,
-        ];
+        return [EntityType.invoice];
       case EntityType.project:
         return [
           EntityType.task,
           EntityType.expense,
+          EntityType.invoice,
+          EntityType.quote,
         ];
       case EntityType.group:
         return [
@@ -140,33 +150,28 @@ class EntityType extends EnumClass {
           EntityType.recurringExpense,
         ];
       case EntityType.companyGateway:
-        return [
-          EntityType.client,
-          EntityType.payment,
-        ];
+        return [EntityType.client, EntityType.payment];
       case EntityType.vendor:
         return [
+          EntityType.purchaseOrder,
           EntityType.expense,
           EntityType.recurringExpense,
+          EntityType.transaction,
+          EntityType.document,
         ];
       case EntityType.task:
-        return [
-          EntityType.project,
-        ];
+        return [EntityType.project];
       case EntityType.expense:
         return [
           EntityType.vendor,
           EntityType.project,
           EntityType.expenseCategory,
+          EntityType.transaction,
         ];
       case EntityType.expenseCategory:
-        return [
-          EntityType.expense,
-        ];
+        return [EntityType.expense, EntityType.transaction];
       case EntityType.recurringExpense:
-        return [
-          EntityType.expense,
-        ];
+        return [EntityType.expense];
       case EntityType.design:
         return [
           EntityType.invoice,
@@ -174,6 +179,17 @@ class EntityType extends EnumClass {
           EntityType.credit,
           EntityType.recurringInvoice,
         ];
+      case EntityType.bankAccount:
+        return [EntityType.transaction];
+      case EntityType.transaction:
+        return [
+          EntityType.invoice,
+          EntityType.expense,
+          EntityType.vendor,
+          EntityType.expenseCategory,
+        ];
+      case EntityType.transactionRule:
+        return [EntityType.transaction];
       default:
         return [];
     }
@@ -193,7 +209,43 @@ class EntityType extends EnumClass {
     return this;
   }
 
+  bool get hideCreate =>
+      this == EntityType.settings || this == EntityType.document;
+
   String get snakeCase => toSnakeCase(toString());
+
+  String get apiValue {
+    if (this == EntityType.transaction) {
+      return 'bank_transaction';
+    }
+
+    return snakeCase;
+  }
+
+  String get pluralApiValue {
+    if (this == EntityType.transaction) {
+      return 'bank_transactions';
+    }
+
+    if (this == EntityType.expenseCategory) {
+      return 'expense_categories';
+    } else if (this == EntityType.taskStatus) {
+      return 'task_statuses';
+    }
+
+    return snakeCase + 's';
+  }
+
+  String get readableValue {
+    if (this == EntityType.paymentLink) {
+      return 'payment_link';
+    }
+
+    return toString();
+  }
+
+  bool get hasFullWidthViewer =>
+      [EntityType.client, EntityType.vendor].contains(this);
 
   static BuiltSet<EntityType> get values => _$typeValues;
 
@@ -223,12 +275,15 @@ class EmailTemplate extends EnumClass {
   static const EmailTemplate quote = _$quote_email;
   static const EmailTemplate payment = _$payment_email;
   static const EmailTemplate payment_partial = _$payment_partial_email;
+  static const EmailTemplate payment_failed = _$payment_failed_email;
   static const EmailTemplate credit = _$credit_email;
+  static const EmailTemplate purchase_order = _$purchase_order;
   static const EmailTemplate statement = _$statement_email;
   static const EmailTemplate reminder1 = _$reminder1_email;
   static const EmailTemplate reminder2 = _$reminder2_email;
   static const EmailTemplate reminder3 = _$reminder3_email;
   static const EmailTemplate reminder_endless = _$reminder_endless_email;
+  static const EmailTemplate quote_reminder1 = _$quote_reminder1_email;
   static const EmailTemplate custom1 = _$custom1_email;
   static const EmailTemplate custom2 = _$custom2_email;
   static const EmailTemplate custom3 = _$custom3_email;
@@ -253,46 +308,55 @@ class UserPermission extends EnumClass {
   static UserPermission valueOf(String name) => _$permissionValueOf(name);
 }
 
-abstract class EntityStatus {
+abstract mixin class EntityStatus {
   String get id;
 
   String get name;
 }
 
 class EntityStats {
-  const EntityStats({this.countActive, this.countArchived});
+  const EntityStats({
+    this.countActive,
+    this.countArchived,
+    this.total,
+    this.currencyId,
+  });
 
-  final int countActive;
+  final int? countActive;
 
-  final int countArchived;
+  final int? countArchived;
+
+  final double? total;
+
+  final String? currencyId;
 
   String present(String activeLabel, String archivedLabel) {
     String str = '';
-    if (countActive > 0) {
+    if (countActive! > 0) {
       str = '$countActive $activeLabel';
-      if (countArchived > 0) {
+      if (countArchived! > 0) {
         str += ' • ';
       }
     }
-    if (countArchived > 0) {
+    if (countArchived! > 0) {
       str += '$countArchived $archivedLabel';
     }
     return str;
   }
 }
 
-abstract class SelectableEntity {
+abstract mixin class SelectableEntity {
   String get id;
 
-  bool matchesFilter(String filter) => true;
+  bool matchesFilter(String? filter) => true;
 
-  String matchesFilterValue(String filter) => null;
+  String? matchesFilterValue(String? filter) => null;
 
   String get listDisplayName => 'Error: listDisplayName not set';
 
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
-  FormatNumberType get listDisplayAmountType => FormatNumberType.money;
+  FormatNumberType? get listDisplayAmountType => FormatNumberType.money;
 }
 
 class EntityFields {
@@ -305,13 +369,14 @@ class EntityFields {
   static const String isDeleted = 'is_deleted';
 }
 
-abstract class BaseEntity implements SelectableEntity {
+abstract mixin class BaseEntity implements SelectableEntity {
   static int counter = 0;
 
   static String get nextId => '${--counter}';
 
-  @nullable
-  bool get isChanged;
+  static String get nextIdempotencyKey => getRandomString();
+
+  bool? get isChanged;
 
   @BuiltValueField(wireName: 'created_at')
   int get createdAt;
@@ -322,35 +387,35 @@ abstract class BaseEntity implements SelectableEntity {
   @BuiltValueField(wireName: 'archived_at')
   int get archivedAt;
 
-  @nullable
   @BuiltValueField(wireName: 'is_deleted')
-  bool get isDeleted;
+  bool? get isDeleted;
 
-  @nullable
   @BuiltValueField(wireName: 'user_id')
-  String get createdUserId;
+  String? get createdUserId;
 
-  @nullable
   @BuiltValueField(wireName: 'assigned_user_id')
-  String get assignedUserId;
+  String? get assignedUserId;
 
-  @nullable
   @BuiltValueField(wireName: 'entity_type')
-  EntityType get entityType;
+  EntityType? get entityType;
 
   String get entityKey => '__${entityType}__${id}__';
 
-  bool get isNew => (id ?? '').isEmpty || (int.tryParse(id) ?? 0) < 0;
+  bool get isNew => id.isEmpty || (int.tryParse(id) ?? 0) < 0;
 
   bool get isOld => !isNew;
 
-  bool get isActive => !isArchived && !isDeleted;
+  bool get isDeletable => true;
 
-  bool get isNotActive => isArchived || isDeleted;
+  bool get isActive => !isArchived && !isDeleted!;
 
-  bool get isArchived => archivedAt != null && archivedAt > 0 && !isDeleted;
+  bool get isNotActive => isArchived || isDeleted!;
 
-  bool get isEditable => !isDeleted;
+  bool get isArchived => archivedAt > 0 && !isDeleted!;
+
+  bool get isEditable => !isDeleted!;
+
+  bool get isRestorable => true;
 
   bool userCanAccess(String userId) =>
       createdUserId == userId || assignedUserId == userId;
@@ -359,22 +424,27 @@ abstract class BaseEntity implements SelectableEntity {
       ? kEntityStateActive
       : (isArchived ? kEntityStateArchived : kEntityStateDeleted);
 
-  ReportStringValue getReportString({String value}) =>
+  ReportStringValue getReportString({String? value}) =>
       ReportStringValue(entityId: id, entityType: entityType, value: value);
 
   ReportEntityTypeValue getReportEntityType() => ReportEntityTypeValue(
-      entityId: id, entityType: entityType, value: entityType);
+    entityId: id,
+    entityType: entityType,
+    value: entityType,
+  );
 
-  ReportBoolValue getReportBool({bool value}) =>
+  ReportBoolValue getReportBool({bool? value}) =>
       ReportBoolValue(entityId: id, entityType: entityType, value: value);
 
-  ReportAgeValue getReportAge({int value, String currencyId}) => ReportAgeValue(
-      entityType: entityType,
-      entityId: id,
-      value: value,
-      currencyId: currencyId);
+  ReportAgeValue getReportAge({int? value, String? currencyId}) =>
+      ReportAgeValue(
+        entityType: entityType,
+        entityId: id,
+        value: value,
+        currencyId: currencyId,
+      );
 
-  ReportDurationValue getReportDuration({int value, String currencyId}) =>
+  ReportDurationValue getReportDuration({int? value, String? currencyId}) =>
       ReportDurationValue(
         entityType: entityType,
         entityId: id,
@@ -382,35 +452,39 @@ abstract class BaseEntity implements SelectableEntity {
         currencyId: currencyId,
       );
 
-  ReportNumberValue getReportDouble(
-          {double value,
-          String currencyId,
-          double exchangeRate,
-          FormatNumberType formatNumberType}) =>
-      ReportNumberValue(
-          entityId: id,
-          entityType: entityType,
-          value: value,
-          currencyId: currencyId,
-          exchangeRate: exchangeRate,
-          formatNumberType: formatNumberType);
+  ReportNumberValue getReportDouble({
+    double? value,
+    String? currencyId,
+    double? exchangeRate,
+    FormatNumberType? formatNumberType,
+  }) => ReportNumberValue(
+    entityId: id,
+    entityType: entityType,
+    value: value,
+    currencyId: currencyId,
+    exchangeRate: exchangeRate,
+    formatNumberType: formatNumberType,
+  );
 
-  ReportIntValue getReportInt(
-          {int value, String currencyId, FormatNumberType formatNumberType}) =>
-      ReportIntValue(
-        entityId: id,
-        entityType: entityType,
-        value: value,
-      );
+  ReportIntValue getReportInt({
+    int? value,
+    String? currencyId,
+    FormatNumberType? formatNumberType,
+  }) => ReportIntValue(entityId: id, entityType: entityType, value: value);
 
-  List<EntityAction> getActions(
-      {UserCompanyEntity userCompany,
-      ClientEntity client,
-      bool includeEdit = false,
-      bool multiselect = false}) {
+  List<EntityAction?> getActions({
+    UserCompanyEntity? userCompany,
+    ClientEntity? client,
+    bool includeEdit = false,
+    bool multiselect = false,
+  }) {
+    if (isNew || entityType == EntityType.company) {
+      return [];
+    }
+
     final actions = <EntityAction>[];
 
-    if (userCompany.canEditEntity(this) && (isArchived || isDeleted)) {
+    if (userCompany!.canEditEntity(this) && (isArchived || isDeleted!)) {
       actions.add(EntityAction.restore);
     }
 
@@ -425,7 +499,10 @@ abstract class BaseEntity implements SelectableEntity {
     return actions;
   }
 
-  bool matchesEntityFilter(EntityType filterEntityType, String filterEntityId) {
+  bool matchesEntityFilter(
+    EntityType? filterEntityType,
+    String? filterEntityId,
+  ) {
     return id == filterEntityId && entityType == filterEntityType;
   }
 
@@ -446,7 +523,7 @@ abstract class BaseEntity implements SelectableEntity {
       return true;
     }
 
-    if (states.contains(EntityState.deleted) && isDeleted) {
+    if (states.contains(EntityState.deleted) && isDeleted!) {
       return true;
     }
 
@@ -454,8 +531,28 @@ abstract class BaseEntity implements SelectableEntity {
   }
 }
 
-abstract class BelongsToClient {
-  String get clientId;
+abstract mixin class HasActivities {
+  BuiltList<ActivityEntity> get activities;
+
+  Iterable<ActivityEntity> getActivities({String? invoiceId, String? typeId}) {
+    return activities.where((activity) {
+      if (invoiceId != null && activity.invoiceId != invoiceId) {
+        return false;
+      }
+      if (typeId != null && activity.activityTypeId != typeId) {
+        return false;
+      }
+      return true;
+    });
+  }
+}
+
+abstract mixin class BelongsToClient {
+  String? get clientId;
+}
+
+abstract mixin class BelongsToVendor {
+  String get vendorId;
 }
 
 abstract class ErrorMessage
@@ -516,6 +613,18 @@ class CustomFieldType {
   static const String contact2 = 'contact2';
   static const String contact3 = 'contact3';
   static const String contact4 = 'contact4';
+
+  static const String location = 'location';
+  static const String location1 = 'location1';
+  static const String location2 = 'location2';
+  static const String location3 = 'location3';
+  static const String location4 = 'location4';
+
+  static const String vendorContact = 'vendor_contact';
+  static const String vendorContact1 = 'vendor_contact1';
+  static const String vendorContact2 = 'vendor_contact2';
+  static const String vendorContact3 = 'vendor_contact3';
+  static const String vendorContact4 = 'vendor_contact4';
 
   static const String task = 'task';
   static const String task1 = 'task1';
@@ -585,77 +694,117 @@ abstract class ActivityEntity
   @BuiltValueField(wireName: 'activity_type_id')
   String get activityTypeId;
 
-  @nullable
   @BuiltValueField(wireName: 'client_id')
-  String get clientId;
+  String? get clientId;
 
   @BuiltValueField(wireName: 'user_id')
   String get userId;
 
-  @nullable
   @BuiltValueField(wireName: 'invoice_id')
-  String get invoiceId;
+  String? get invoiceId;
 
-  @nullable
   @BuiltValueField(wireName: 'recurring_invoice_id')
-  String get recurringInvoiceId;
+  String? get recurringInvoiceId;
 
-  @nullable
+  @BuiltValueField(wireName: 'recurring_expense_id')
+  String? get recurringExpenseId;
+
+  @BuiltValueField(wireName: 'purchase_order_id')
+  String? get purchaseOrderId;
+
   @BuiltValueField(wireName: 'quote_id')
-  String get quoteId;
+  String? get quoteId;
 
-  @nullable
   @BuiltValueField(wireName: 'payment_id')
-  String get paymentId;
+  String? get paymentId;
 
-  @nullable
   @BuiltValueField(wireName: 'credit_id')
-  String get creditId;
+  String? get creditId;
 
   @BuiltValueField(wireName: 'updated_at')
   int get updatedAt;
 
-  @nullable
+  @BuiltValueField(wireName: 'created_at')
+  int get createdAt;
+
   @BuiltValueField(wireName: 'expense_id')
-  String get expenseId;
+  String? get expenseId;
 
-  @nullable
   @BuiltValueField(wireName: 'is_system')
-  bool get isSystem;
+  bool? get isSystem;
 
-  @nullable
-  String get ip;
+  String? get ip;
 
-  @nullable
   @BuiltValueField(wireName: 'contact_id')
-  String get contactId;
+  String? get contactId;
 
-  @nullable
   @BuiltValueField(wireName: 'task_id')
-  String get taskId;
+  String? get taskId;
 
-  @nullable
   @BuiltValueField(wireName: 'project_id')
-  String get projectId;
+  String? get projectId;
 
-  @nullable
   @BuiltValueField(wireName: 'vendor_id')
-  String get vendorId;
+  String? get vendorId;
 
-  @nullable
+  @BuiltValueField(wireName: 'vendor_contact_id')
+  String? get vendorContactId;
+
   @BuiltValueField(wireName: 'token_id')
-  String get tokenId;
+  String? get tokenId;
 
-  @nullable
-  InvoiceHistoryEntity get history;
+  InvoiceHistoryEntity? get history;
 
-  EntityType get entityType {
+  // TODO remove isEmpty check
+  bool get isComment =>
+      activityTypeId == kActivityComment || activityTypeId.isEmpty;
+
+  EntityType? get entityType {
+    final resolveByEntityId =
+        isComment ||
+        [
+          kActivityCustomDocumentSigned,
+          kActivityQuickbooksPushFailure,
+          kActivityQuickbooksPushSuccess,
+        ].contains(activityTypeId);
+
+    if (resolveByEntityId) {
+      if ((invoiceId ?? '').isNotEmpty) {
+        return EntityType.invoice;
+      } else if ((quoteId ?? '').isNotEmpty) {
+        return EntityType.quote;
+      } else if ((creditId ?? '').isNotEmpty) {
+        return EntityType.credit;
+      } else if ((recurringInvoiceId ?? '').isNotEmpty) {
+        return EntityType.recurringInvoice;
+      } else if ((paymentId ?? '').isNotEmpty) {
+        return EntityType.payment;
+      } else if ((projectId ?? '').isNotEmpty) {
+        return EntityType.project;
+      } else if ((taskId ?? '').isNotEmpty) {
+        return EntityType.task;
+      } else if ((expenseId ?? '').isNotEmpty) {
+        return EntityType.expense;
+      } else if ((recurringExpenseId ?? '').isNotEmpty) {
+        return EntityType.recurringExpense;
+      } else if ((purchaseOrderId ?? '').isNotEmpty) {
+        return EntityType.purchaseOrder;
+      } else if ((clientId ?? '').isNotEmpty) {
+        return EntityType.client;
+      } else if ((vendorId ?? '').isNotEmpty) {
+        return EntityType.vendor;
+      }
+    }
+
     if ([
       kActivityCreateClient,
       kActivityUpdateClient,
       kActivityArchiveClient,
       kActivityDeleteClient,
-      kActivityRestoreClient
+      kActivityRestoreClient,
+      kActivityStatementSent,
+      kActivityMergedClients,
+      kActivityPurgedClient,
     ].contains(activityTypeId)) {
       return EntityType.client;
     } else if ([
@@ -674,6 +823,17 @@ abstract class ActivityEntity
       kActivityEmailReminder3,
       kActivityEmailReminderEndless,
       kActivityEmailInvoiceFailed,
+      kActivityAutoBillSuccess,
+      kActivityAutoBillFailure,
+      kActivityEInvoiceSuccess,
+      kActivityEInvoiceDeliverySuccess,
+      kActivityEInvoiceDeliveryFailure,
+      kActivityVerifactuInvoiceSent,
+      kActivityVerifactuInvoiceSentFailure,
+      kActivityVerifactuCancellationSent,
+      kActivityVerifactuCancellationSentFailure,
+      kActivityInvoiceDocumentSigned,
+      kActivityEInvoiceStatusUpdated,
     ].contains(activityTypeId)) {
       return EntityType.invoice;
     } else if ([
@@ -684,6 +844,7 @@ abstract class ActivityEntity
       kActivityRestorePayment,
       kActivityFailedPayment,
       kActivityPaidInvoice,
+      kActivityEmailPayment,
     ].contains(activityTypeId)) {
       return EntityType.payment;
     } else if ([
@@ -695,6 +856,8 @@ abstract class ActivityEntity
       kActivityVoidedPayment,
       kActivityRefundedPayment,
       kActivityViewCredit,
+      kActivityEmailCredit,
+      kActivityCreditDocumentSigned,
     ].contains(activityTypeId)) {
       return EntityType.credit;
     } else if ([
@@ -706,6 +869,9 @@ abstract class ActivityEntity
       kActivityDeleteQuote,
       kActivityRestoreQuote,
       kActivityApproveQuote,
+      kActivityQuoteEmailReminder1,
+      kActivityQuoteRejected,
+      kActivityQuoteDocumentSigned,
     ].contains(activityTypeId)) {
       return EntityType.quote;
     } else if ([
@@ -714,6 +880,7 @@ abstract class ActivityEntity
       kActivityUpdateVendor,
       kActivityDeleteVendor,
       kActivityRestoreVendor,
+      kActivityMergedVendors,
     ].contains(activityTypeId)) {
       return EntityType.vendor;
     } else if ([
@@ -722,6 +889,8 @@ abstract class ActivityEntity
       kActivityDeleteExpense,
       kActivityRestoreExpense,
       kActivityUpdateExpense,
+      kActivityExpenseNotificationSent,
+      kActivityEExpenseCreated,
     ].contains(activityTypeId)) {
       return EntityType.expense;
     } else if ([
@@ -738,6 +907,7 @@ abstract class ActivityEntity
       kActivityArchiveUser,
       kActivityDeleteUser,
       kActivityRestoreUser,
+      kActivityPurgeUser,
     ].contains(activityTypeId)) {
       return EntityType.user;
     } else if ([
@@ -747,7 +917,7 @@ abstract class ActivityEntity
       kActivityDeleteSubscription,
       kActivityRestoreSubscription,
     ].contains(activityTypeId)) {
-      return EntityType.subscription;
+      return EntityType.paymentLink;
     } else if ([
       kActivityCreateRecurringInvoice,
       kActivityUpdateRecurringInvoice,
@@ -756,52 +926,134 @@ abstract class ActivityEntity
       kActivityRestoreRecurringInvoice,
     ].contains(activityTypeId)) {
       return EntityType.recurringInvoice;
+    } else if ([
+      kActivityCreateRecurringExpense,
+      kActivityUpdateRecurringExpense,
+      kActivityArchiveRecurringExpense,
+      kActivityDeleteRecurringExpense,
+      kActivityRestoreRecurringExpense,
+    ].contains(activityTypeId)) {
+      return EntityType.recurringExpense;
+    } else if ([
+      kActivityCreatePurchaseOrder,
+      kActivityUpdatePurchaseOrder,
+      kActivityArchivePurchaseOrder,
+      kActivityDeletePurchaseOrder,
+      kActivityRestorePurchaseOrder,
+      kActivityEmailPurchaseOrder,
+      kActivityViewPurchaseOrder,
+      kActivityAcceptPurchaseOrder,
+      kActivityPurchaseOrderDocumentSigned,
+    ].contains(activityTypeId)) {
+      return EntityType.purchaseOrder;
     } else {
       print(
-          '## ERROR: failed to resolve entity type - activity_type_id: $activityTypeId');
+        '## ERROR: failed to resolve entity type - activity_type_id: $activityTypeId',
+      );
       return null;
     }
   }
 
   String getDescription(
-    String activity,
-    String systemString, {
-    UserEntity user,
-    ClientEntity client,
-    InvoiceEntity invoice,
-    PaymentEntity payment,
-    InvoiceEntity credit,
-    InvoiceEntity quote,
-    TaskEntity task,
-    ExpenseEntity expense,
-    VendorEntity vendor,
-    InvoiceEntity recurringInvoice,
+    String? activity,
+    String? systemString,
+    String? recurringString,
+    String? notes, {
+    UserEntity? user,
+    ClientEntity? client,
+    InvoiceEntity? invoice,
+    PaymentEntity? payment,
+    InvoiceEntity? credit,
+    InvoiceEntity? quote,
+    TaskEntity? task,
+    ExpenseEntity? expense,
+    VendorEntity? vendor,
+    InvoiceEntity? recurringInvoice,
+    ExpenseEntity? recurringExpense,
+    InvoiceEntity? purchaseOrder,
   }) {
-    ContactEntity contact;
-    if (client != null && contactId != null && contactId.isNotEmpty) {
-      contact = client.contacts
-          .firstWhere((contact) => contact.id == contactId, orElse: () => null);
+    ClientContactEntity? clientContact;
+    VendorContactEntity? vendorContact;
+    if (client != null && contactId != null && contactId!.isNotEmpty) {
+      clientContact = client.getContact(contactId);
+    }
+    if (vendor != null &&
+        vendorContactId != null &&
+        vendorContactId!.isNotEmpty) {
+      vendorContact = vendor.getContact(vendorContactId);
     }
 
-    activity =
-        activity.replaceFirst(':user', user?.listDisplayName ?? systemString);
+    if ((recurringInvoice?.isOld ?? false) && (invoice?.isOld ?? false)) {
+      activity = activity!.replaceFirst(
+        ':user',
+        '$recurringString ${recurringInvoice!.number}',
+      );
+    } else if ((recurringExpense?.isOld ?? false) &&
+        (expense?.isOld ?? false)) {
+      activity = activity!.replaceFirst(
+        ':user',
+        '$recurringString ${recurringExpense!.number}',
+      );
+    } else {
+      activity = activity!.replaceFirst(
+        ':user',
+        user?.listDisplayName ?? systemString!,
+      );
+    }
+
     activity = activity.replaceFirst(':client', client?.displayName ?? '');
     activity = activity.replaceFirst(':invoice', invoice?.number ?? '');
-    activity =
-        activity.replaceFirst(':recurring_invoice', invoice?.number ?? '');
-    activity = activity.replaceFirst(':quote', quote?.number ?? '');
-    activity = activity.replaceFirst(':contact',
-        contact?.fullName ?? client?.displayName ?? user?.fullName ?? '');
     activity = activity.replaceFirst(
-        ':payment', payment?.transactionReferenceOrNumber ?? '');
-    activity = activity.replaceFirst(':credit', credit?.privateNotes ?? '');
-    activity = activity.replaceFirst(':task', task?.description ?? '');
-    activity = activity.replaceFirst(':expense', expense?.privateNotes ?? '');
+      ':recurring_invoice',
+      recurringInvoice?.number ?? '',
+    );
+    activity = activity.replaceFirst(
+      ':recurring_expense',
+      recurringExpense?.number ?? '',
+    );
+    activity = activity.replaceFirst(':quote', quote?.number ?? '');
+    if ([
+      kActivityViewPurchaseOrder,
+      kActivityAcceptPurchaseOrder,
+    ].contains(activityTypeId)) {
+      final name = (vendorContact?.fullName ?? '').isNotEmpty
+          ? (vendorContact!.fullName + ' (' + (vendor?.name ?? '') + ')')
+          : (vendor?.name ?? '');
+      activity = activity.replaceFirst(':contact', name);
+    } else {
+      final name = (clientContact?.fullName ?? '').isNotEmpty
+          ? clientContact!.fullName +
+                ((client?.name ?? '').isNotEmpty
+                    ? (' (' + client!.name + ')')
+                    : '')
+          : (client?.displayName ?? '');
+      activity = activity.replaceFirst(':contact', name);
+    }
+    activity = activity.replaceFirst(
+      ':payment',
+      payment?.transactionReferenceOrNumber ?? '',
+    );
+    activity = activity.replaceFirst(':credit', credit?.number ?? '');
+    activity = activity.replaceFirst(':task', task?.number ?? '');
+    activity = activity.replaceFirst(':expense', expense?.number ?? '');
     activity = activity.replaceFirst(':vendor', vendor?.name ?? '');
+    activity = activity.replaceFirst(
+      ':purchase_order',
+      purchaseOrder?.number ?? '',
+    );
+    activity = activity.replaceFirst(
+      ':recurring_expense',
+      vendor?.name ?? '',
+    ); // TODO implement
     activity = activity.replaceAll('  ', ' ');
+    activity = activity.replaceFirst(':notes', notes ?? '');
 
     return activity;
   }
+
+  // ignore: unused_element
+  static void _initializeBuilder(ActivityEntityBuilder builder) =>
+      builder..createdAt = 0;
 
   static Serializer<ActivityEntity> get serializer =>
       _$activityEntitySerializer;
@@ -826,17 +1078,14 @@ abstract class LedgerEntity
   @BuiltValueField(wireName: 'created_at')
   int get createdAt;
 
-  @nullable
   @BuiltValueField(wireName: 'invoice_id')
-  String get invoiceId;
+  String? get invoiceId;
 
-  @nullable
   @BuiltValueField(wireName: 'credit_id')
-  String get creditId;
+  String? get creditId;
 
-  @nullable
   @BuiltValueField(wireName: 'payment_id')
-  String get paymentId;
+  String? get paymentId;
 
   EntityType get entityType {
     if (creditId != null) {
@@ -848,7 +1097,7 @@ abstract class LedgerEntity
     }
   }
 
-  String get entityId {
+  String? get entityId {
     if (creditId != null) {
       return creditId;
     } else if (paymentId != null) {

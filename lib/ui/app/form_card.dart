@@ -1,11 +1,16 @@
+// Flutter imports:
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/ui/app/app_border.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
 
 class FormCard extends StatelessWidget {
   const FormCard({
-    Key key,
+    Key? key,
     this.children,
     this.child,
     this.crossAxisAlignment,
@@ -13,30 +18,35 @@ class FormCard extends StatelessWidget {
     this.internalPadding,
     this.isLast = false,
     this.forceNarrow = false,
-    this.elevation = 4,
+    this.elevation = 5,
+    this.constraints,
   }) : super(key: key);
 
-  final Widget child;
-  final List<Widget> children;
-  final CrossAxisAlignment crossAxisAlignment;
+  final Widget? child;
+  final List<Widget>? children;
+  final CrossAxisAlignment? crossAxisAlignment;
   final bool forceNarrow;
-  final EdgeInsets padding;
-  final EdgeInsets internalPadding;
+  final EdgeInsets? padding;
+  final EdgeInsets? internalPadding;
   final bool isLast;
   final double elevation;
+  final BoxConstraints? constraints;
 
   @override
   Widget build(BuildContext context) {
-    if (child == null && (children == null || children.isEmpty)) {
+    if (child == null && (children == null || children!.isEmpty)) {
       return SizedBox();
     }
 
     return Padding(
-      padding: padding ??
+      padding:
+          padding ??
           (forceNarrow
               ? EdgeInsets.symmetric(
-                  vertical: kMobileDialogPadding,
-                  horizontal: (MediaQuery.of(context).size.width - 510) / 2,
+                  horizontal: max(
+                    (MediaQuery.of(context).size.width - 510) / 2,
+                    16,
+                  ),
                 )
               : EdgeInsets.only(
                   left: kMobileDialogPadding,
@@ -58,11 +68,12 @@ class FormCard extends StatelessWidget {
                   ? child
                   : Container(
                       width: double.infinity,
+                      constraints: constraints,
                       child: Column(
                         mainAxisSize: MainAxisSize.max,
                         crossAxisAlignment:
                             crossAxisAlignment ?? CrossAxisAlignment.center,
-                        children: children,
+                        children: children!,
                       ),
                     ),
             ),

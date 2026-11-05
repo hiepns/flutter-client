@@ -1,25 +1,35 @@
+// Package imports:
+import 'package:built_collection/built_collection.dart';
+import 'package:memoize/memoize.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/client_model.dart';
 import 'package:invoiceninja_flutter/data/models/company_gateway_model.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/payment_model.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:memoize/memoize.dart';
-import 'package:built_collection/built_collection.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
 
 var memoizedDropdownCompanyGatewayList = memo3(
-    (BuiltMap<String, CompanyGatewayEntity> companyGatewayMap,
-            BuiltList<String> companyGatewayList, String clientId) =>
-        dropdownCompanyGatewaysSelector(
-            companyGatewayMap, companyGatewayList, clientId));
-
-List<String> dropdownCompanyGatewaysSelector(
+  (
     BuiltMap<String, CompanyGatewayEntity> companyGatewayMap,
     BuiltList<String> companyGatewayList,
-    String clientId) {
+    String clientId,
+  ) => dropdownCompanyGatewaysSelector(
+    companyGatewayMap,
+    companyGatewayList,
+    clientId,
+  ),
+);
+
+List<String> dropdownCompanyGatewaysSelector(
+  BuiltMap<String, CompanyGatewayEntity> companyGatewayMap,
+  BuiltList<String> companyGatewayList,
+  String clientId,
+) {
   final list = companyGatewayList.where((companyGatewayId) {
-    final companyGateway = companyGatewayMap[companyGatewayId];
+    final companyGateway = companyGatewayMap[companyGatewayId]!;
     /*
     if (clientId != null && clientId > 0 && companyGateway.clientId != clientId) {
       return false;
@@ -29,32 +39,43 @@ List<String> dropdownCompanyGatewaysSelector(
   }).toList();
 
   list.sort((companyGatewayAId, companyGatewayBId) {
-    final companyGatewayA = companyGatewayMap[companyGatewayAId];
+    final companyGatewayA = companyGatewayMap[companyGatewayAId]!;
     final companyGatewayB = companyGatewayMap[companyGatewayBId];
     return companyGatewayA.compareTo(
-        companyGatewayB, CompanyGatewayFields.name, true);
+      companyGatewayB,
+      CompanyGatewayFields.name,
+      true,
+    );
   });
 
   return list;
 }
 
 var memoizedFilteredCompanyGatewayList = memo5(
-    (BuiltMap<String, CompanyGatewayEntity> companyGatewayMap,
-            BuiltList<String> companyGatewayList,
-            ListUIState companyGatewayListState,
-            String companyGatewayIds,
-            bool includeAll) =>
-        filteredCompanyGatewaysSelector(companyGatewayMap, companyGatewayList,
-            companyGatewayListState, companyGatewayIds, includeAll));
-
-List<String> filteredCompanyGatewaysSelector(
-    BuiltMap<String, CompanyGatewayEntity> companyGatewayMap,
+  (
+    BuiltMap<String?, CompanyGatewayEntity?> companyGatewayMap,
     BuiltList<String> companyGatewayList,
     ListUIState companyGatewayListState,
-    String companyGatewayIds,
-    bool includeAll) {
+    String? companyGatewayIds,
+    bool includeAll,
+  ) => filteredCompanyGatewaysSelector(
+    companyGatewayMap,
+    companyGatewayList,
+    companyGatewayListState,
+    companyGatewayIds,
+    includeAll,
+  ),
+);
+
+List<String> filteredCompanyGatewaysSelector(
+  BuiltMap<String?, CompanyGatewayEntity?> companyGatewayMap,
+  BuiltList<String> companyGatewayList,
+  ListUIState companyGatewayListState,
+  String? companyGatewayIds,
+  bool includeAll,
+) {
   final list = companyGatewayList.where((companyGatewayId) {
-    final companyGateway = companyGatewayMap[companyGatewayId];
+    final companyGateway = companyGatewayMap[companyGatewayId]!;
 
     if (!companyGateway.matchesStates(companyGatewayListState.stateFilters)) {
       return false;
@@ -65,11 +86,14 @@ List<String> filteredCompanyGatewaysSelector(
 
   final List<String> gatewaysIds = (companyGatewayIds ?? '')
       .split(',')
-      .where((id) =>
-          id.isNotEmpty &&
-          companyGatewayMap.containsKey(id) &&
-          companyGatewayMap[id]
-              .matchesStates(companyGatewayListState.stateFilters))
+      .where(
+        (id) =>
+            id.isNotEmpty &&
+            companyGatewayMap.containsKey(id) &&
+            companyGatewayMap[id]!.matchesStates(
+              companyGatewayListState.stateFilters,
+            ),
+      )
       .toList();
 
   if (includeAll) {
@@ -80,23 +104,20 @@ List<String> filteredCompanyGatewaysSelector(
     });
   }
 
-  return gatewaysIds;
+  return gatewaysIds.toSet().toList();
 }
 
-bool hasCompanyGatewayChanges(CompanyGatewayEntity companyGateway,
-        BuiltMap<String, CompanyGatewayEntity> companyGatewayMap) =>
-    companyGateway.isNew
-        ? companyGateway.isChanged
-        : companyGateway != companyGatewayMap[companyGateway.id];
-
 var memoizedCalculateCompanyGatewayProcessed = memo2(
-    (String companyGatewayId, BuiltMap<String, PaymentEntity> paymentMap) =>
-        calculateCompanyGatewayProcessed(
-            companyGatewayId: companyGatewayId, paymentMap: paymentMap));
+  (String companyGatewayId, BuiltMap<String, PaymentEntity> paymentMap) =>
+      calculateCompanyGatewayProcessed(
+        companyGatewayId: companyGatewayId,
+        paymentMap: paymentMap,
+      ),
+);
 
 double calculateCompanyGatewayProcessed({
-  String companyGatewayId,
-  BuiltMap<String, PaymentEntity> paymentMap,
+  String? companyGatewayId,
+  required BuiltMap<String, PaymentEntity> paymentMap,
 }) {
   double total = 0;
 
@@ -110,8 +131,9 @@ double calculateCompanyGatewayProcessed({
 }
 
 var memoizedClientStatsForCompanyGateway = memo2(
-    (String companyGatewayId, BuiltMap<String, ClientEntity> clientMap) =>
-        clientStatsForCompanyGateway(companyGatewayId, clientMap));
+  (String companyGatewayId, BuiltMap<String, ClientEntity> clientMap) =>
+      clientStatsForCompanyGateway(companyGatewayId, clientMap),
+);
 
 EntityStats clientStatsForCompanyGateway(
   String companyGatewayId,
@@ -135,8 +157,9 @@ EntityStats clientStatsForCompanyGateway(
 }
 
 var memoizedPaymentStatsForCompanyGateway = memo2(
-    (String companyGatewayId, BuiltMap<String, PaymentEntity> paymentMap) =>
-        paymentStatsForCompanyGateway(companyGatewayId, paymentMap));
+  (String companyGatewayId, BuiltMap<String, PaymentEntity> paymentMap) =>
+      paymentStatsForCompanyGateway(companyGatewayId, paymentMap),
+);
 
 EntityStats paymentStatsForCompanyGateway(
   String companyGatewayId,
@@ -160,12 +183,12 @@ EntityStats paymentStatsForCompanyGateway(
 bool hasUnconnectedStripeAccount(AppState state) =>
     getUnconnectedStripeAccount(state) != null;
 
-CompanyGatewayEntity getUnconnectedStripeAccount(AppState state) {
-  CompanyGatewayEntity unconnectedGateway;
+CompanyGatewayEntity? getUnconnectedStripeAccount(AppState state) {
+  CompanyGatewayEntity? unconnectedGateway;
 
   state.companyGatewayState.map.forEach((id, gateway) {
     if (gateway.gatewayId == kGatewayStripeConnect && gateway.isActive) {
-      final accountId = (gateway.parsedConfig['account_id'] ?? '').toString();
+      final accountId = (gateway.parsedConfig!['account_id'] ?? '').toString();
       if (accountId.isEmpty) {
         unconnectedGateway = gateway;
       }

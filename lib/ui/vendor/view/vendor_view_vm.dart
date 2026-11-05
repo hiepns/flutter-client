@@ -1,28 +1,35 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:http/http.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
+import 'package:redux/redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/data/models/vendor_model.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:invoiceninja_flutter/redux/document/document_actions.dart';
 import 'package:invoiceninja_flutter/redux/vendor/vendor_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/dialogs/error_dialog.dart';
 import 'package:invoiceninja_flutter/ui/vendor/view/vendor_view.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:redux/redux.dart';
 
 class VendorViewScreen extends StatelessWidget {
   const VendorViewScreen({
-    Key key,
+    Key? key,
     this.isFilter = false,
+    this.isTopFilter = false,
   }) : super(key: key);
   final bool isFilter;
+  final bool isTopFilter;
+
   static const String route = '/vendor/view';
 
   @override
@@ -35,6 +42,7 @@ class VendorViewScreen extends StatelessWidget {
         return VendorView(
           viewModel: vm,
           isFilter: isFilter,
+          isTopFilter: isTopFilter,
           tabIndex: vm.state.vendorUIState.tabIndex,
         );
       },
@@ -44,28 +52,29 @@ class VendorViewScreen extends StatelessWidget {
 
 class VendorViewVM {
   VendorViewVM({
-    @required this.state,
-    @required this.vendor,
-    @required this.company,
-    @required this.onAddExpensePressed,
-    @required this.onEntityAction,
-    @required this.onEntityPressed,
-    @required this.onRefreshed,
-    @required this.isSaving,
-    @required this.isLoading,
-    @required this.isDirty,
-    @required this.onUploadDocument,
-    @required this.onDeleteDocument,
+    required this.state,
+    required this.vendor,
+    required this.company,
+    required this.onAddExpensePressed,
+    required this.onEntityAction,
+    required this.onEntityPressed,
+    required this.onRefreshed,
+    required this.isSaving,
+    required this.isLoading,
+    required this.isDirty,
+    required this.onUploadDocuments,
   });
 
   factory VendorViewVM.fromStore(Store<AppState> store) {
     final state = store.state;
-    final vendor = state.vendorState.map[state.vendorUIState.selectedId] ??
+    final vendor =
+        state.vendorState.map[state.vendorUIState.selectedId] ??
         VendorEntity(id: state.vendorUIState.selectedId);
 
     Future<Null> _handleRefresh(BuildContext context) {
       final completer = snackBarCompleter<Null>(
-          context, AppLocalization.of(context).refreshComplete);
+        AppLocalization.of(context)!.refreshComplete,
+      );
       store.dispatch(LoadVendor(completer: completer, vendorId: vendor.id));
       return completer.future;
     }
@@ -78,63 +87,68 @@ class VendorViewVM {
       isDirty: vendor.isNew,
       vendor: vendor,
       onRefreshed: (context) => _handleRefresh(context),
-      onEntityPressed: (BuildContext context, EntityType entityType,
-          [longPress = false]) {
-        switch (entityType) {
-          case EntityType.expense:
-            if (longPress && vendor.isActive) {
-              createEntity(
-                  context: context,
-                  entity: ExpenseEntity(state: state, vendor: vendor));
-            } else {
-              viewEntitiesByType(
-                  entityType: EntityType.expense, filterEntity: vendor);
+      onEntityPressed:
+          (BuildContext context, EntityType entityType, [longPress = false]) {
+            switch (entityType) {
+              case EntityType.expense:
+                if (longPress && vendor.isActive) {
+                  createEntity(
+                    entity: ExpenseEntity(state: state, vendor: vendor),
+                  );
+                } else {
+                  viewEntitiesByType(
+                    entityType: EntityType.expense,
+                    filterEntity: vendor,
+                  );
+                }
+                break;
             }
-            break;
-        }
-      },
+          },
       onAddExpensePressed: (context) {
         createEntity(
-            context: context,
-            entity: ExpenseEntity(state: state, vendor: vendor));
+          entity: ExpenseEntity(state: state, vendor: vendor),
+        );
       },
       onEntityAction: (BuildContext context, EntityAction action) =>
           handleEntitiesActions([vendor], action, autoPop: true),
-      onUploadDocument: (BuildContext context, MultipartFile multipartFile) {
-        final Completer<DocumentEntity> completer = Completer<DocumentEntity>();
-        store.dispatch(SaveVendorDocumentRequest(
-            multipartFile: multipartFile,
-            vendor: vendor,
-            completer: completer));
-        completer.future.then((client) {
-          showToast(AppLocalization.of(context).uploadedDocument);
-        }).catchError((Object error) {
-          showDialog<ErrorDialog>(
-              context: context,
-              builder: (BuildContext context) {
-                return ErrorDialog(error);
-              });
-        });
-      },
-      onDeleteDocument: (BuildContext context, DocumentEntity document,
-          String password, String idToken) {
-        final completer = snackBarCompleter<Null>(
-            context, AppLocalization.of(context).deletedDocument);
-        completer.future.then<Null>(
-            (value) => store.dispatch(LoadVendor(vendorId: vendor.id)));
-        store.dispatch(DeleteDocumentRequest(
-          completer: completer,
-          documentIds: [document.id],
-          password: password,
-          idToken: idToken,
-        ));
-      },
+      onUploadDocuments:
+          (
+            BuildContext context,
+            List<MultipartFile> multipartFile,
+            bool isPrivate,
+          ) {
+            final completer = Completer<List<DocumentEntity>>();
+            store.dispatch(
+              SaveVendorDocumentRequest(
+                isPrivate: isPrivate,
+                multipartFiles: multipartFile,
+                vendor: vendor,
+                completer: completer,
+              ),
+            );
+            completer.future
+                .then((client) {
+                  showToast(
+                    AppLocalization.of(
+                      navigatorKey.currentContext!,
+                    )!.uploadedDocument,
+                  );
+                })
+                .catchError((Object error) {
+                  showDialog<ErrorDialog>(
+                    context: navigatorKey.currentContext!,
+                    builder: (BuildContext context) {
+                      return ErrorDialog(error);
+                    },
+                  );
+                });
+          },
     );
   }
 
   final AppState state;
   final VendorEntity vendor;
-  final CompanyEntity company;
+  final CompanyEntity? company;
   final Function(BuildContext, EntityAction) onEntityAction;
   final Function(BuildContext, EntityType, [bool]) onEntityPressed;
   final Function(BuildContext) onRefreshed;
@@ -142,6 +156,5 @@ class VendorViewVM {
   final bool isSaving;
   final bool isLoading;
   final bool isDirty;
-  final Function(BuildContext, MultipartFile) onUploadDocument;
-  final Function(BuildContext, DocumentEntity, String, String) onDeleteDocument;
+  final Function(BuildContext, List<MultipartFile>, bool) onUploadDocuments;
 }

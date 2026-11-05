@@ -37,6 +37,7 @@
 **/android/gradlew.bat
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
+**/android/build/
 
 # iOS/XCode related
 **/ios/**/*.mode1v3
@@ -75,11 +76,17 @@
 #.android/
 #.ios/
 
-lib/generated_plugin_registrant.dart
 .flutter-plugins-dependencies
 .env.dart
 key.properties
 google-services.json
 GoogleService-Info.plist
 android/app/build.gradle
+android/app/build.gradle.kts
 android/app/release/
+.fvm
+
+*.jks
+*.keystore
+*.pem
+*.p12

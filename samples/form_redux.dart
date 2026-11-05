@@ -11,19 +11,19 @@ import 'package:redux_logging/redux_logging.dart';
 class ClientEntity {
   ClientEntity({this.name, this.contacts});
 
-  String name;
-  List<ContactEntity> contacts;
+  String? name;
+  List<ContactEntity>? contacts;
 
   @override
   String toString() {
-    return (name ?? '') + ': ' + contacts.join(', ');
+    return (name ?? '') + ': ' + contacts!.join(', ');
   }
 }
 
 class ContactEntity {
   ContactEntity({this.email});
 
-  String email;
+  String? email;
 
   @override
   String toString() {
@@ -36,9 +36,10 @@ class AppState {
   AppState(this.client);
 
   AppState.init()
-      : client = ClientEntity(
-            name: 'Acme Client',
-            contacts: [ContactEntity(email: 'test@example.com')]);
+    : client = ClientEntity(
+        name: 'Acme Client',
+        contacts: [ContactEntity(email: 'test@example.com')],
+      );
 
   ClientEntity client;
 
@@ -59,8 +60,8 @@ class AddContact {}
 class UpdateContact {
   UpdateContact({this.index, this.email});
 
-  final int index;
-  final String email;
+  final int? index;
+  final String? email;
 }
 
 class DeleteContact {
@@ -73,57 +74,67 @@ AppState reducer(AppState state, dynamic action) {
   // In an actual app you'd most like want to
   // use built_value to rebuild the state
   if (action is UpdateClient) {
-    return AppState(ClientEntity(
-      name: action.name,
-      contacts: state.client.contacts,
-    ));
+    return AppState(
+      ClientEntity(name: action.name, contacts: state.client.contacts),
+    );
   } else if (action is AddContact) {
-    return AppState(ClientEntity(
+    return AppState(
+      ClientEntity(
         name: state.client.name,
         contacts: []
-          ..addAll(state.client.contacts)
-          ..add(ContactEntity())));
+          ..addAll(state.client.contacts!)
+          ..add(ContactEntity()),
+      ),
+    );
   } else if (action is UpdateContact) {
-    return AppState(ClientEntity(
+    return AppState(
+      ClientEntity(
         name: state.client.name,
         contacts: []
-          ..addAll(state.client.contacts)
-          ..removeAt(action.index)
-          ..insert(action.index, ContactEntity(email: action.email))));
+          ..addAll(state.client.contacts!)
+          ..removeAt(action.index!)
+          ..insert(action.index!, ContactEntity(email: action.email)),
+      ),
+    );
   } else if (action is DeleteContact) {
-    return AppState(ClientEntity(
+    return AppState(
+      ClientEntity(
         name: state.client.name,
         contacts: []
-          ..addAll(state.client.contacts)
-          ..removeAt(action.index)));
+          ..addAll(state.client.contacts!)
+          ..removeAt(action.index),
+      ),
+    );
   }
 
   return state;
 }
 
 void main() {
-  final store =
-      Store<AppState>(reducer, initialState: AppState.init(), middleware: [
-    LoggingMiddleware<dynamic>.printer(),
-  ]);
+  final store = Store<AppState>(
+    reducer,
+    initialState: AppState.init(),
+    middleware: [LoggingMiddleware<dynamic>.printer()],
+  );
 
   runApp(MyApp(store: store));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key key, this.store}) : super(key: key);
+  const MyApp({Key? key, this.store}) : super(key: key);
 
-  final Store<AppState> store;
+  final Store<AppState>? store;
 
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
-  static final GlobalKey<FormState> _formKey =
-      GlobalKey<FormState>(debugLabel: '_appState');
+  static final GlobalKey<FormState> _formKey = GlobalKey<FormState>(
+    debugLabel: '_appState',
+  );
 
-  TabController _controller;
+  TabController? _controller;
 
   @override
   void initState() {
@@ -133,14 +144,14 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller!.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return StoreProvider<AppState>(
-      store: widget.store,
+      store: widget.store!,
       child: MaterialApp(
         home: Scaffold(
           appBar: AppBar(
@@ -148,29 +159,26 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
             title: Text('Client Form'),
             actions: <Widget>[
               StoreBuilder(
-                  builder: (BuildContext context, Store<AppState> store) {
-                return IconButton(
-                  icon: Icon(Icons.cloud_upload),
-                  onPressed: () {
-                    if (!_formKey.currentState.validate()) {
-                      return;
-                    }
+                builder: (BuildContext context, Store<AppState> store) {
+                  return IconButton(
+                    icon: Icon(Icons.cloud_upload),
+                    onPressed: () {
+                      if (!_formKey.currentState!.validate()) {
+                        return;
+                      }
 
-                    // Do something with the client...
-                    print('Client name: ' + store.state.client.name);
-                  },
-                );
-              }),
+                      // Do something with the client...
+                      print('Client name: ' + store.state.client.name!);
+                    },
+                  );
+                },
+              ),
             ],
             bottom: TabBar(
               controller: _controller,
               tabs: [
-                Tab(
-                  text: 'Details',
-                ),
-                Tab(
-                  text: 'Contacts',
-                ),
+                Tab(text: 'Details'),
+                Tab(text: 'Contacts'),
               ],
             ),
           ),
@@ -178,10 +186,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
             key: _formKey,
             child: TabBarView(
               controller: _controller,
-              children: <Widget>[
-                ClientPage(),
-                ContactsPage(),
-              ],
+              children: <Widget>[ClientPage(), ContactsPage()],
             ),
           ),
         ),
@@ -203,7 +208,7 @@ class _ClientPageState extends State<ClientPage> {
   void didChangeDependencies() {
     final store = StoreProvider.of<AppState>(context);
     _nameController.removeListener(_onChanged);
-    _nameController.text = store.state.client.name;
+    _nameController.text = store.state.client.name!;
     _nameController.addListener(_onChanged);
     super.didChangeDependencies();
   }
@@ -227,51 +232,58 @@ class _ClientPageState extends State<ClientPage> {
 
   @override
   Widget build(BuildContext context) {
-    return StoreBuilder(builder: (BuildContext context, Store<AppState> store) {
-      return FormCard(
-        children: <Widget>[
-          TextFormField(
-            controller: _nameController,
-            decoration: InputDecoration(
-              labelText: 'Name',
+    return StoreBuilder(
+      builder: (BuildContext context, Store<AppState> store) {
+        return FormCard(
+          children: <Widget>[
+            TextFormField(
+              controller: _nameController,
+              decoration: InputDecoration(labelText: 'Name'),
             ),
-          ),
-        ],
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 }
 
 class ContactsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return StoreBuilder(builder: (BuildContext context, Store<AppState> store) {
-      final client = store.state.client;
-      final contacts = client.contacts.map((contact) => ContactForm(
-          contact: contact,
-          //key: Key('__contact_${contact.id}__'),
-          index: store.state.client.contacts.indexOf(contact)));
+    return StoreBuilder(
+      builder: (BuildContext context, Store<AppState> store) {
+        final client = store.state.client;
+        final contacts = client.contacts!.map(
+          (contact) => ContactForm(
+            contact: contact,
+            //key: Key('__contact_${contact.id}__'),
+            index: store.state.client.contacts!.indexOf(contact),
+          ),
+        );
 
-      return ScrollableListView(
-        children: []
-          ..addAll(contacts)
-          ..add(Padding(
-            padding: const EdgeInsets.all(16),
-            child: ElevatedButton(
-              child: Text('ADD CONTACT'),
-              onPressed: () {
-                store.dispatch(AddContact());
-              },
+        return ScrollableListView(
+          children: []
+            ..addAll(contacts)
+            ..add(
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: ElevatedButton(
+                  child: Text('ADD CONTACT'),
+                  onPressed: () {
+                    store.dispatch(AddContact());
+                  },
+                ),
+              ),
             ),
-          )),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
 class ContactForm extends StatefulWidget {
-  const ContactForm({Key key, @required this.contact, @required this.index})
-      : super(key: key);
+  const ContactForm({Key? key, required this.contact, required this.index})
+    : super(key: key);
 
   final int index;
   final ContactEntity contact;
@@ -287,7 +299,7 @@ class _ContactFormState extends State<ContactForm> {
   @override
   void didChangeDependencies() {
     _emailController.removeListener(_onChanged);
-    _emailController.text = widget.contact.email;
+    _emailController.text = widget.contact.email!;
     _emailController.addListener(_onChanged);
     super.didChangeDependencies();
   }
@@ -317,9 +329,7 @@ class _ContactFormState extends State<ContactForm> {
       children: <Widget>[
         TextFormField(
           controller: _emailController,
-          decoration: InputDecoration(
-            labelText: 'Email',
-          ),
+          decoration: InputDecoration(labelText: 'Email'),
           keyboardType: TextInputType.emailAddress,
         ),
         Row(
@@ -331,12 +341,10 @@ class _ContactFormState extends State<ContactForm> {
                 onPressed: () => store.dispatch(DeleteContact(widget.index)),
                 child: Text(
                   'Delete',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(color: Colors.grey[600]),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ],
@@ -346,10 +354,7 @@ class _ContactFormState extends State<ContactForm> {
 
 // Helper widget to make the form look a bit nicer
 class FormCard extends StatelessWidget {
-  const FormCard({
-    Key key,
-    @required this.children,
-  }) : super(key: key);
+  const FormCard({Key? key, required this.children}) : super(key: key);
 
   final List<Widget> children;
 
@@ -361,10 +366,12 @@ class FormCard extends StatelessWidget {
         elevation: 2.0,
         child: Padding(
           padding: const EdgeInsets.only(
-              left: 12.0, right: 12.0, top: 12.0, bottom: 18.0),
-          child: Column(
-            children: children,
+            left: 12.0,
+            right: 12.0,
+            top: 12.0,
+            bottom: 18.0,
           ),
+          child: Column(children: children),
         ),
       ),
     );

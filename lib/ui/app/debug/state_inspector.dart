@@ -1,6 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_json_viewer/flutter_json_viewer.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/serializers.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/ui/app/responsive_padding.dart';
@@ -15,7 +20,7 @@ class StateInspector extends StatefulWidget {
 class _StateInspectorState extends State<StateInspector> {
   String _filter = '';
 
-  dynamic filterJson({dynamic data, String filter}) {
+  dynamic filterJson({dynamic data, required String filter}) {
     filter.split('.')
       ..removeLast()
       ..forEach((part) {
@@ -24,8 +29,9 @@ class _StateInspectorState extends State<StateInspector> {
 
         final regExp = RegExp(pattern, caseSensitive: false);
         final dynamic index = (data as Map).keys.firstWhere(
-            (dynamic key) => regExp.hasMatch(key),
-            orElse: () => null);
+          (dynamic key) => regExp.hasMatch(key),
+          orElse: () => null,
+        );
 
         if (index != null) {
           data = data[index];
@@ -55,7 +61,7 @@ class _StateInspectorState extends State<StateInspector> {
                 autofocus: true,
                 autocorrect: false,
                 decoration: InputDecoration(
-                  labelText: AppLocalization.of(context).filter,
+                  labelText: AppLocalization.of(context)!.filter,
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -67,9 +73,7 @@ class _StateInspectorState extends State<StateInspector> {
               Container(
                 color: Colors.white,
                 padding: const EdgeInsets.all(4),
-                child: JsonViewer(
-                  filterJson(data: data, filter: _filter),
-                ),
+                child: JsonViewer(filterJson(data: data, filter: _filter)),
               ),
             ],
           ),

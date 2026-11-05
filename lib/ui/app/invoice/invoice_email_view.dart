@@ -1,33 +1,35 @@
+// Flutter imports:
+import 'package:flutter/material.dart';
+import 'package:html2md/html2md.dart' as html2md;
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
-import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/client/client_selectors.dart';
-import 'package:invoiceninja_flutter/ui/app/form_card.dart';
+import 'package:invoiceninja_flutter/ui/app/edit_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/app_tab_bar.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/decorated_form_field.dart';
 import 'package:invoiceninja_flutter/ui/app/help_text.dart';
+import 'package:invoiceninja_flutter/ui/app/icon_message.dart';
 import 'package:invoiceninja_flutter/ui/app/lists/activity_list_tile.dart';
+import 'package:invoiceninja_flutter/ui/app/loading_indicator.dart';
 import 'package:invoiceninja_flutter/ui/app/scrollable_listview.dart';
 import 'package:invoiceninja_flutter/ui/credit/credit_pdf_vm.dart';
 import 'package:invoiceninja_flutter/ui/invoice/invoice_email_vm.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:invoiceninja_flutter/ui/app/loading_indicator.dart';
-import 'package:invoiceninja_flutter/ui/app/edit_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/invoice/invoice_pdf_vm.dart';
+import 'package:invoiceninja_flutter/ui/purchase_order/purchase_order_pdf_vm.dart';
 import 'package:invoiceninja_flutter/ui/quote/quote_pdf_vm.dart';
 import 'package:invoiceninja_flutter/ui/settings/templates_and_reminders.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
+import 'package:invoiceninja_flutter/utils/dialogs.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
+import 'package:invoiceninja_flutter/utils/super_editor/super_editor.dart';
 import 'package:invoiceninja_flutter/utils/templates.dart';
 
 class InvoiceEmailView extends StatefulWidget {
-  const InvoiceEmailView({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const InvoiceEmailView({Key? key, required this.viewModel}) : super(key: key);
 
   final EmailEntityVM viewModel;
 
@@ -37,16 +39,19 @@ class InvoiceEmailView extends StatefulWidget {
 
 class _InvoiceEmailViewState extends State<InvoiceEmailView>
     with SingleTickerProviderStateMixin {
-  EmailTemplate selectedTemplate;
+  late EmailTemplate selectedTemplate;
+  String _emailPreview = '';
   String _bodyPreview = '';
+  String _rawBodyPreview = '';
   String _subjectPreview = '';
   bool _isLoading = false;
 
   final _subjectController = TextEditingController();
   final _bodyController = TextEditingController();
+  final _ccEmailController = TextEditingController();
   final _debouncer = Debouncer(milliseconds: kMillisecondsToDebounceSave);
 
-  TabController _controller;
+  TabController? _controller;
   List<TextEditingController> _controllers = [];
 
   static const kTabPreview = 0;
@@ -58,19 +63,11 @@ class _InvoiceEmailViewState extends State<InvoiceEmailView>
   void initState() {
     super.initState();
     _controller = TabController(vsync: this, length: 4);
-    _controller.addListener(_loadTemplate);
-    _controllers = [
-      _subjectController,
-      _bodyController,
-    ];
+    _controller!.addListener(_loadTemplate);
+    _controllers = [_subjectController, _bodyController, _ccEmailController];
 
     final viewModel = widget.viewModel;
-    final client = viewModel.client;
-    final invoice = viewModel.invoice;
-
-    if (client.isStale) {
-      viewModel.loadClient();
-    }
+    final invoice = viewModel.invoice!;
 
     switch (invoice.entityType) {
       case EntityType.invoice:
@@ -80,16 +77,22 @@ class _InvoiceEmailViewState extends State<InvoiceEmailView>
           selectedTemplate = EmailTemplate.reminder3;
         else if ((invoice.reminder1Sent ?? '').isNotEmpty)
           selectedTemplate = EmailTemplate.reminder2;
-        else if ((invoice.lastSentDate ?? '').isNotEmpty)
+        else if (invoice.lastSentDate.isNotEmpty)
           selectedTemplate = EmailTemplate.reminder1;
         else
           selectedTemplate = EmailTemplate.invoice;
         break;
       case EntityType.quote:
-        selectedTemplate = EmailTemplate.quote;
+        if (invoice.lastSentDate.isNotEmpty)
+          selectedTemplate = EmailTemplate.quote_reminder1;
+        else
+          selectedTemplate = EmailTemplate.quote;
         break;
       case EntityType.credit:
         selectedTemplate = EmailTemplate.credit;
+        break;
+      case EntityType.purchaseOrder:
+        selectedTemplate = EmailTemplate.purchase_order;
         break;
     }
   }
@@ -103,8 +106,8 @@ class _InvoiceEmailViewState extends State<InvoiceEmailView>
 
   @override
   void dispose() {
-    _controller.removeListener(_loadTemplate);
-    _controller.dispose();
+    _controller!.removeListener(_loadTemplate);
+    _controller!.dispose();
     _controllers.forEach((dynamic controller) {
       controller.dispose();
     });
@@ -119,7 +122,8 @@ class _InvoiceEmailViewState extends State<InvoiceEmailView>
   }
 
   void _loadTemplate() {
-    if (_isLoading || (isMobile(context) && _controller.index != kTabPreview)) {
+    if (_isLoading ||
+        (isMobile(context) && _controller!.index != kTabPreview)) {
       return;
     }
 
@@ -131,164 +135,309 @@ class _InvoiceEmailViewState extends State<InvoiceEmailView>
     });
 
     loadEmailTemplate(
-        context: context,
-        subject: origSubject,
-        body: origBody,
-        template: '$selectedTemplate',
-        invoice: widget.viewModel.invoice,
-        onComplete: (subject, body, rawSubject, rawBody) {
-          if (!mounted) {
-            return;
+      context: context,
+      subject: origSubject,
+      body: origBody,
+      template: '$selectedTemplate',
+      invoice: widget.viewModel.invoice,
+      onComplete: (subject, body, email, rawSubject, rawBody) {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {
+          _isLoading = false;
+          _subjectPreview = subject!.trim();
+          _bodyPreview = body!.trim();
+          _emailPreview = email!.trim();
+
+          if (_rawBodyPreview.isEmpty) {
+            _rawBodyPreview = rawBody!.trim();
+
+            final company = widget.viewModel.state!.company;
+            if (company.markdownEmailEnabled &&
+                _rawBodyPreview.trim().startsWith('<')) {
+              _rawBodyPreview = html2md.convert(_rawBodyPreview);
+            }
           }
 
-          setState(() {
-            _isLoading = false;
-            _subjectPreview = subject.trim();
-            _bodyPreview = body.trim();
-
-            if (origSubject.isEmpty && origBody.isEmpty) {
-              _subjectController.text = rawSubject.trim();
-              _bodyController.text = rawBody.trim();
-            }
-          });
+          if (origSubject.isEmpty && origBody.isEmpty) {
+            _subjectController.text = rawSubject!.trim();
+            _bodyController.text = rawBody!.trim();
+          }
         });
+      },
+    );
   }
 
   Widget _buildTemplateDropdown(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final viewModel = widget.viewModel;
-    final invoice = widget.viewModel.invoice;
+    final invoice = widget.viewModel.invoice!;
     final client = viewModel.client;
-    final state = viewModel.state;
+    final vendor = viewModel.vendor;
+    final state = viewModel.state!;
     final settings = getClientSettings(state, client);
-    final contacts = invoice.invitations
-        .map((invitation) => client.contacts.firstWhere(
-            (contact) => contact.id == invitation.contactId,
-            orElse: () => null))
-        .toList();
+    final contacts = invoice.invitations.map((invitation) {
+      final allContacts = invoice.isPurchaseOrder
+          ? vendor!.contacts
+          : client!.contacts;
+      final matches = allContacts.where(
+        (contact) =>
+            contact.id ==
+            (invoice.isPurchaseOrder
+                ? invitation.vendorContactId
+                : invitation.clientContactId),
+      );
+      return matches.isNotEmpty ? matches.first : null;
+    }).toList();
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 18, right: 18, top: 2),
-      child: Row(
-        children: [
-          Expanded(
-              child: Text(localization.to +
-                  ': ' +
-                  contacts
-                      .where((contact) => contact != null)
-                      .map((contact) => contact.fullNameWithEmail)
-                      .join(', '))),
-          DropdownButtonHideUnderline(
-            child: DropdownButton<EmailTemplate>(
-              value: selectedTemplate,
-              onChanged: (template) {
-                setState(() {
-                  _subjectController.text = '';
-                  _bodyController.text = '';
-                  selectedTemplate = template;
-                  _loadTemplate();
-                });
-              },
-              items: [
-                DropdownMenuItem<EmailTemplate>(
-                  child: Text(localization.initialEmail),
-                  value: invoice.emailTemplate,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 24, right: 10, top: 2),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  localization.to +
+                      ': ' +
+                      contacts.nonNulls
+                          .where(
+                            (contact) => invoice.isPurchaseOrder
+                                ? !(contact as VendorContactEntity).ccOnly
+                                : !(contact as ClientContactEntity).ccOnly,
+                          )
+                          .map(
+                            (contact) => invoice.isPurchaseOrder
+                                ? (contact as VendorContactEntity)
+                                      .fullNameOrEmail
+                                : (contact as ClientContactEntity)
+                                      .fullNameWithEmail,
+                          )
+                          .join(', '),
                 ),
-                if (invoice.isInvoice) ...[
-                  DropdownMenuItem<EmailTemplate>(
-                    child: Text(localization.firstReminder),
-                    value: EmailTemplate.reminder1,
-                  ),
-                  DropdownMenuItem<EmailTemplate>(
-                    child: Text(localization.secondReminder),
-                    value: EmailTemplate.reminder2,
-                  ),
-                  DropdownMenuItem<EmailTemplate>(
-                    child: Text(localization.thirdReminder),
-                    value: EmailTemplate.reminder3,
-                  ),
-                ],
-                if ((settings.emailSubjectCustom1 ?? '').isNotEmpty)
-                  DropdownMenuItem<EmailTemplate>(
-                    child: Text(localization.firstCustom),
-                    value: EmailTemplate.custom1,
-                  ),
-                if ((settings.emailSubjectCustom2 ?? '').isNotEmpty)
-                  DropdownMenuItem<EmailTemplate>(
-                    child: Text(localization.secondCustom),
-                    value: EmailTemplate.custom2,
-                  ),
-                if ((settings.emailSubjectCustom3 ?? '').isNotEmpty)
-                  DropdownMenuItem<EmailTemplate>(
-                    child: Text(localization.thirdCustom),
-                    value: EmailTemplate.custom3,
-                  ),
-              ],
+              ),
+              SizedBox(width: 4),
+              DropdownButtonHideUnderline(
+                child: DropdownButton<EmailTemplate>(
+                  value: selectedTemplate,
+                  onChanged: _isLoading
+                      ? null
+                      : (template) {
+                          if (template == null) {
+                            return;
+                          }
+                          setState(() {
+                            _subjectController.text = '';
+                            _bodyController.text = '';
+                            _rawBodyPreview = '';
+                            selectedTemplate = template;
+                            _loadTemplate();
+                          });
+                        },
+                  items: [
+                    DropdownMenuItem<EmailTemplate>(
+                      child: Text(localization.initialEmail),
+                      value: invoice.emailTemplate,
+                    ),
+                    if (invoice.isInvoice) ...[
+                      DropdownMenuItem<EmailTemplate>(
+                        child: Text(localization.firstReminder),
+                        value: EmailTemplate.reminder1,
+                      ),
+                      DropdownMenuItem<EmailTemplate>(
+                        child: Text(localization.secondReminder),
+                        value: EmailTemplate.reminder2,
+                      ),
+                      DropdownMenuItem<EmailTemplate>(
+                        child: Text(localization.thirdReminder),
+                        value: EmailTemplate.reminder3,
+                      ),
+                      DropdownMenuItem<EmailTemplate>(
+                        child: Text(localization.endlessReminder),
+                        value: EmailTemplate.reminder_endless,
+                      ),
+                    ] else if (invoice.isQuote) ...[
+                      DropdownMenuItem<EmailTemplate>(
+                        child: Text(localization.firstReminder),
+                        value: EmailTemplate.quote_reminder1,
+                      ),
+                    ],
+                    if ((settings.emailSubjectCustom1 ?? '').isNotEmpty)
+                      DropdownMenuItem<EmailTemplate>(
+                        child: Text(localization.firstCustom),
+                        value: EmailTemplate.custom1,
+                      ),
+                    if ((settings.emailSubjectCustom2 ?? '').isNotEmpty)
+                      DropdownMenuItem<EmailTemplate>(
+                        child: Text(localization.secondCustom),
+                        value: EmailTemplate.custom2,
+                      ),
+                    if ((settings.emailSubjectCustom3 ?? '').isNotEmpty)
+                      DropdownMenuItem<EmailTemplate>(
+                        child: Text(localization.thirdCustom),
+                        value: EmailTemplate.custom3,
+                      ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8),
+            ],
+          ),
+        ),
+        if (state.isProPlan)
+          ColoredBox(
+            color: Theme.of(context).canvasColor,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 24, right: 10),
+              child: DecoratedFormField(
+                controller: _ccEmailController,
+                label:
+                    localization.ccEmail +
+                    ': ' +
+                    contacts.nonNulls
+                        .where(
+                          (contact) => invoice.isPurchaseOrder
+                              ? (contact as VendorContactEntity).ccOnly
+                              : (contact as ClientContactEntity).ccOnly,
+                        )
+                        .map(
+                          (contact) => invoice.isPurchaseOrder
+                              ? (contact as VendorContactEntity).fullNameOrEmail
+                              : (contact as ClientContactEntity)
+                                    .fullNameWithEmail,
+                        )
+                        .join(', '),
+                keyboardType: TextInputType.emailAddress,
+              ),
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
   Widget _buildPreview(BuildContext context) {
-    if (isDesktopOS()) {
+    if (_bodyController.text.isEmpty) {
       return SizedBox();
     }
 
-    if (widget.viewModel.isLoading) {
-      return LoadingIndicator(
-        height: 210,
-      );
-    }
-
-    return EmailPreview(
-      isLoading: _isLoading,
-      subject: _subjectPreview,
-      body: _bodyPreview,
+    return Container(
+      color: Colors.white,
+      height: double.infinity,
+      child: (supportsInlineBrowser())
+          ? EmailPreview(
+              isLoading: _isLoading,
+              subject: _subjectPreview,
+              body: _emailPreview,
+            )
+          : IgnorePointer(
+              child: ExampleEditor(
+                value:
+                    '### $_subjectPreview\n\n\n' +
+                    html2md.convert(_bodyPreview),
+              ),
+            ),
     );
   }
 
   Widget _buildEdit(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
+    final viewModel = widget.viewModel;
+    final state = viewModel.state!;
+    final enableCustomEmail =
+        state.isSelfHosted ||
+        state.isProPlan ||
+        state.isTrial ||
+        !state.account.accountSmsVerified;
 
-    return SingleChildScrollView(
-      child: FormCard(
-        padding: EdgeInsets.only(
-            left: 16, bottom: 16, right: 16, top: isMobile(context) ? 16 : 0),
-        children: <Widget>[
-          if (_isLoading &&
-              _subjectController.text.isEmpty &&
-              _bodyController.text.isEmpty)
-            LoadingIndicator(height: 210)
-          else ...[
-            DecoratedFormField(
+    return Column(
+      children: [
+        if (!enableCustomEmail)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: IconMessage(
+              localization.customEmailsDisabledHelp,
+              trailing: (isApple() && !supportsInAppPurchase())
+                  ? null
+                  : TextButton(
+                      child: Text(
+                        localization.upgrade.toUpperCase(),
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () => initiatePurchase(),
+                    ),
+            ),
+          ),
+        ColoredBox(
+          color: state.company.markdownEmailEnabled && !isDarkMode(context)
+              ? Colors.white
+              : Theme.of(context).colorScheme.surface,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 24, right: 10, bottom: 16),
+            child: DecoratedFormField(
               controller: _subjectController,
               label: localization.subject,
               onChanged: (_) => _onChanged(),
+              keyboardType: TextInputType.text,
+              enabled: enableCustomEmail,
             ),
-            DecoratedFormField(
-              controller: _bodyController,
-              label: localization.body,
-              maxLines: 6,
-              keyboardType: TextInputType.multiline,
-              onChanged: (_) => _onChanged(),
-            ),
-          ]
-        ],
-      ),
+          ),
+        ),
+        Expanded(
+          child: Stack(
+            children: [
+              if (state.company.markdownEmailEnabled)
+                ColoredBox(
+                  color: Colors.white,
+                  child: IgnorePointer(
+                    ignoring: !enableCustomEmail,
+                    child: ExampleEditor(
+                      value: _rawBodyPreview,
+                      onChanged: (value) {
+                        if (value.trim() != _bodyController.text.trim()) {
+                          _bodyController.text = value;
+                          _onChanged();
+                        }
+                      },
+                    ),
+                  ),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: DecoratedFormField(
+                    controller: _bodyController,
+                    label: localization.body,
+                    maxLines: enableCustomEmail ? 6 : 2,
+                    keyboardType: TextInputType.multiline,
+                    onChanged: (_) => _onChanged(),
+                    enabled: enableCustomEmail,
+                  ),
+                ),
+              if (_isLoading) LinearProgressIndicator(),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildHistory(BuildContext context) {
     final localization = AppLocalization.of(context);
-    final invoice = widget.viewModel.invoice;
+    final invoice = widget.viewModel.invoice!;
     final client = widget.viewModel.client;
-    final activities = client.getActivities(
-        invoiceId: invoice.id, typeId: kActivityEmailInvoice);
+    final vendor = widget.viewModel.vendor;
+
+    final activities =
+        ((invoice.isPurchaseOrder ? vendor : client) as HasActivities)
+            .getActivities(
+              invoiceId: invoice.id,
+              typeId: kActivityEmailInvoice,
+            );
 
     if (activities.isEmpty) {
-      return HelpText(localization.noHistory);
+      return HelpText(localization!.noHistory);
     }
 
     return ScrollableListViewBuilder(
@@ -304,35 +453,44 @@ class _InvoiceEmailViewState extends State<InvoiceEmailView>
   Widget build(BuildContext context) {
     final localization = AppLocalization.of(context);
     final viewModel = widget.viewModel;
+    final state = viewModel.state;
     final invoice = viewModel.invoice;
 
     if (isDesktop(context)) {
       return EditScaffold(
         entity: invoice,
-        title: localization.sendEmail,
+        title: localization!.sendEmail,
         onCancelPressed: (context) => viewEntity(entity: invoice),
         saveLabel: localization.send,
         onSavePressed: (context) {
-          viewModel.onSendPressed(context, selectedTemplate,
-              _subjectController.text, _bodyController.text);
+          if (state!.account.accountSmsVerified || state.isSelfHosted) {
+            viewModel.onSendPressed!(
+              context,
+              selectedTemplate,
+              _subjectController.text.trim(),
+              _bodyController.text.trim(),
+              _ccEmailController.text.trim(),
+            );
+          } else {
+            showMessageDialog(message: localization.verifyPhoneNumberHelp);
+          }
         },
         body: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildTemplateDropdown(context),
-                  _buildEdit(context),
-                  Expanded(
-                    child: Container(
+                  if (_bodyController.text.isEmpty)
+                    Expanded(child: LoadingIndicator())
+                  else ...[
+                    Expanded(child: _buildEdit(context), flex: 2),
+                    Expanded(
+                      flex: supportsInlineBrowser() ? 3 : 2,
                       child: _buildPreview(context),
-                      color: Colors.white,
-                      height: double.infinity,
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -344,22 +502,20 @@ class _InvoiceEmailViewState extends State<InvoiceEmailView>
                   children: [
                     AppTabBar(
                       tabs: [
-                        Tab(
-                          child: Text(localization.pdf),
-                        ),
-                        Tab(
-                          child: Text(localization.history),
-                        ),
+                        Tab(child: Text(localization.pdf)),
+                        Tab(child: Text(localization.history)),
                       ],
                     ),
                     Expanded(
                       child: TabBarView(
                         children: [
-                          invoice.isCredit
+                          invoice!.isPurchaseOrder
+                              ? PurchaseOrderPdfScreen(showAppBar: false)
+                              : invoice.isCredit
                               ? CreditPdfScreen(showAppBar: false)
                               : invoice.isQuote
-                                  ? QuotePdfScreen(showAppBar: false)
-                                  : InvoicePdfScreen(showAppBar: false),
+                              ? QuotePdfScreen(showAppBar: false)
+                              : InvoicePdfScreen(showAppBar: false),
                           _buildHistory(context),
                         ],
                       ),
@@ -377,7 +533,7 @@ class _InvoiceEmailViewState extends State<InvoiceEmailView>
       length: 3,
       child: EditScaffold(
         entity: invoice,
-        title: localization.sendEmail,
+        title: localization!.sendEmail,
         onCancelPressed: (context) => viewEntity(entity: invoice),
         appBarBottom: TabBar(
           controller: _controller,
@@ -391,8 +547,13 @@ class _InvoiceEmailViewState extends State<InvoiceEmailView>
         ),
         saveLabel: localization.send,
         onSavePressed: (context) {
-          viewModel.onSendPressed(context, selectedTemplate,
-              _subjectController.text, _bodyController.text);
+          viewModel.onSendPressed!(
+            context,
+            selectedTemplate,
+            _subjectController.text.trim(),
+            _bodyController.text.trim(),
+            _ccEmailController.text.trim(),
+          );
         },
         body: TabBarView(
           controller: _controller,
@@ -405,11 +566,13 @@ class _InvoiceEmailViewState extends State<InvoiceEmailView>
               ],
             ),
             _buildEdit(context),
-            invoice.isCredit
+            invoice!.isPurchaseOrder
+                ? PurchaseOrderPdfScreen(showAppBar: false)
+                : invoice.isCredit
                 ? CreditPdfScreen(showAppBar: false)
                 : invoice.isQuote
-                    ? QuotePdfScreen(showAppBar: false)
-                    : InvoicePdfScreen(showAppBar: false),
+                ? QuotePdfScreen(showAppBar: false)
+                : InvoicePdfScreen(showAppBar: false),
             _buildHistory(context),
           ],
         ),

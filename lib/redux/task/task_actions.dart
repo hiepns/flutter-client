@@ -1,49 +1,54 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:built_collection/built_collection.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:http/http.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/document/document_actions.dart';
 import 'package:invoiceninja_flutter/redux/task/task_selectors.dart';
-import 'package:invoiceninja_flutter/ui/app/dialogs/error_dialog.dart';
 import 'package:invoiceninja_flutter/ui/app/entities/entity_actions_dialog.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
+import 'package:invoiceninja_flutter/utils/dialogs.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class ViewTaskList implements PersistUI {
-  ViewTaskList({this.force = false});
+  ViewTaskList({this.force = false, this.page = 0});
 
   final bool force;
+  final int? page;
 }
 
 class ViewTask implements PersistUI, PersistPrefs {
-  ViewTask({
-    @required this.taskId,
-    this.force = false,
-  });
+  ViewTask({required this.taskId, this.force = false});
 
-  final String taskId;
+  final String? taskId;
   final bool force;
 }
 
 class EditTask implements PersistUI, PersistPrefs {
-  EditTask(
-      {this.task,
-      this.taskTime,
-      this.completer,
-      this.force = false,
-      this.taskTimeIndex});
+  EditTask({
+    this.task,
+    this.taskTime,
+    this.completer,
+    this.force = false,
+    this.taskTimeIndex,
+  });
 
-  final int taskTimeIndex;
-  final TaskEntity task;
-  final TaskTime taskTime;
-  final Completer completer;
+  final int? taskTimeIndex;
+  final TaskEntity? task;
+  final TaskTime? taskTime;
+  final Completer? completer;
   final bool force;
 }
 
@@ -56,21 +61,22 @@ class UpdateTask implements PersistUI {
 class LoadTask {
   LoadTask({this.completer, this.taskId});
 
-  final Completer completer;
-  final String taskId;
+  final Completer? completer;
+  final String? taskId;
 }
 
 class LoadTaskActivity {
   LoadTaskActivity({this.completer, this.taskId});
 
-  final Completer completer;
-  final String taskId;
+  final Completer? completer;
+  final String? taskId;
 }
 
 class LoadTasks {
-  LoadTasks({this.completer});
+  LoadTasks({this.completer, this.page = 1});
 
-  final Completer completer;
+  final Completer? completer;
+  final int page;
 }
 
 class LoadTaskRequest implements StartLoading {}
@@ -100,21 +106,20 @@ class LoadTaskSuccess implements StopLoading, PersistData {
 class EditTaskTime implements PersistUI {
   EditTaskTime([this.taskTimeIndex]);
 
-  final int taskTimeIndex;
+  final int? taskTimeIndex;
 }
 
 class AddTaskTime implements PersistUI {
-  AddTaskTime(this.taskTime, {this.showAsRunning = false});
+  AddTaskTime(this.taskTime);
 
   final TaskTime taskTime;
-  final bool showAsRunning;
 }
 
 class UpdateTaskTime implements PersistUI {
   UpdateTaskTime({this.index, this.taskTime});
 
-  final int index;
-  final TaskTime taskTime;
+  final int? index;
+  final TaskTime? taskTime;
 }
 
 class DeleteTaskTime implements PersistUI {
@@ -148,11 +153,17 @@ class LoadTasksSuccess implements StopLoading {
 }
 
 class SaveTaskRequest implements StartSaving {
-  SaveTaskRequest({this.completer, this.task, this.autoSelect = true});
+  SaveTaskRequest({
+    this.completer,
+    this.task,
+    this.autoSelect = true,
+    this.action,
+  });
 
-  final Completer completer;
-  final TaskEntity task;
+  final Completer? completer;
+  final TaskEntity? task;
   final bool autoSelect;
+  final EntityAction? action;
 }
 
 class SaveTaskSuccess implements StopSaving, PersistData, PersistUI {
@@ -162,7 +173,7 @@ class SaveTaskSuccess implements StopSaving, PersistData, PersistUI {
 }
 
 class AddTaskSuccess implements StopSaving, PersistData, PersistUI {
-  AddTaskSuccess({this.task, this.autoSelect = true});
+  AddTaskSuccess({required this.task, this.autoSelect = true});
 
   final TaskEntity task;
   final bool autoSelect;
@@ -190,7 +201,45 @@ class ArchiveTaskSuccess implements StopSaving, PersistData {
 class ArchiveTaskFailure implements StopSaving {
   ArchiveTaskFailure(this.tasks);
 
+  final List<TaskEntity?> tasks;
+}
+
+class StartTasksRequest implements StartSaving {
+  StartTasksRequest(this.completer, this.taskIds);
+
+  final Completer completer;
+  final List<String> taskIds;
+}
+
+class StartTasksSuccess implements StopSaving, PersistData {
+  StartTasksSuccess(this.tasks);
+
   final List<TaskEntity> tasks;
+}
+
+class StartTasksFailure implements StopSaving {
+  StartTasksFailure(this.tasks);
+
+  final List<TaskEntity?> tasks;
+}
+
+class StopTasksRequest implements StartSaving {
+  StopTasksRequest(this.completer, this.taskIds);
+
+  final Completer completer;
+  final List<String> taskIds;
+}
+
+class StopTasksSuccess implements StopSaving, PersistData {
+  StopTasksSuccess(this.tasks);
+
+  final List<TaskEntity> tasks;
+}
+
+class StopTasksFailure implements StopSaving {
+  StopTasksFailure(this.tasks);
+
+  final List<TaskEntity?> tasks;
 }
 
 class DeleteTaskRequest implements StartSaving {
@@ -209,7 +258,7 @@ class DeleteTaskSuccess implements StopSaving, PersistData {
 class DeleteTaskFailure implements StopSaving {
   DeleteTaskFailure(this.tasks);
 
-  final List<TaskEntity> tasks;
+  final List<TaskEntity?> tasks;
 }
 
 class RestoreTaskRequest implements StartSaving {
@@ -228,22 +277,22 @@ class RestoreTaskSuccess implements StopSaving, PersistData {
 class RestoreTaskFailure implements StopSaving {
   RestoreTaskFailure(this.tasks);
 
-  final List<TaskEntity> tasks;
+  final List<TaskEntity?> tasks;
 }
 
 class SortTasksRequest implements StartSaving {
   SortTasksRequest({this.completer, this.statusIds, this.taskIds});
 
-  final Completer completer;
-  final List<String> statusIds;
-  final Map<String, List<String>> taskIds;
+  final Completer? completer;
+  final List<String>? statusIds;
+  final Map<String, List<String>>? taskIds;
 }
 
 class SortTasksSuccess implements StopSaving, PersistData {
   SortTasksSuccess({this.statusIds, this.taskIds});
 
-  final List<String> statusIds;
-  final Map<String, List<String>> taskIds;
+  final List<String>? statusIds;
+  final Map<String, List<String>>? taskIds;
 }
 
 class SortTasksFailure implements StopSaving {
@@ -255,7 +304,7 @@ class SortTasksFailure implements StopSaving {
 class FilterTasks implements PersistUI {
   FilterTasks(this.filter);
 
-  final String filter;
+  final String? filter;
 }
 
 class SortTasks implements PersistUI, PersistPrefs {
@@ -300,13 +349,20 @@ class FilterTasksByCustom4 implements PersistUI {
   final String value;
 }
 
+class ClearTaskStatusFilter {}
+
+class UpdateKanban {}
+
 void handleTaskAction(
-    BuildContext context, List<BaseEntity> tasks, EntityAction action) {
+  BuildContext? context,
+  List<BaseEntity> tasks,
+  EntityAction? action,
+) async {
   if (tasks.isEmpty) {
     return;
   }
 
-  final store = StoreProvider.of<AppState>(context);
+  final store = StoreProvider.of<AppState>(context!);
   final state = store.state;
   final localization = AppLocalization.of(context);
   final task = tasks.first as TaskEntity;
@@ -315,97 +371,153 @@ void handleTaskAction(
 
   switch (action) {
     case EntityAction.edit:
-      editEntity(context: context, entity: task);
+      editEntity(entity: task);
       break;
     case EntityAction.start:
-    case EntityAction.stop:
     case EntityAction.resume:
-      final Completer<TaskEntity> completer = new Completer<TaskEntity>();
-      final localization = AppLocalization.of(context);
-      store
-          .dispatch(SaveTaskRequest(completer: completer, task: task.toggle()));
-      completer.future.then((savedTask) {
-        showToast(savedTask.isRunning
-            ? (savedTask.duration > 0
-                ? localization.resumedTask
-                : localization.startedTask)
-            : localization.stoppedTask);
-      }).catchError((Object error) {
-        showDialog<ErrorDialog>(
-            context: context,
-            builder: (BuildContext context) {
-              return ErrorDialog(error);
-            });
-      });
-
+      final message = taskIds.length > 1
+          ? localization!.startedTasks
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', taskIds.length.toString())
+          : localization!.startedTask;
+      store.dispatch(
+        StartTasksRequest(snackBarCompleter<Null>(message), taskIds),
+      );
+      break;
+    case EntityAction.stop:
+      final message = taskIds.length > 1
+          ? localization!.stoppedTasks
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', taskIds.length.toString())
+          : localization!.stoppedTask;
+      store.dispatch(
+        StopTasksRequest(snackBarCompleter<Null>(message), taskIds),
+      );
       break;
     case EntityAction.invoiceTask:
+    case EntityAction.addToInvoice:
+      String lastClientId = '';
+      bool hasMultipleClients = false;
+      tasks.forEach((task) {
+        final clientId = (task as TaskEntity).clientId;
+        if (clientId.isNotEmpty) {
+          if (lastClientId.isNotEmpty && lastClientId != clientId) {
+            hasMultipleClients = true;
+          }
+          lastClientId = clientId;
+        }
+      });
+      if (hasMultipleClients) {
+        showErrorDialog(message: localization!.multipleClientError);
+        return;
+      }
+
       tasks.sort((taskA, taskB) {
-        final taskATimes = (taskA as TaskEntity).getTaskTimes();
-        final taskBTimes = (taskB as TaskEntity).getTaskTimes();
+        final taskAEntity = taskA as TaskEntity;
+        final taskBEntity = taskB as TaskEntity;
+
+        final taskAProjectId = taskAEntity.projectId;
+        final taskBProjectId = taskBEntity.projectId;
+
+        if (taskAProjectId != taskBProjectId) {
+          return taskAProjectId.compareTo(taskBProjectId);
+        }
+
+        final taskATimes = taskAEntity.getTaskTimes();
+        final taskBTimes = taskBEntity.getTaskTimes();
         final taskADate = taskATimes.isEmpty
             ? convertTimestampToDate(taskA.createdAt)
-            : taskATimes.first.startDate;
+            : taskATimes.first.startDate!;
         final taskBDate = taskBTimes.isEmpty
             ? convertTimestampToDate(taskB.createdAt)
-            : taskBTimes.first.startDate;
+            : taskBTimes.first.startDate!;
         return taskADate.compareTo(taskBDate);
       });
 
-      final items = tasks
-          .where((entity) {
-            final task = entity as TaskEntity;
-            return !task.isDeleted && !task.isRunning && !task.isInvoiced;
-          })
-          .map((task) => convertTaskToInvoiceItem(task: task, context: context))
-          .toList();
-
-      /*
       String projectId = '';
       for (var each in tasks) {
         final task = each as TaskEntity;
-        if (task.projectId.isNotEmpty) {
+        if (task.projectId.isNotEmpty && projectId.isEmpty) {
           projectId = task.projectId;
-          break;
         }
       }
-      */
+
+      final company = state.company;
+      final items = <InvoiceItemEntity>[];
+      TaskEntity? lastTask;
+
+      tasks
+          .where((entity) {
+            final task = entity as TaskEntity;
+            return !task.isDeleted! && !task.isRunning && !task.isInvoiced;
+          })
+          .forEach((task) {
+            items.add(
+              convertTaskToInvoiceItem(
+                task: task as TaskEntity,
+                context: context,
+                includeProjectHeader:
+                    company.invoiceTaskProject &&
+                    !company.hasCustomProductField(localization!.project) &&
+                    task.projectId != lastTask?.projectId,
+              ),
+            );
+            lastTask = task;
+          });
 
       if (items.isNotEmpty) {
-        createEntity(
+        if (action == EntityAction.invoiceTask) {
+          createEntity(
+            entity: InvoiceEntity(state: state, client: client).rebuild(
+              (b) => b
+                ..lineItems.addAll(items)
+                ..projectId = projectId,
+            ),
+          );
+        } else {
+          addToInvoiceDialog(
             context: context,
-            entity: InvoiceEntity(state: state, client: client)
-                .rebuild((b) => b..lineItems.addAll(items)
-                    //..projectId = projectId
-                    ));
+            clientId: task.clientId,
+            items: items,
+          );
+        }
       }
       break;
     case EntityAction.clone:
-      createEntity(context: context, entity: task.clone);
+      createEntity(entity: task.clone);
+      break;
+    case EntityAction.changeStatus:
+      changeTaskStatusDialog(context: context, task: task);
       break;
     case EntityAction.restore:
       final message = taskIds.length > 1
-          ? localization.restoredTasks
-              .replaceFirst(':value', taskIds.length.toString())
-          : localization.restoredTask;
-      store.dispatch(RestoreTaskRequest(
-          snackBarCompleter<Null>(context, message), taskIds));
+          ? localization!.restoredTasks
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', taskIds.length.toString())
+          : localization!.restoredTask;
+      store.dispatch(
+        RestoreTaskRequest(snackBarCompleter<Null>(message), taskIds),
+      );
       break;
     case EntityAction.archive:
       final message = taskIds.length > 1
-          ? localization.archivedTasks
-              .replaceFirst(':value', taskIds.length.toString())
-          : localization.archivedTask;
-      store.dispatch(ArchiveTaskRequest(
-          snackBarCompleter<Null>(context, message), taskIds));
+          ? localization!.archivedTasks
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', taskIds.length.toString())
+          : localization!.archivedTask;
+      store.dispatch(
+        ArchiveTaskRequest(snackBarCompleter<Null>(message), taskIds),
+      );
       break;
     case EntityAction.delete:
       final message = taskIds.length > 1
-          ? localization.deletedTasks
-              .replaceFirst(':value', taskIds.length.toString())
-          : localization.deletedTask;
-      store.dispatch(DeleteTaskRequest(
-          snackBarCompleter<Null>(context, message), taskIds));
+          ? localization!.deletedTasks
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', taskIds.length.toString())
+          : localization!.deletedTask;
+      store.dispatch(
+        DeleteTaskRequest(snackBarCompleter<Null>(message), taskIds),
+      );
       break;
     case EntityAction.toggleMultiselect:
       if (!store.state.taskListState.isInMultiselect()) {
@@ -425,9 +537,47 @@ void handleTaskAction(
       }
       break;
     case EntityAction.more:
-      showEntityActionsDialog(
-        entities: [task],
+      showEntityActionsDialog(entities: [task]);
+      break;
+    case EntityAction.documents:
+      final documentIds = <String>[];
+      for (var task in tasks) {
+        for (var document in (task as TaskEntity).documents) {
+          documentIds.add(document.id);
+        }
+      }
+      if (documentIds.isEmpty) {
+        showMessageDialog(message: localization!.noDocumentsToDownload);
+      } else {
+        store.dispatch(
+          DownloadDocumentsRequest(
+            documentIds: documentIds,
+            completer: snackBarCompleter<Null>(localization!.exportedData),
+          ),
+        );
+      }
+      break;
+    case EntityAction.runTemplate:
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) =>
+            RunTemplateDialog(entityType: EntityType.task, entities: tasks),
       );
+      break;
+    case EntityAction.addComment:
+      final addedComment = await showDialog<bool>(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: false,
+        builder: (context) =>
+            AddCommentDialog(entityType: EntityType.task, entityId: task.id),
+      );
+      if (addedComment == true) {
+        store.dispatch(LoadTask(taskId: task.id));
+      }
+      break;
+    default:
+      print('## ERROR: unhandled action $action in task_actions');
       break;
   }
 }
@@ -435,28 +585,30 @@ void handleTaskAction(
 class StartTaskMultiselect {}
 
 class AddToTaskMultiselect {
-  AddToTaskMultiselect({@required this.entity});
+  AddToTaskMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class RemoveFromTaskMultiselect {
-  RemoveFromTaskMultiselect({@required this.entity});
+  RemoveFromTaskMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class ClearTaskMultiselect {}
 
 class SaveTaskDocumentRequest implements StartSaving {
   SaveTaskDocumentRequest({
-    @required this.completer,
-    @required this.multipartFile,
-    @required this.task,
+    required this.isPrivate,
+    required this.completer,
+    required this.multipartFiles,
+    required this.task,
   });
 
+  final bool isPrivate;
   final Completer completer;
-  final MultipartFile multipartFile;
+  final List<MultipartFile> multipartFiles;
   final TaskEntity task;
 }
 
@@ -475,5 +627,5 @@ class SaveTaskDocumentFailure implements StopSaving {
 class UpdateTaskTab implements PersistUI {
   UpdateTaskTab({this.tabIndex});
 
-  final int tabIndex;
+  final int? tabIndex;
 }

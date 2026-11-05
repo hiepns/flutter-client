@@ -12,9 +12,11 @@ import 'package:invoiceninja_flutter/ui/app/entities/entity_actions_dialog.dart'
 class ViewStubList implements PersistUI {
   ViewStubList({
     this.force = false
+    this.page = 0,
   });
 
   final bool force;
+  final int page;
 }
 
 class ViewStub
@@ -276,14 +278,13 @@ void handleStubAction(
   }
 
   final store = StoreProvider.of<AppState>(context);
-  final state = store.state;
   final localization = AppLocalization.of(context);
   final stub = stubs.first as StubEntity;
   final stubIds = stubs.map((stub) => stub.id).toList();
 
   switch (action) {
     case EntityAction.edit:
-      editEntity(context: context, entity: stub);
+      editEntity(entity: stub);
       break;
     case EntityAction.restore:
       store.dispatch(RestoreStubsRequest(

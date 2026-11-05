@@ -1,11 +1,23 @@
+// Dart imports:
 import 'dart:async';
+import 'dart:convert';
 
-import 'package:built_collection/built_collection.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:http/http.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
+import 'package:invoiceninja_flutter/redux/document/document_actions.dart';
+import 'package:invoiceninja_flutter/redux/settings/settings_actions.dart';
+import 'package:invoiceninja_flutter/utils/files.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
+import 'package:invoiceninja_flutter/ui/app/dialogs/error_dialog.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
@@ -14,54 +26,59 @@ import 'package:invoiceninja_flutter/ui/app/entities/entity_actions_dialog.dart'
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/dialogs.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:url_launcher/url_launcher.dart';
+
+import 'package:http/http.dart' as http;
+import 'package:invoiceninja_flutter/data/web_client.dart';
+import 'package:printing/printing.dart';
 
 class ViewCreditList implements PersistUI {
-  ViewCreditList({this.force = false});
+  ViewCreditList({this.force = false, this.page = 0});
 
   final bool force;
+  final int? page;
 }
 
 class ViewCredit implements PersistUI, PersistPrefs {
-  ViewCredit({
-    this.creditId,
-    this.force = false,
-  });
+  ViewCredit({this.creditId, this.force = false});
 
-  final String creditId;
+  final String? creditId;
   final bool force;
 }
 
 class EditCredit implements PersistUI, PersistPrefs {
-  EditCredit(
-      {this.credit, this.creditItemIndex, this.completer, this.force = false});
+  EditCredit({
+    this.credit,
+    this.creditItemIndex,
+    this.completer,
+    this.force = false,
+  });
 
-  final InvoiceEntity credit;
-  final int creditItemIndex;
-  final Completer completer;
+  final InvoiceEntity? credit;
+  final int? creditItemIndex;
+  final Completer? completer;
   final bool force;
 }
 
 class ShowEmailCredit {
   ShowEmailCredit({this.credit, this.context, this.completer});
 
-  final InvoiceEntity credit;
-  final BuildContext context;
-  final Completer completer;
+  final InvoiceEntity? credit;
+  final BuildContext? context;
+  final Completer? completer;
 }
 
 class ShowPdfCredit {
   ShowPdfCredit({this.credit, this.context, this.activityId});
 
-  final InvoiceEntity credit;
-  final BuildContext context;
-  final String activityId;
+  final InvoiceEntity? credit;
+  final BuildContext? context;
+  final String? activityId;
 }
 
 class EditCreditItem implements PersistUI {
   EditCreditItem([this.creditItemIndex]);
 
-  final int creditItemIndex;
+  final int? creditItemIndex;
 }
 
 class UpdateCredit implements PersistUI {
@@ -73,20 +90,21 @@ class UpdateCredit implements PersistUI {
 class UpdateCreditClient implements PersistUI {
   UpdateCreditClient({this.client});
 
-  final ClientEntity client;
+  final ClientEntity? client;
 }
 
 class LoadCredit {
   LoadCredit({this.completer, this.creditId});
 
-  final Completer completer;
-  final String creditId;
+  final Completer? completer;
+  final String? creditId;
 }
 
 class LoadCredits {
-  LoadCredits({this.completer});
+  LoadCredits({this.completer, this.page = 1});
 
-  final Completer completer;
+  final Completer? completer;
+  final int page;
 }
 
 class LoadCreditRequest implements StartLoading {}
@@ -140,30 +158,28 @@ class LoadCreditsSuccess implements StopLoading {
 class AddCreditContact implements PersistUI {
   AddCreditContact({this.contact, this.invitation});
 
-  final ContactEntity contact;
-  final InvitationEntity invitation;
+  final ClientContactEntity? contact;
+  final InvitationEntity? invitation;
 }
 
 class RemoveCreditContact implements PersistUI {
   RemoveCreditContact({this.invitation});
 
-  final InvitationEntity invitation;
+  final InvitationEntity? invitation;
 }
 
 class AddCreditItem implements PersistUI {
-  AddCreditItem({this.creditItem});
+  AddCreditItem({this.creditItem, this.index});
 
-  final InvoiceItemEntity creditItem;
+  final int? index;
+  final InvoiceItemEntity? creditItem;
 }
 
 class MoveCreditItem implements PersistUI {
-  MoveCreditItem({
-    this.oldIndex,
-    this.newIndex,
-  });
+  MoveCreditItem({this.oldIndex, this.newIndex});
 
-  final int oldIndex;
-  final int newIndex;
+  final int? oldIndex;
+  final int? newIndex;
 }
 
 class AddCreditItems implements PersistUI {
@@ -173,7 +189,7 @@ class AddCreditItems implements PersistUI {
 }
 
 class UpdateCreditItem implements PersistUI {
-  UpdateCreditItem({this.index, this.creditItem});
+  UpdateCreditItem({required this.index, required this.creditItem});
 
   final int index;
   final InvoiceItemEntity creditItem;
@@ -187,14 +203,14 @@ class DeleteCreditItem implements PersistUI {
 
 class SaveCreditRequest implements StartSaving {
   SaveCreditRequest({
-    @required this.completer,
-    @required this.credit,
-    @required this.action,
+    required this.completer,
+    required this.credit,
+    required this.action,
   });
 
   final Completer completer;
   final InvoiceEntity credit;
-  final EntityAction action;
+  final EntityAction? action;
 }
 
 class SaveCreditSuccess implements StopSaving, PersistData, PersistUI {
@@ -216,14 +232,21 @@ class SaveCreditFailure implements StopSaving {
 }
 
 class EmailCreditRequest implements StartSaving {
-  EmailCreditRequest(
-      {this.completer, this.creditId, this.template, this.subject, this.body});
+  EmailCreditRequest({
+    required this.completer,
+    required this.creditId,
+    required this.template,
+    required this.subject,
+    required this.body,
+    required this.ccEmail,
+  });
 
   final Completer completer;
   final String creditId;
   final EmailTemplate template;
   final String subject;
   final String body;
+  final String ccEmail;
 }
 
 class EmailCreditSuccess implements StopSaving, PersistData {}
@@ -254,10 +277,11 @@ class MarkSentCreditFailure implements StopSaving {
 }
 
 class BulkEmailCreditsRequest implements StartSaving {
-  BulkEmailCreditsRequest(this.completer, this.creditIds);
+  BulkEmailCreditsRequest({this.completer, this.creditIds, this.template});
 
-  final Completer completer;
-  final List<String> creditIds;
+  final Completer? completer;
+  final List<String>? creditIds;
+  final EmailTemplate? template;
 }
 
 class BulkEmailCreditsSuccess implements StopSaving, PersistData {
@@ -268,6 +292,25 @@ class BulkEmailCreditsSuccess implements StopSaving, PersistData {
 
 class BulkEmailCreditsFailure implements StopSaving {
   BulkEmailCreditsFailure(this.error);
+
+  final dynamic error;
+}
+
+class MarkCreditsPaidRequest implements StartSaving {
+  MarkCreditsPaidRequest(this.completer, this.invoiceIds);
+
+  final Completer completer;
+  final List<String> invoiceIds;
+}
+
+class MarkCreditsPaidSuccess implements StopSaving {
+  MarkCreditsPaidSuccess(this.invoices);
+
+  final List<InvoiceEntity> invoices;
+}
+
+class MarkCreditsPaidFailure implements StopSaving {
+  MarkCreditsPaidFailure(this.error);
 
   final dynamic error;
 }
@@ -289,7 +332,7 @@ class ArchiveCreditsSuccess implements StopSaving, PersistData {
 class ArchiveCreditsFailure implements StopSaving {
   ArchiveCreditsFailure(this.credits);
 
-  final List<InvoiceEntity> credits;
+  final List<InvoiceEntity?> credits;
 }
 
 class DeleteCreditsRequest implements StartSaving {
@@ -309,7 +352,7 @@ class DeleteCreditsSuccess implements StopSaving, PersistData {
 class DeleteCreditsFailure implements StopSaving {
   DeleteCreditsFailure(this.credits);
 
-  final List<InvoiceEntity> credits;
+  final List<InvoiceEntity?> credits;
 }
 
 class DownloadCreditsRequest implements StartSaving {
@@ -344,13 +387,13 @@ class RestoreCreditsSuccess implements StopSaving, PersistData {
 class RestoreCreditsFailure implements StopSaving {
   RestoreCreditsFailure(this.credits);
 
-  final List<InvoiceEntity> credits;
+  final List<InvoiceEntity?> credits;
 }
 
 class FilterCredits implements PersistUI {
   FilterCredits(this.filter);
 
-  final String filter;
+  final String? filter;
 }
 
 class SortCredits implements PersistUI, PersistPrefs {
@@ -374,7 +417,7 @@ class FilterCreditsByStatus implements PersistUI {
 class FilterCreditDropdown {
   FilterCreditDropdown(this.filter);
 
-  final String filter;
+  final String? filter;
 }
 
 class FilterCreditsByCustom1 implements PersistUI {
@@ -403,13 +446,15 @@ class FilterCreditsByCustom4 implements PersistUI {
 
 class SaveCreditDocumentRequest implements StartSaving {
   SaveCreditDocumentRequest({
-    @required this.completer,
-    @required this.multipartFile,
-    @required this.credit,
+    required this.isPrivate,
+    required this.completer,
+    required this.multipartFiles,
+    required this.credit,
   });
 
+  final bool? isPrivate;
   final Completer completer;
-  final MultipartFile multipartFile;
+  final List<MultipartFile> multipartFiles;
   final InvoiceEntity credit;
 }
 
@@ -426,152 +471,284 @@ class SaveCreditDocumentFailure implements StopSaving {
 }
 
 Future handleCreditAction(
-    BuildContext context, List<BaseEntity> credits, EntityAction action) async {
+  BuildContext context,
+  List<BaseEntity> credits,
+  EntityAction? action,
+) async {
   final store = StoreProvider.of<AppState>(context);
   final state = store.state;
   final localization = AppLocalization.of(context);
   final credit = credits.first as InvoiceEntity;
   final creditIds = credits.map((credit) => credit.id).toList();
+  final client = state.clientState.get(credit.clientId);
 
   switch (action) {
     case EntityAction.edit:
-      editEntity(context: context, entity: credit);
+      editEntity(entity: credit);
       break;
     case EntityAction.viewPdf:
       store.dispatch(ShowPdfCredit(credit: credit, context: context));
       break;
     case EntityAction.clientPortal:
-      if (await canLaunch(credit.invitationSilentLink)) {
-        await launch(credit.invitationSilentLink,
-            forceSafariVC: false, forceWebView: false);
-      }
+      launchUrl(Uri.parse(credit.invitationSilentLink));
       break;
     case EntityAction.markSent:
-      store.dispatch(MarkSentCreditRequest(
-          snackBarCompleter<Null>(context, localization.markedCreditAsSent),
-          creditIds));
+      store.dispatch(
+        MarkSentCreditRequest(
+          snackBarCompleter<Null>(localization!.markedCreditAsSent),
+          creditIds,
+        ),
+      );
       break;
-    case EntityAction.emailCredit:
-    case EntityAction.bulkEmailCredit:
+    case EntityAction.sendEmail:
+    case EntityAction.bulkSendEmail:
+    case EntityAction.schedule:
       bool emailValid = true;
-      creditIds.forEach((element) {
-        final client = state.clientState.get(credit.clientId);
+      credits.forEach((credit) {
+        final client = state.clientState.get(
+          (credit as InvoiceEntity).clientId,
+        );
         if (!client.hasEmailAddress) {
           emailValid = false;
         }
       });
       if (!emailValid) {
         showMessageDialog(
-            context: context,
-            message: localization.clientEmailNotSet,
-            secondaryActions: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    editEntity(
-                        context: context,
-                        entity: state.clientState.get(credit.clientId));
-                  },
-                  child: Text(localization.editClient.toUpperCase()))
-            ]);
+          message: localization!.clientEmailNotSet,
+          secondaryActions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                editEntity(entity: client);
+              },
+              child: Text(localization.editClient.toUpperCase()),
+            ),
+          ],
+        );
         return;
       }
-      if (action == EntityAction.emailCredit) {
-        store.dispatch(ShowEmailCredit(
-            completer:
-                snackBarCompleter<Null>(context, localization.emailedCredit),
+      if (action == EntityAction.sendEmail) {
+        store.dispatch(
+          ShowEmailCredit(
+            completer: snackBarCompleter<Null>(localization!.emailedCredit),
             credit: credit,
-            context: context));
+            context: context,
+          ),
+        );
+      } else if (action == EntityAction.schedule) {
+        if (!state.isProPlan) {
+          showMessageDialog(
+            message: localization!.upgradeToPaidPlanToSchedule,
+            secondaryActions: [
+              TextButton(
+                onPressed: () {
+                  store.dispatch(
+                    ViewSettings(section: kSettingsAccountManagement),
+                  );
+                  Navigator.of(context).pop();
+                },
+                child: Text(localization.upgrade.toUpperCase()),
+              ),
+            ],
+          );
+          return;
+        }
+
+        createEntity(
+          entity: ScheduleEntity(ScheduleEntity.TEMPLATE_EMAIL_RECORD).rebuild(
+            (b) => b
+              ..parameters.entityType = EntityType.credit.apiValue
+              ..parameters.entityId = credit.id,
+          ),
+        );
       } else {
-        store.dispatch(BulkEmailCreditsRequest(
-            snackBarCompleter<Null>(
-                context,
-                creditIds.length == 1
-                    ? localization.emailedCredit
-                    : localization.emailedCredits),
-            creditIds));
+        confirmCallback(
+          context: context,
+          message: localization!.bulkEmailCredits,
+          callback: (_) {
+            store.dispatch(
+              BulkEmailCreditsRequest(
+                completer: snackBarCompleter<Null>(
+                  creditIds.length == 1
+                      ? localization.emailedCredit
+                      : localization.emailedCredits,
+                ),
+                creditIds: creditIds,
+              ),
+            );
+          },
+        );
       }
       break;
+    case EntityAction.cloneToPurchaseOrder:
+      final designId = getDesignIdForVendorByEntity(
+        state: state,
+        vendorId: credit.vendorId,
+        entityType: EntityType.purchaseOrder,
+      );
+      createEntity(
+        entity: credit.clone.rebuild(
+          (b) => b
+            ..entityType = EntityType.purchaseOrder
+            ..designId = designId,
+        ),
+      );
+      break;
     case EntityAction.cloneToOther:
-      cloneToDialog(context: context, invoice: credit);
+      cloneToDialog(invoice: credit);
       break;
     case EntityAction.cloneToInvoice:
       final designId = getDesignIdForClientByEntity(
-          state: state,
-          clientId: credit.clientId,
-          entityType: EntityType.invoice);
+        state: state,
+        clientId: credit.clientId,
+        entityType: EntityType.invoice,
+      );
       createEntity(
-          context: context,
-          entity: credit.clone.rebuild((b) => b
+        entity: credit.clone.rebuild(
+          (b) => b
             ..entityType = EntityType.invoice
-            ..designId = designId));
+            ..designId = designId,
+        ),
+      );
       break;
     case EntityAction.cloneToQuote:
       final designId = getDesignIdForClientByEntity(
-          state: state,
-          clientId: credit.clientId,
-          entityType: EntityType.quote);
+        state: state,
+        clientId: credit.clientId,
+        entityType: EntityType.quote,
+      );
       createEntity(
-          context: context,
-          entity: credit.clone.rebuild((b) => b
+        entity: credit.clone.rebuild(
+          (b) => b
             ..entityType = EntityType.quote
-            ..designId = designId));
+            ..designId = designId,
+        ),
+      );
       break;
+    case EntityAction.clone:
     case EntityAction.cloneToCredit:
-      createEntity(context: context, entity: credit.clone);
+      createEntity(entity: credit.clone);
       break;
     case EntityAction.cloneToRecurring:
       final designId = getDesignIdForClientByEntity(
-          state: state,
-          clientId: credit.clientId,
-          entityType: EntityType.invoice);
+        state: state,
+        clientId: credit.clientId,
+        entityType: EntityType.invoice,
+      );
       createEntity(
-          context: context,
-          entity: credit.clone.rebuild((b) => b
+        entity: credit.clone.rebuild(
+          (b) => b
             ..entityType = EntityType.recurringInvoice
-            ..designId = designId));
+            ..designId = designId,
+        ),
+      );
+      break;
+    case EntityAction.markPaid:
+      store.dispatch(
+        MarkCreditsPaidRequest(
+          snackBarCompleter<Null>(
+            credits.length == 1
+                ? localization!.markedCreditAsPaid
+                : localization!.markedCreditsAsPaid,
+          ),
+          creditIds,
+        ),
+      );
       break;
     case EntityAction.applyCredit:
       createEntity(
-        context: context,
-        entity: PaymentEntity(state: state).rebuild((b) => b
-          ..isForCredit = true
-          ..typeId = kPaymentTypeCredit
-          ..clientId = credit.clientId
-          ..credits.addAll(credits
-              .map((credit) => PaymentableEntity.fromCredit(credit))
-              .toList())),
-        filterEntity: state.clientState.map[credit.clientId],
+        entity: PaymentEntity(state: state, client: client).rebuild(
+          (b) => b
+            ..typeId = kPaymentTypeCredit
+            ..credits.addAll(
+              credits
+                  .map(
+                    (credit) =>
+                        PaymentableEntity.fromCredit(credit as InvoiceEntity),
+                  )
+                  .toList(),
+            ),
+        ),
+        filterEntity: client,
       );
       break;
+    case EntityAction.eCredit:
+      store.dispatch(StartLoading());
+      await WebClient()
+          .get(
+            credit.invitationECreditDownloadLink,
+            state.token,
+            rawResponse: true,
+          )
+          .then((response) {
+            store.dispatch(StopLoading());
+            saveDownloadedFile(
+              response.bodyBytes,
+              credit.number + '.xml',
+              prefix: EntityType.invoice.apiValue,
+              languageId: client.languageId,
+            );
+          })
+          .catchError((error) {
+            store.dispatch(StopLoading());
+            showErrorDialog(message: error);
+          });
+      break;
+    case EntityAction.download:
+      store.dispatch(StartLoading());
+      await WebClient()
+          .get(credit.invitationDownloadLink, state.token, rawResponse: true)
+          .then((response) {
+            store.dispatch(StopLoading());
+            saveDownloadedFile(
+              response.bodyBytes,
+              credit.number + '.pdf',
+              prefix: EntityType.credit.apiValue,
+              languageId: client.languageId,
+            );
+          })
+          .catchError((error) {
+            store.dispatch(StopLoading());
+            showErrorDialog(message: error);
+          });
+      break;
     case EntityAction.bulkDownload:
-      store.dispatch(DownloadCreditsRequest(
-          snackBarCompleter<Null>(context, localization.exportedData),
-          creditIds));
+      store.dispatch(
+        DownloadCreditsRequest(
+          snackBarCompleter<Null>(localization!.exportedData),
+          creditIds,
+        ),
+      );
       break;
     case EntityAction.restore:
       final message = creditIds.length > 1
-          ? localization.restoredCredits
-              .replaceFirst(':value', creditIds.length.toString())
-          : localization.restoredCredit;
-      store.dispatch(RestoreCreditsRequest(
-          snackBarCompleter<Null>(context, message), creditIds));
+          ? localization!.restoredCredits
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', creditIds.length.toString())
+          : localization!.restoredCredit;
+      store.dispatch(
+        RestoreCreditsRequest(snackBarCompleter<Null>(message), creditIds),
+      );
       break;
     case EntityAction.archive:
       final message = creditIds.length > 1
-          ? localization.archivedCredits
-              .replaceFirst(':value', creditIds.length.toString())
-          : localization.archivedCredit;
-      store.dispatch(ArchiveCreditsRequest(
-          snackBarCompleter<Null>(context, message), creditIds));
+          ? localization!.archivedCredits
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', creditIds.length.toString())
+          : localization!.archivedCredit;
+      store.dispatch(
+        ArchiveCreditsRequest(snackBarCompleter<Null>(message), creditIds),
+      );
       break;
     case EntityAction.delete:
       final message = creditIds.length > 1
-          ? localization.deletedCredits
-              .replaceFirst(':value', creditIds.length.toString())
-          : localization.deletedCredit;
-      store.dispatch(DeleteCreditsRequest(
-          snackBarCompleter<Null>(context, message), creditIds));
+          ? localization!.deletedCredits
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', creditIds.length.toString())
+          : localization!.deletedCredit;
+      store.dispatch(
+        DeleteCreditsRequest(snackBarCompleter<Null>(message), creditIds),
+      );
       break;
     case EntityAction.toggleMultiselect:
       if (!store.state.creditListState.isInMultiselect()) {
@@ -585,10 +762,98 @@ Future handleCreditAction(
         }
       }
       break;
-    case EntityAction.more:
-      showEntityActionsDialog(
-        entities: [credit],
+    case EntityAction.printPdf:
+      final invitation = credit.invitations.first;
+      final url = invitation.downloadLink;
+      store.dispatch(StartSaving());
+      final http.Response? response = await WebClient().get(
+        url,
+        state.token,
+        rawResponse: true,
       );
+      store.dispatch(StopSaving());
+      try {
+        await Printing.layoutPdf(
+          onLayout: (_) => response!.bodyBytes,
+          dynamicLayout: false,
+        );
+      } catch (error) {
+        showDialog<void>(
+          context: navigatorKey.currentContext!,
+          builder: (context) => ErrorDialog(error),
+        );
+      }
+      break;
+    case EntityAction.bulkPrint:
+      store.dispatch(StartSaving());
+      final url = state.credentials.url + '/credits/bulk';
+      final data = json.encode({
+        'ids': creditIds,
+        'action': EntityAction.bulkPrint.toApiParam(),
+      });
+      final http.Response? response = await WebClient().post(
+        url,
+        state.credentials.token,
+        data: data,
+        rawResponse: true,
+      );
+      store.dispatch(StopSaving());
+      try {
+        await Printing.layoutPdf(
+          onLayout: (_) => response!.bodyBytes,
+          dynamicLayout: false,
+        );
+      } catch (error) {
+        showDialog<void>(
+          context: navigatorKey.currentContext!,
+          builder: (context) => ErrorDialog(error),
+        );
+      }
+      break;
+    case EntityAction.more:
+      showEntityActionsDialog(entities: [credit]);
+      break;
+    case EntityAction.documents:
+      final documentIds = <String>[];
+      for (var credit in credits) {
+        for (var document in (credit as InvoiceEntity).documents) {
+          documentIds.add(document.id);
+        }
+      }
+      if (documentIds.isEmpty) {
+        showMessageDialog(message: localization!.noDocumentsToDownload);
+      } else {
+        store.dispatch(
+          DownloadDocumentsRequest(
+            documentIds: documentIds,
+            completer: snackBarCompleter<Null>(localization!.exportedData),
+          ),
+        );
+      }
+      break;
+    case EntityAction.runTemplate:
+      showDialog<void>(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: false,
+        builder: (context) =>
+            RunTemplateDialog(entityType: EntityType.credit, entities: credits),
+      );
+      break;
+    case EntityAction.addComment:
+      final addedComment = await showDialog<bool>(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: false,
+        builder: (context) => AddCommentDialog(
+          entityType: EntityType.credit,
+          entityId: credit.id,
+        ),
+      );
+      if (addedComment == true) {
+        store.dispatch(LoadCredit(creditId: credit.id));
+      }
+      break;
+    default:
+      print('## ERROR: unhandled action $action in credit_actions');
       break;
   }
 }
@@ -596,15 +861,15 @@ Future handleCreditAction(
 class StartCreditMultiselect {}
 
 class AddToCreditMultiselect {
-  AddToCreditMultiselect({@required this.entity});
+  AddToCreditMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class RemoveFromCreditMultiselect {
-  RemoveFromCreditMultiselect({@required this.entity});
+  RemoveFromCreditMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class ClearCreditMultiselect {}
@@ -612,5 +877,5 @@ class ClearCreditMultiselect {}
 class UpdateCreditTab implements PersistUI {
   UpdateCreditTab({this.tabIndex});
 
-  final int tabIndex;
+  final int? tabIndex;
 }

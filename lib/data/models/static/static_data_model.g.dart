@@ -7,33 +7,38 @@ part of 'static_data_model.dart';
 // **************************************************************************
 
 Serializer<StaticDataListResponse> _$staticDataListResponseSerializer =
-    new _$StaticDataListResponseSerializer();
+    _$StaticDataListResponseSerializer();
 Serializer<StaticDataItemResponse> _$staticDataItemResponseSerializer =
-    new _$StaticDataItemResponseSerializer();
+    _$StaticDataItemResponseSerializer();
 Serializer<StaticDataEntity> _$staticDataEntitySerializer =
-    new _$StaticDataEntitySerializer();
+    _$StaticDataEntitySerializer();
 Serializer<TemplateEntity> _$templateEntitySerializer =
-    new _$TemplateEntitySerializer();
+    _$TemplateEntitySerializer();
 
 class _$StaticDataListResponseSerializer
     implements StructuredSerializer<StaticDataListResponse> {
   @override
   final Iterable<Type> types = const [
     StaticDataListResponse,
-    _$StaticDataListResponse
+    _$StaticDataListResponse,
   ];
   @override
   final String wireName = 'StaticDataListResponse';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, StaticDataListResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    StaticDataListResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'data',
-      serializers.serialize(object.data,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(StaticDataEntity)])),
+      serializers.serialize(
+        object.data,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(StaticDataEntity),
+        ]),
+      ),
     ];
 
     return result;
@@ -41,21 +46,28 @@ class _$StaticDataListResponseSerializer
 
   @override
   StaticDataListResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new StaticDataListResponseBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = StaticDataListResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'data':
-          result.data.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(StaticDataEntity)]))
-              as BuiltList<Object>);
+          result.data.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(StaticDataEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
       }
     }
@@ -69,19 +81,23 @@ class _$StaticDataItemResponseSerializer
   @override
   final Iterable<Type> types = const [
     StaticDataItemResponse,
-    _$StaticDataItemResponse
+    _$StaticDataItemResponse,
   ];
   @override
   final String wireName = 'StaticDataItemResponse';
 
   @override
-  Iterable<Object> serialize(
-      Serializers serializers, StaticDataItemResponse object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    StaticDataItemResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'data',
-      serializers.serialize(object.data,
-          specifiedType: const FullType(StaticDataEntity)),
+      serializers.serialize(
+        object.data,
+        specifiedType: const FullType(StaticDataEntity),
+      ),
     ];
 
     return result;
@@ -89,20 +105,26 @@ class _$StaticDataItemResponseSerializer
 
   @override
   StaticDataItemResponse deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new StaticDataItemResponseBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = StaticDataItemResponseBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'data':
-          result.data.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(StaticDataEntity))
-              as StaticDataEntity);
+          result.data.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(StaticDataEntity),
+                )!
+                as StaticDataEntity,
+          );
           break;
       }
     }
@@ -119,57 +141,106 @@ class _$StaticDataEntitySerializer
   final String wireName = 'StaticDataEntity';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, StaticDataEntity object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    StaticDataEntity object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'currencies',
-      serializers.serialize(object.currencies,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(CurrencyEntity)])),
+      serializers.serialize(
+        object.currencies,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(CurrencyEntity),
+        ]),
+      ),
       'sizes',
-      serializers.serialize(object.sizes,
-          specifiedType:
-              const FullType(BuiltList, const [const FullType(SizeEntity)])),
+      serializers.serialize(
+        object.sizes,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(SizeEntity),
+        ]),
+      ),
       'industries',
-      serializers.serialize(object.industries,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(IndustryEntity)])),
+      serializers.serialize(
+        object.industries,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(IndustryEntity),
+        ]),
+      ),
       'timezones',
-      serializers.serialize(object.timezones,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(TimezoneEntity)])),
+      serializers.serialize(
+        object.timezones,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(TimezoneEntity),
+        ]),
+      ),
       'gateways',
-      serializers.serialize(object.gateways,
-          specifiedType:
-              const FullType(BuiltList, const [const FullType(GatewayEntity)])),
+      serializers.serialize(
+        object.gateways,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(GatewayEntity),
+        ]),
+      ),
       'date_formats',
-      serializers.serialize(object.dateFormats,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(DateFormatEntity)])),
-      'datetime_formats',
-      serializers.serialize(object.datetimeFormats,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(DatetimeFormatEntity)])),
+      serializers.serialize(
+        object.dateFormats,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(DateFormatEntity),
+        ]),
+      ),
       'languages',
-      serializers.serialize(object.languages,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(LanguageEntity)])),
+      serializers.serialize(
+        object.languages,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(LanguageEntity),
+        ]),
+      ),
       'payment_types',
-      serializers.serialize(object.paymentTypes,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(PaymentTypeEntity)])),
+      serializers.serialize(
+        object.paymentTypes,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(PaymentTypeEntity),
+        ]),
+      ),
       'countries',
-      serializers.serialize(object.countries,
-          specifiedType:
-              const FullType(BuiltList, const [const FullType(CountryEntity)])),
+      serializers.serialize(
+        object.countries,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(CountryEntity),
+        ]),
+      ),
       'invoice_status',
-      serializers.serialize(object.invoiceStatus,
-          specifiedType: const FullType(
-              BuiltList, const [const FullType(InvoiceStatusEntity)])),
+      serializers.serialize(
+        object.invoiceStatus,
+        specifiedType: const FullType(BuiltList, const [
+          const FullType(InvoiceStatusEntity),
+        ]),
+      ),
+      'bulk_updates',
+      serializers.serialize(
+        object.bulkUpdates,
+        specifiedType: const FullType(BuiltMap, const [
+          const FullType(String),
+          const FullType(BuiltList, const [const FullType(String)]),
+        ]),
+      ),
       'templates',
-      serializers.serialize(object.templates,
-          specifiedType: const FullType(BuiltMap,
-              const [const FullType(String), const FullType(TemplateEntity)])),
+      serializers.serialize(
+        object.templates,
+        specifiedType: const FullType(BuiltMap, const [
+          const FullType(String),
+          const FullType(TemplateEntity),
+        ]),
+      ),
+      'einvoice_schema',
+      serializers.serialize(
+        object.eInvoiceSchema,
+        specifiedType: const FullType(BuiltMap, const [
+          const FullType(String),
+          const FullType(EInvoiceFieldEntity),
+        ]),
+      ),
     ];
 
     return result;
@@ -177,88 +248,160 @@ class _$StaticDataEntitySerializer
 
   @override
   StaticDataEntity deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new StaticDataEntityBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = StaticDataEntityBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'currencies':
-          result.currencies.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(CurrencyEntity)]))
-              as BuiltList<Object>);
+          result.currencies.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(CurrencyEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'sizes':
-          result.sizes.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(SizeEntity)]))
-              as BuiltList<Object>);
+          result.sizes.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(SizeEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'industries':
-          result.industries.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(IndustryEntity)]))
-              as BuiltList<Object>);
+          result.industries.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(IndustryEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'timezones':
-          result.timezones.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(TimezoneEntity)]))
-              as BuiltList<Object>);
+          result.timezones.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(TimezoneEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'gateways':
-          result.gateways.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(GatewayEntity)]))
-              as BuiltList<Object>);
+          result.gateways.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(GatewayEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'date_formats':
-          result.dateFormats.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(DateFormatEntity)]))
-              as BuiltList<Object>);
-          break;
-        case 'datetime_formats':
-          result.datetimeFormats.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(DatetimeFormatEntity)]))
-              as BuiltList<Object>);
+          result.dateFormats.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(DateFormatEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'languages':
-          result.languages.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(LanguageEntity)]))
-              as BuiltList<Object>);
+          result.languages.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(LanguageEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'payment_types':
-          result.paymentTypes.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(PaymentTypeEntity)]))
-              as BuiltList<Object>);
+          result.paymentTypes.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(PaymentTypeEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'countries':
-          result.countries.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(CountryEntity)]))
-              as BuiltList<Object>);
+          result.countries.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(CountryEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
         case 'invoice_status':
-          result.invoiceStatus.replace(serializers.deserialize(value,
-                  specifiedType: const FullType(
-                      BuiltList, const [const FullType(InvoiceStatusEntity)]))
-              as BuiltList<Object>);
+          result.invoiceStatus.replace(
+            serializers.deserialize(
+                  value,
+                  specifiedType: const FullType(BuiltList, const [
+                    const FullType(InvoiceStatusEntity),
+                  ]),
+                )!
+                as BuiltList<Object?>,
+          );
           break;
-        case 'templates':
-          result.templates.replace(serializers.deserialize(value,
+        case 'bulk_updates':
+          result.bulkUpdates.replace(
+            serializers.deserialize(
+              value,
               specifiedType: const FullType(BuiltMap, const [
                 const FullType(String),
-                const FullType(TemplateEntity)
-              ])));
+                const FullType(BuiltList, const [const FullType(String)]),
+              ]),
+            )!,
+          );
+          break;
+        case 'templates':
+          result.templates.replace(
+            serializers.deserialize(
+              value,
+              specifiedType: const FullType(BuiltMap, const [
+                const FullType(String),
+                const FullType(TemplateEntity),
+              ]),
+            )!,
+          );
+          break;
+        case 'einvoice_schema':
+          result.eInvoiceSchema.replace(
+            serializers.deserialize(
+              value,
+              specifiedType: const FullType(BuiltMap, const [
+                const FullType(String),
+                const FullType(EInvoiceFieldEntity),
+              ]),
+            )!,
+          );
           break;
       }
     }
@@ -275,12 +418,17 @@ class _$TemplateEntitySerializer
   final String wireName = 'TemplateEntity';
 
   @override
-  Iterable<Object> serialize(Serializers serializers, TemplateEntity object,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = <Object>[
+  Iterable<Object?> serialize(
+    Serializers serializers,
+    TemplateEntity object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = <Object?>[
       'subject',
-      serializers.serialize(object.subject,
-          specifiedType: const FullType(String)),
+      serializers.serialize(
+        object.subject,
+        specifiedType: const FullType(String),
+      ),
       'body',
       serializers.serialize(object.body, specifiedType: const FullType(String)),
     ];
@@ -290,23 +438,33 @@ class _$TemplateEntitySerializer
 
   @override
   TemplateEntity deserialize(
-      Serializers serializers, Iterable<Object> serialized,
-      {FullType specifiedType = FullType.unspecified}) {
-    final result = new TemplateEntityBuilder();
+    Serializers serializers,
+    Iterable<Object?> serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = TemplateEntityBuilder();
 
     final iterator = serialized.iterator;
     while (iterator.moveNext()) {
-      final key = iterator.current as String;
+      final key = iterator.current! as String;
       iterator.moveNext();
-      final Object value = iterator.current;
+      final Object? value = iterator.current;
       switch (key) {
         case 'subject':
-          result.subject = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.subject =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
         case 'body':
-          result.body = serializers.deserialize(value,
-              specifiedType: const FullType(String)) as String;
+          result.body =
+              serializers.deserialize(
+                    value,
+                    specifiedType: const FullType(String),
+                  )!
+                  as String;
           break;
       }
     }
@@ -319,23 +477,19 @@ class _$StaticDataListResponse extends StaticDataListResponse {
   @override
   final BuiltList<StaticDataEntity> data;
 
-  factory _$StaticDataListResponse(
-          [void Function(StaticDataListResponseBuilder) updates]) =>
-      (new StaticDataListResponseBuilder()..update(updates)).build();
+  factory _$StaticDataListResponse([
+    void Function(StaticDataListResponseBuilder)? updates,
+  ]) => (StaticDataListResponseBuilder()..update(updates))._build();
 
-  _$StaticDataListResponse._({this.data}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        data, 'StaticDataListResponse', 'data');
-  }
-
+  _$StaticDataListResponse._({required this.data}) : super._();
   @override
   StaticDataListResponse rebuild(
-          void Function(StaticDataListResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(StaticDataListResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   StaticDataListResponseBuilder toBuilder() =>
-      new StaticDataListResponseBuilder()..replace(this);
+      StaticDataListResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -343,28 +497,32 @@ class _$StaticDataListResponse extends StaticDataListResponse {
     return other is StaticDataListResponse && data == other.data;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, data.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, data.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('StaticDataListResponse')
-          ..add('data', data))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'StaticDataListResponse',
+    )..add('data', data)).toString();
   }
 }
 
 class StaticDataListResponseBuilder
     implements Builder<StaticDataListResponse, StaticDataListResponseBuilder> {
-  _$StaticDataListResponse _$v;
+  _$StaticDataListResponse? _$v;
 
-  ListBuilder<StaticDataEntity> _data;
+  ListBuilder<StaticDataEntity>? _data;
   ListBuilder<StaticDataEntity> get data =>
-      _$this._data ??= new ListBuilder<StaticDataEntity>();
-  set data(ListBuilder<StaticDataEntity> data) => _$this._data = data;
+      _$this._data ??= ListBuilder<StaticDataEntity>();
+  set data(ListBuilder<StaticDataEntity>? data) => _$this._data = data;
 
   StaticDataListResponseBuilder();
 
@@ -379,28 +537,32 @@ class StaticDataListResponseBuilder
 
   @override
   void replace(StaticDataListResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$StaticDataListResponse;
   }
 
   @override
-  void update(void Function(StaticDataListResponseBuilder) updates) {
+  void update(void Function(StaticDataListResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$StaticDataListResponse build() {
+  StaticDataListResponse build() => _build();
+
+  _$StaticDataListResponse _build() {
     _$StaticDataListResponse _$result;
     try {
-      _$result = _$v ?? new _$StaticDataListResponse._(data: data.build());
+      _$result = _$v ?? _$StaticDataListResponse._(data: data.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'data';
         data.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'StaticDataListResponse', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'StaticDataListResponse',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -413,23 +575,19 @@ class _$StaticDataItemResponse extends StaticDataItemResponse {
   @override
   final StaticDataEntity data;
 
-  factory _$StaticDataItemResponse(
-          [void Function(StaticDataItemResponseBuilder) updates]) =>
-      (new StaticDataItemResponseBuilder()..update(updates)).build();
+  factory _$StaticDataItemResponse([
+    void Function(StaticDataItemResponseBuilder)? updates,
+  ]) => (StaticDataItemResponseBuilder()..update(updates))._build();
 
-  _$StaticDataItemResponse._({this.data}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        data, 'StaticDataItemResponse', 'data');
-  }
-
+  _$StaticDataItemResponse._({required this.data}) : super._();
   @override
   StaticDataItemResponse rebuild(
-          void Function(StaticDataItemResponseBuilder) updates) =>
-      (toBuilder()..update(updates)).build();
+    void Function(StaticDataItemResponseBuilder) updates,
+  ) => (toBuilder()..update(updates)).build();
 
   @override
   StaticDataItemResponseBuilder toBuilder() =>
-      new StaticDataItemResponseBuilder()..replace(this);
+      StaticDataItemResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -437,28 +595,32 @@ class _$StaticDataItemResponse extends StaticDataItemResponse {
     return other is StaticDataItemResponse && data == other.data;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(0, data.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, data.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('StaticDataItemResponse')
-          ..add('data', data))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'StaticDataItemResponse',
+    )..add('data', data)).toString();
   }
 }
 
 class StaticDataItemResponseBuilder
     implements Builder<StaticDataItemResponse, StaticDataItemResponseBuilder> {
-  _$StaticDataItemResponse _$v;
+  _$StaticDataItemResponse? _$v;
 
-  StaticDataEntityBuilder _data;
+  StaticDataEntityBuilder? _data;
   StaticDataEntityBuilder get data =>
-      _$this._data ??= new StaticDataEntityBuilder();
-  set data(StaticDataEntityBuilder data) => _$this._data = data;
+      _$this._data ??= StaticDataEntityBuilder();
+  set data(StaticDataEntityBuilder? data) => _$this._data = data;
 
   StaticDataItemResponseBuilder();
 
@@ -473,28 +635,32 @@ class StaticDataItemResponseBuilder
 
   @override
   void replace(StaticDataItemResponse other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$StaticDataItemResponse;
   }
 
   @override
-  void update(void Function(StaticDataItemResponseBuilder) updates) {
+  void update(void Function(StaticDataItemResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$StaticDataItemResponse build() {
+  StaticDataItemResponse build() => _build();
+
+  _$StaticDataItemResponse _build() {
     _$StaticDataItemResponse _$result;
     try {
-      _$result = _$v ?? new _$StaticDataItemResponse._(data: data.build());
+      _$result = _$v ?? _$StaticDataItemResponse._(data: data.build());
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'data';
         data.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'StaticDataItemResponse', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'StaticDataItemResponse',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -517,8 +683,6 @@ class _$StaticDataEntity extends StaticDataEntity {
   @override
   final BuiltList<DateFormatEntity> dateFormats;
   @override
-  final BuiltList<DatetimeFormatEntity> datetimeFormats;
-  @override
   final BuiltList<LanguageEntity> languages;
   @override
   final BuiltList<PaymentTypeEntity> paymentTypes;
@@ -527,58 +691,38 @@ class _$StaticDataEntity extends StaticDataEntity {
   @override
   final BuiltList<InvoiceStatusEntity> invoiceStatus;
   @override
+  final BuiltMap<String, BuiltList<String>> bulkUpdates;
+  @override
   final BuiltMap<String, TemplateEntity> templates;
+  @override
+  final BuiltMap<String, EInvoiceFieldEntity> eInvoiceSchema;
 
-  factory _$StaticDataEntity(
-          [void Function(StaticDataEntityBuilder) updates]) =>
-      (new StaticDataEntityBuilder()..update(updates)).build();
+  factory _$StaticDataEntity([
+    void Function(StaticDataEntityBuilder)? updates,
+  ]) => (StaticDataEntityBuilder()..update(updates))._build();
 
-  _$StaticDataEntity._(
-      {this.currencies,
-      this.sizes,
-      this.industries,
-      this.timezones,
-      this.gateways,
-      this.dateFormats,
-      this.datetimeFormats,
-      this.languages,
-      this.paymentTypes,
-      this.countries,
-      this.invoiceStatus,
-      this.templates})
-      : super._() {
-    BuiltValueNullFieldError.checkNotNull(
-        currencies, 'StaticDataEntity', 'currencies');
-    BuiltValueNullFieldError.checkNotNull(sizes, 'StaticDataEntity', 'sizes');
-    BuiltValueNullFieldError.checkNotNull(
-        industries, 'StaticDataEntity', 'industries');
-    BuiltValueNullFieldError.checkNotNull(
-        timezones, 'StaticDataEntity', 'timezones');
-    BuiltValueNullFieldError.checkNotNull(
-        gateways, 'StaticDataEntity', 'gateways');
-    BuiltValueNullFieldError.checkNotNull(
-        dateFormats, 'StaticDataEntity', 'dateFormats');
-    BuiltValueNullFieldError.checkNotNull(
-        datetimeFormats, 'StaticDataEntity', 'datetimeFormats');
-    BuiltValueNullFieldError.checkNotNull(
-        languages, 'StaticDataEntity', 'languages');
-    BuiltValueNullFieldError.checkNotNull(
-        paymentTypes, 'StaticDataEntity', 'paymentTypes');
-    BuiltValueNullFieldError.checkNotNull(
-        countries, 'StaticDataEntity', 'countries');
-    BuiltValueNullFieldError.checkNotNull(
-        invoiceStatus, 'StaticDataEntity', 'invoiceStatus');
-    BuiltValueNullFieldError.checkNotNull(
-        templates, 'StaticDataEntity', 'templates');
-  }
-
+  _$StaticDataEntity._({
+    required this.currencies,
+    required this.sizes,
+    required this.industries,
+    required this.timezones,
+    required this.gateways,
+    required this.dateFormats,
+    required this.languages,
+    required this.paymentTypes,
+    required this.countries,
+    required this.invoiceStatus,
+    required this.bulkUpdates,
+    required this.templates,
+    required this.eInvoiceSchema,
+  }) : super._();
   @override
   StaticDataEntity rebuild(void Function(StaticDataEntityBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
   StaticDataEntityBuilder toBuilder() =>
-      new StaticDataEntityBuilder()..replace(this);
+      StaticDataEntityBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -590,136 +734,141 @@ class _$StaticDataEntity extends StaticDataEntity {
         timezones == other.timezones &&
         gateways == other.gateways &&
         dateFormats == other.dateFormats &&
-        datetimeFormats == other.datetimeFormats &&
         languages == other.languages &&
         paymentTypes == other.paymentTypes &&
         countries == other.countries &&
         invoiceStatus == other.invoiceStatus &&
-        templates == other.templates;
+        bulkUpdates == other.bulkUpdates &&
+        templates == other.templates &&
+        eInvoiceSchema == other.eInvoiceSchema;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc(
-        $jc(
-            $jc(
-                $jc(
-                    $jc(
-                        $jc(
-                            $jc(
-                                $jc(
-                                    $jc(
-                                        $jc(
-                                            $jc($jc(0, currencies.hashCode),
-                                                sizes.hashCode),
-                                            industries.hashCode),
-                                        timezones.hashCode),
-                                    gateways.hashCode),
-                                dateFormats.hashCode),
-                            datetimeFormats.hashCode),
-                        languages.hashCode),
-                    paymentTypes.hashCode),
-                countries.hashCode),
-            invoiceStatus.hashCode),
-        templates.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, currencies.hashCode);
+    _$hash = $jc(_$hash, sizes.hashCode);
+    _$hash = $jc(_$hash, industries.hashCode);
+    _$hash = $jc(_$hash, timezones.hashCode);
+    _$hash = $jc(_$hash, gateways.hashCode);
+    _$hash = $jc(_$hash, dateFormats.hashCode);
+    _$hash = $jc(_$hash, languages.hashCode);
+    _$hash = $jc(_$hash, paymentTypes.hashCode);
+    _$hash = $jc(_$hash, countries.hashCode);
+    _$hash = $jc(_$hash, invoiceStatus.hashCode);
+    _$hash = $jc(_$hash, bulkUpdates.hashCode);
+    _$hash = $jc(_$hash, templates.hashCode);
+    _$hash = $jc(_$hash, eInvoiceSchema.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('StaticDataEntity')
+    return (newBuiltValueToStringHelper(r'StaticDataEntity')
           ..add('currencies', currencies)
           ..add('sizes', sizes)
           ..add('industries', industries)
           ..add('timezones', timezones)
           ..add('gateways', gateways)
           ..add('dateFormats', dateFormats)
-          ..add('datetimeFormats', datetimeFormats)
           ..add('languages', languages)
           ..add('paymentTypes', paymentTypes)
           ..add('countries', countries)
           ..add('invoiceStatus', invoiceStatus)
-          ..add('templates', templates))
+          ..add('bulkUpdates', bulkUpdates)
+          ..add('templates', templates)
+          ..add('eInvoiceSchema', eInvoiceSchema))
         .toString();
   }
 }
 
 class StaticDataEntityBuilder
     implements Builder<StaticDataEntity, StaticDataEntityBuilder> {
-  _$StaticDataEntity _$v;
+  _$StaticDataEntity? _$v;
 
-  ListBuilder<CurrencyEntity> _currencies;
+  ListBuilder<CurrencyEntity>? _currencies;
   ListBuilder<CurrencyEntity> get currencies =>
-      _$this._currencies ??= new ListBuilder<CurrencyEntity>();
-  set currencies(ListBuilder<CurrencyEntity> currencies) =>
+      _$this._currencies ??= ListBuilder<CurrencyEntity>();
+  set currencies(ListBuilder<CurrencyEntity>? currencies) =>
       _$this._currencies = currencies;
 
-  ListBuilder<SizeEntity> _sizes;
+  ListBuilder<SizeEntity>? _sizes;
   ListBuilder<SizeEntity> get sizes =>
-      _$this._sizes ??= new ListBuilder<SizeEntity>();
-  set sizes(ListBuilder<SizeEntity> sizes) => _$this._sizes = sizes;
+      _$this._sizes ??= ListBuilder<SizeEntity>();
+  set sizes(ListBuilder<SizeEntity>? sizes) => _$this._sizes = sizes;
 
-  ListBuilder<IndustryEntity> _industries;
+  ListBuilder<IndustryEntity>? _industries;
   ListBuilder<IndustryEntity> get industries =>
-      _$this._industries ??= new ListBuilder<IndustryEntity>();
-  set industries(ListBuilder<IndustryEntity> industries) =>
+      _$this._industries ??= ListBuilder<IndustryEntity>();
+  set industries(ListBuilder<IndustryEntity>? industries) =>
       _$this._industries = industries;
 
-  ListBuilder<TimezoneEntity> _timezones;
+  ListBuilder<TimezoneEntity>? _timezones;
   ListBuilder<TimezoneEntity> get timezones =>
-      _$this._timezones ??= new ListBuilder<TimezoneEntity>();
-  set timezones(ListBuilder<TimezoneEntity> timezones) =>
+      _$this._timezones ??= ListBuilder<TimezoneEntity>();
+  set timezones(ListBuilder<TimezoneEntity>? timezones) =>
       _$this._timezones = timezones;
 
-  ListBuilder<GatewayEntity> _gateways;
+  ListBuilder<GatewayEntity>? _gateways;
   ListBuilder<GatewayEntity> get gateways =>
-      _$this._gateways ??= new ListBuilder<GatewayEntity>();
-  set gateways(ListBuilder<GatewayEntity> gateways) =>
+      _$this._gateways ??= ListBuilder<GatewayEntity>();
+  set gateways(ListBuilder<GatewayEntity>? gateways) =>
       _$this._gateways = gateways;
 
-  ListBuilder<DateFormatEntity> _dateFormats;
+  ListBuilder<DateFormatEntity>? _dateFormats;
   ListBuilder<DateFormatEntity> get dateFormats =>
-      _$this._dateFormats ??= new ListBuilder<DateFormatEntity>();
-  set dateFormats(ListBuilder<DateFormatEntity> dateFormats) =>
+      _$this._dateFormats ??= ListBuilder<DateFormatEntity>();
+  set dateFormats(ListBuilder<DateFormatEntity>? dateFormats) =>
       _$this._dateFormats = dateFormats;
 
-  ListBuilder<DatetimeFormatEntity> _datetimeFormats;
-  ListBuilder<DatetimeFormatEntity> get datetimeFormats =>
-      _$this._datetimeFormats ??= new ListBuilder<DatetimeFormatEntity>();
-  set datetimeFormats(ListBuilder<DatetimeFormatEntity> datetimeFormats) =>
-      _$this._datetimeFormats = datetimeFormats;
-
-  ListBuilder<LanguageEntity> _languages;
+  ListBuilder<LanguageEntity>? _languages;
   ListBuilder<LanguageEntity> get languages =>
-      _$this._languages ??= new ListBuilder<LanguageEntity>();
-  set languages(ListBuilder<LanguageEntity> languages) =>
+      _$this._languages ??= ListBuilder<LanguageEntity>();
+  set languages(ListBuilder<LanguageEntity>? languages) =>
       _$this._languages = languages;
 
-  ListBuilder<PaymentTypeEntity> _paymentTypes;
+  ListBuilder<PaymentTypeEntity>? _paymentTypes;
   ListBuilder<PaymentTypeEntity> get paymentTypes =>
-      _$this._paymentTypes ??= new ListBuilder<PaymentTypeEntity>();
-  set paymentTypes(ListBuilder<PaymentTypeEntity> paymentTypes) =>
+      _$this._paymentTypes ??= ListBuilder<PaymentTypeEntity>();
+  set paymentTypes(ListBuilder<PaymentTypeEntity>? paymentTypes) =>
       _$this._paymentTypes = paymentTypes;
 
-  ListBuilder<CountryEntity> _countries;
+  ListBuilder<CountryEntity>? _countries;
   ListBuilder<CountryEntity> get countries =>
-      _$this._countries ??= new ListBuilder<CountryEntity>();
-  set countries(ListBuilder<CountryEntity> countries) =>
+      _$this._countries ??= ListBuilder<CountryEntity>();
+  set countries(ListBuilder<CountryEntity>? countries) =>
       _$this._countries = countries;
 
-  ListBuilder<InvoiceStatusEntity> _invoiceStatus;
+  ListBuilder<InvoiceStatusEntity>? _invoiceStatus;
   ListBuilder<InvoiceStatusEntity> get invoiceStatus =>
-      _$this._invoiceStatus ??= new ListBuilder<InvoiceStatusEntity>();
-  set invoiceStatus(ListBuilder<InvoiceStatusEntity> invoiceStatus) =>
+      _$this._invoiceStatus ??= ListBuilder<InvoiceStatusEntity>();
+  set invoiceStatus(ListBuilder<InvoiceStatusEntity>? invoiceStatus) =>
       _$this._invoiceStatus = invoiceStatus;
 
-  MapBuilder<String, TemplateEntity> _templates;
+  MapBuilder<String, BuiltList<String>>? _bulkUpdates;
+  MapBuilder<String, BuiltList<String>> get bulkUpdates =>
+      _$this._bulkUpdates ??= MapBuilder<String, BuiltList<String>>();
+  set bulkUpdates(MapBuilder<String, BuiltList<String>>? bulkUpdates) =>
+      _$this._bulkUpdates = bulkUpdates;
+
+  MapBuilder<String, TemplateEntity>? _templates;
   MapBuilder<String, TemplateEntity> get templates =>
-      _$this._templates ??= new MapBuilder<String, TemplateEntity>();
-  set templates(MapBuilder<String, TemplateEntity> templates) =>
+      _$this._templates ??= MapBuilder<String, TemplateEntity>();
+  set templates(MapBuilder<String, TemplateEntity>? templates) =>
       _$this._templates = templates;
 
-  StaticDataEntityBuilder();
+  MapBuilder<String, EInvoiceFieldEntity>? _eInvoiceSchema;
+  MapBuilder<String, EInvoiceFieldEntity> get eInvoiceSchema =>
+      _$this._eInvoiceSchema ??= MapBuilder<String, EInvoiceFieldEntity>();
+  set eInvoiceSchema(MapBuilder<String, EInvoiceFieldEntity>? eInvoiceSchema) =>
+      _$this._eInvoiceSchema = eInvoiceSchema;
+
+  StaticDataEntityBuilder() {
+    StaticDataEntity._initializeBuilder(this);
+  }
 
   StaticDataEntityBuilder get _$this {
     final $v = _$v;
@@ -730,12 +879,13 @@ class StaticDataEntityBuilder
       _timezones = $v.timezones.toBuilder();
       _gateways = $v.gateways.toBuilder();
       _dateFormats = $v.dateFormats.toBuilder();
-      _datetimeFormats = $v.datetimeFormats.toBuilder();
       _languages = $v.languages.toBuilder();
       _paymentTypes = $v.paymentTypes.toBuilder();
       _countries = $v.countries.toBuilder();
       _invoiceStatus = $v.invoiceStatus.toBuilder();
+      _bulkUpdates = $v.bulkUpdates.toBuilder();
       _templates = $v.templates.toBuilder();
+      _eInvoiceSchema = $v.eInvoiceSchema.toBuilder();
       _$v = null;
     }
     return this;
@@ -743,35 +893,39 @@ class StaticDataEntityBuilder
 
   @override
   void replace(StaticDataEntity other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$StaticDataEntity;
   }
 
   @override
-  void update(void Function(StaticDataEntityBuilder) updates) {
+  void update(void Function(StaticDataEntityBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$StaticDataEntity build() {
+  StaticDataEntity build() => _build();
+
+  _$StaticDataEntity _build() {
     _$StaticDataEntity _$result;
     try {
-      _$result = _$v ??
-          new _$StaticDataEntity._(
-              currencies: currencies.build(),
-              sizes: sizes.build(),
-              industries: industries.build(),
-              timezones: timezones.build(),
-              gateways: gateways.build(),
-              dateFormats: dateFormats.build(),
-              datetimeFormats: datetimeFormats.build(),
-              languages: languages.build(),
-              paymentTypes: paymentTypes.build(),
-              countries: countries.build(),
-              invoiceStatus: invoiceStatus.build(),
-              templates: templates.build());
+      _$result =
+          _$v ??
+          _$StaticDataEntity._(
+            currencies: currencies.build(),
+            sizes: sizes.build(),
+            industries: industries.build(),
+            timezones: timezones.build(),
+            gateways: gateways.build(),
+            dateFormats: dateFormats.build(),
+            languages: languages.build(),
+            paymentTypes: paymentTypes.build(),
+            countries: countries.build(),
+            invoiceStatus: invoiceStatus.build(),
+            bulkUpdates: bulkUpdates.build(),
+            templates: templates.build(),
+            eInvoiceSchema: eInvoiceSchema.build(),
+          );
     } catch (_) {
-      String _$failedField;
+      late String _$failedField;
       try {
         _$failedField = 'currencies';
         currencies.build();
@@ -785,8 +939,6 @@ class StaticDataEntityBuilder
         gateways.build();
         _$failedField = 'dateFormats';
         dateFormats.build();
-        _$failedField = 'datetimeFormats';
-        datetimeFormats.build();
         _$failedField = 'languages';
         languages.build();
         _$failedField = 'paymentTypes';
@@ -795,11 +947,18 @@ class StaticDataEntityBuilder
         countries.build();
         _$failedField = 'invoiceStatus';
         invoiceStatus.build();
+        _$failedField = 'bulkUpdates';
+        bulkUpdates.build();
         _$failedField = 'templates';
         templates.build();
+        _$failedField = 'eInvoiceSchema';
+        eInvoiceSchema.build();
       } catch (e) {
-        throw new BuiltValueNestedFieldError(
-            'StaticDataEntity', _$failedField, e.toString());
+        throw BuiltValueNestedFieldError(
+          r'StaticDataEntity',
+          _$failedField,
+          e.toString(),
+        );
       }
       rethrow;
     }
@@ -814,21 +973,16 @@ class _$TemplateEntity extends TemplateEntity {
   @override
   final String body;
 
-  factory _$TemplateEntity([void Function(TemplateEntityBuilder) updates]) =>
-      (new TemplateEntityBuilder()..update(updates)).build();
+  factory _$TemplateEntity([void Function(TemplateEntityBuilder)? updates]) =>
+      (TemplateEntityBuilder()..update(updates))._build();
 
-  _$TemplateEntity._({this.subject, this.body}) : super._() {
-    BuiltValueNullFieldError.checkNotNull(subject, 'TemplateEntity', 'subject');
-    BuiltValueNullFieldError.checkNotNull(body, 'TemplateEntity', 'body');
-  }
-
+  _$TemplateEntity._({required this.subject, required this.body}) : super._();
   @override
   TemplateEntity rebuild(void Function(TemplateEntityBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  TemplateEntityBuilder toBuilder() =>
-      new TemplateEntityBuilder()..replace(this);
+  TemplateEntityBuilder toBuilder() => TemplateEntityBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
@@ -838,15 +992,20 @@ class _$TemplateEntity extends TemplateEntity {
         body == other.body;
   }
 
-  int __hashCode;
+  int? __hashCode;
   @override
   int get hashCode {
-    return __hashCode ??= $jf($jc($jc(0, subject.hashCode), body.hashCode));
+    if (__hashCode != null) return __hashCode!;
+    var _$hash = 0;
+    _$hash = $jc(_$hash, subject.hashCode);
+    _$hash = $jc(_$hash, body.hashCode);
+    _$hash = $jf(_$hash);
+    return __hashCode ??= _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper('TemplateEntity')
+    return (newBuiltValueToStringHelper(r'TemplateEntity')
           ..add('subject', subject)
           ..add('body', body))
         .toString();
@@ -855,15 +1014,15 @@ class _$TemplateEntity extends TemplateEntity {
 
 class TemplateEntityBuilder
     implements Builder<TemplateEntity, TemplateEntityBuilder> {
-  _$TemplateEntity _$v;
+  _$TemplateEntity? _$v;
 
-  String _subject;
-  String get subject => _$this._subject;
-  set subject(String subject) => _$this._subject = subject;
+  String? _subject;
+  String? get subject => _$this._subject;
+  set subject(String? subject) => _$this._subject = subject;
 
-  String _body;
-  String get body => _$this._body;
-  set body(String body) => _$this._body = body;
+  String? _body;
+  String? get body => _$this._body;
+  set body(String? body) => _$this._body = body;
 
   TemplateEntityBuilder();
 
@@ -879,26 +1038,35 @@ class TemplateEntityBuilder
 
   @override
   void replace(TemplateEntity other) {
-    ArgumentError.checkNotNull(other, 'other');
     _$v = other as _$TemplateEntity;
   }
 
   @override
-  void update(void Function(TemplateEntityBuilder) updates) {
+  void update(void Function(TemplateEntityBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  _$TemplateEntity build() {
-    final _$result = _$v ??
-        new _$TemplateEntity._(
-            subject: BuiltValueNullFieldError.checkNotNull(
-                subject, 'TemplateEntity', 'subject'),
-            body: BuiltValueNullFieldError.checkNotNull(
-                body, 'TemplateEntity', 'body'));
+  TemplateEntity build() => _build();
+
+  _$TemplateEntity _build() {
+    final _$result =
+        _$v ??
+        _$TemplateEntity._(
+          subject: BuiltValueNullFieldError.checkNotNull(
+            subject,
+            r'TemplateEntity',
+            'subject',
+          ),
+          body: BuiltValueNullFieldError.checkNotNull(
+            body,
+            r'TemplateEntity',
+            'body',
+          ),
+        );
     replace(_$result);
     return _$result;
   }
 }
 
-// ignore_for_file: always_put_control_body_on_new_line,always_specify_types,annotate_overrides,avoid_annotating_with_dynamic,avoid_as,avoid_catches_without_on_clauses,avoid_returning_this,deprecated_member_use_from_same_package,lines_longer_than_80_chars,omit_local_variable_types,prefer_expression_function_bodies,sort_constructors_first,test_types_in_equals,unnecessary_const,unnecessary_new
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

@@ -1,10 +1,8 @@
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
-import 'package:invoiceninja_flutter/data/models/stub_model.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/ui/app/entity_state_label.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/ui/app/dismissible_entity.dart';
@@ -51,11 +49,11 @@ class StubListItem extends StatelessWidget {
       child: ListTile(
         onTap: () => onTap != null
             ? onTap()
-            : selectEntity(entity: stub, context: context),
+            : selectEntity(entity: stub),
         onLongPress: () => onLongPress != null
             ? onLongPress()
             : selectEntity(
-                entity: stub, context: context, longPress: true),
+                entity: stub, longPress: true),
         leading: showCheckbox
             ? IgnorePointer(
                 ignoring: listUIState.isInMultiselect(),
@@ -63,7 +61,7 @@ class StubListItem extends StatelessWidget {
                   value: isChecked,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   onChanged: (value) => onCheckboxChanged(value),
-                  activeColor: Theme.of(context).accentColor,
+                  activeColor: Theme.of(context).colorScheme.secondary,
                 ),
               )
             : null,
@@ -74,11 +72,11 @@ class StubListItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   stub.name,
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.subtitle1,
                 ),
               ),
               Text(formatNumber(stub.listDisplayAmount, context),
-                  style: Theme.of(context).textTheme.headline6),
+                  style: Theme.of(context).textTheme.subtitle1),
             ],
           ),
         ),

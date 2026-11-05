@@ -1,12 +1,15 @@
+// Package imports:
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 
 part 'auth_state.g.dart';
 
 abstract class AuthState implements Built<AuthState, AuthStateBuilder> {
-  factory AuthState({String url, String referralCode}) {
+  factory AuthState({String? url, String? referralCode}) {
     return _$AuthState._(
       email: '',
       url: url ?? '',
@@ -44,8 +47,9 @@ abstract class AuthState implements Built<AuthState, AuthStateBuilder> {
 
     if ([
       kAppProductionUrl,
-      kAppDemoUrl,
+      kFlutterDemoUrl,
       kAppStagingUrl,
+      kAppStagingNetUrl,
     ].contains(cleanUrl)) {
       return true;
     }
@@ -61,6 +65,10 @@ abstract class AuthState implements Built<AuthState, AuthStateBuilder> {
   bool get isSelfHost => !isHosted;
 
   bool get isStaging => cleanApiUrl(url) == kAppStagingUrl;
+
+  bool get isStagingNet => cleanApiUrl(url) == kAppStagingNetUrl;
+
+  bool get isLargeTest => cleanApiUrl(url) == kAppLargeTestUrl;
 
   // ignore: unused_element
   static void _initializeBuilder(AuthStateBuilder builder) =>

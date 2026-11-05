@@ -1,17 +1,26 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 
 class CachedImage extends StatelessWidget {
-  const CachedImage(
-      {this.url, this.width, this.height, this.showNinjaOnError = true});
+  const CachedImage({
+    this.url,
+    this.width,
+    this.height,
+    this.showNinjaOnError = true,
+    this.apiToken,
+  });
 
-  final String url;
+  final String? url;
   final bool showNinjaOnError;
-  final double width;
-  final double height;
+  final double? width;
+  final double? height;
+  final String? apiToken;
 
   @override
   Widget build(BuildContext context) {
@@ -20,31 +29,16 @@ class CachedImage extends StatelessWidget {
 
     // TODO remove this workaround
     if (state.isTesting || (url ?? '').isEmpty) {
-      return SizedBox(
-        width: width,
-        height: height,
-      );
+      return SizedBox(width: width, height: height);
     }
 
-    // TODO remove this
-    if (kIsWeb) {
-      return Image.network(
-        url,
-        width: width,
-        height: height,
-        key: ValueKey(url),
-        fit: BoxFit.contain,
-      );
-    }
-
-    return CachedNetworkImage(
+    return Image.network(
+      url!,
       width: width,
       height: height,
-      key: ValueKey(url),
-      imageUrl: url,
-      placeholder: (context, url) => CircularProgressIndicator(),
-      errorWidget: (context, url, Object error) =>
-          Image.asset('assets/images/icon.png', width: 32, height: 30),
+      key: ValueKey(url! + (apiToken != null ? apiToken!.substring(0, 8) : '')),
+      fit: BoxFit.contain,
+      headers: apiToken != null ? {'X-API-TOKEN': apiToken!} : null,
     );
   }
 }

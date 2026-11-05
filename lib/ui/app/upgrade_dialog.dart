@@ -1,275 +1,443 @@
-import 'package:flutter/material.dart';
+// Copyright 2013 The Flutter Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
 
-class UpgradeDialog extends StatelessWidget {
-  const UpgradeDialog({Key key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox();
-  }
-}
-
-/*
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/web_client.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:invoiceninja_flutter/ui/app/buttons/elevated_button.dart';
-import 'package:invoiceninja_flutter/ui/app/dialogs/alert_dialog.dart';
-import 'package:invoiceninja_flutter/ui/app/dialogs/error_dialog.dart';
-import 'package:invoiceninja_flutter/ui/app/loading_indicator.dart';
-import 'package:flutter/material.dart';
-import 'package:invoiceninja_flutter/utils/dialogs.dart';
-import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
+import 'package:invoiceninja_flutter/utils/platforms.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class UpgradeDialog extends StatefulWidget {
   @override
-  _UpgradeDialogState createState() => _UpgradeDialogState();
+  State<UpgradeDialog> createState() => _UpgradeDialogState();
 }
 
 class _UpgradeDialogState extends State<UpgradeDialog> {
-  StreamSubscription<List<PurchaseDetails>> _subscription;
-  List<ProductDetails> _products;
-  List<PurchaseDetails> _purchases;
-  bool _showPastPurchases = false;
-
-  Future<void> loadPurchases() async {
-    InAppPurchaseConnection.instance
-        .queryPastPurchases()
-        .then((response) async {
-      if (response.pastPurchases != null && response.pastPurchases.isNotEmpty) {
-        setState(() {
-          _purchases = response.pastPurchases;
-        });
-      }
-    });
-  }
-
-  Future<void> redeemPurchase(PurchaseDetails purchase) async {
-    if (purchase.error != null || purchase.purchaseID == null) {
-      return null;
-    }
-
-    //Navigator.pop(context);
-
-    final localization = AppLocalization.of(context);
-    final store = StoreProvider.of<AppState>(context);
-    final state = store.state;
-    final webClient = WebClient();
-    final data = {
-      'order_id': purchase.purchaseID,
-      'product_id': purchase.productID,
-      'timestamp': (int.parse(purchase.transactionDate) / 1000).floor(),
-    };
-
-    try {
-      final dynamic response = await webClient
-          .post(
-        '$kAppProductionUrl/api/v1/upgrade',
-        state.credentials.token,
-        data: json.encode(data),
-      )
-          .catchError((dynamic error) {
-        showErrorDialog(context: context, message: error);
-      });
-      final String message = response['message'];
-
-      if (message == 'success') {
-        showDialog<MessageDialog>(
-            context: context,
-            builder: (BuildContext context) {
-              return MessageDialog(localization.thankYouForYourPurchase,
-                  onDismiss: () {
-                store.dispatch(RefreshData());
-              });
-            });
-
-        if (Platform.isIOS) {
-          InAppPurchaseConnection.instance.completePurchase(purchase);
-        }
-      } else {
-        showDialog<ErrorDialog>(
-            context: context,
-            builder: (BuildContext context) {
-              return ErrorDialog(message);
-            });
-      }
-    } catch (error) {
-      showDialog<ErrorDialog>(
-          context: context,
-          builder: (BuildContext context) {
-            return ErrorDialog(error);
-          });
-    }
-  }
+  final _scrollController = ScrollController();
+  final InAppPurchase _inAppPurchase = InAppPurchase.instance;
+  late StreamSubscription<List<PurchaseDetails>> _subscription;
+  List<ProductDetails> _products = <ProductDetails>[];
+  List<PurchaseDetails> _purchases = <PurchaseDetails>[];
+  bool _isAvailable = false;
+  bool _purchasePending = false;
+  bool _loading = true;
+  String? _queryProductError;
 
   @override
   void initState() {
+    final Stream<List<PurchaseDetails>> purchaseUpdated =
+        _inAppPurchase.purchaseStream;
+    _subscription = purchaseUpdated.listen(
+      (List<PurchaseDetails> purchaseDetailsList) {
+        _listenToPurchaseUpdated(purchaseDetailsList);
+      },
+      onDone: () {
+        _subscription.cancel();
+      },
+      onError: (Object error) {
+        // handle error here.
+      },
+    );
+    initStoreInfo();
     super.initState();
-
-    final Stream purchaseUpdates =
-        InAppPurchaseConnection.instance.purchaseUpdatedStream;
-
-    _subscription = purchaseUpdates.listen((dynamic purchases) {
-      (purchases as List<PurchaseDetails>).forEach((purchase) async {
-        await redeemPurchase(purchase);
-      });
-    }, onDone: () {
-      _subscription.cancel();
-      _subscription = null;
-    }, onError: (dynamic error) {
-      showDialog<ErrorDialog>(
-          context: context,
-          builder: (BuildContext context) {
-            return ErrorDialog(error);
-          });
-    });
-
-    initStore();
   }
 
-  void initStore() async {
-    final bool available = await InAppPurchaseConnection.instance.isAvailable();
-
-    if (!available) {
-      showDialog<ErrorDialog>(
-          context: context,
-          builder: (BuildContext context) {
-            return ErrorDialog('Store is not available');
-          });
+  Future<void> initStoreInfo() async {
+    final bool isAvailable = await _inAppPurchase.isAvailable();
+    if (!isAvailable) {
+      setState(() {
+        _isAvailable = isAvailable;
+        _products = <ProductDetails>[];
+        _purchases = <PurchaseDetails>[];
+        _purchasePending = false;
+        _loading = false;
+      });
       return;
     }
 
-    final productIds = Set<String>.from(kProductPlans);
-    final ProductDetailsResponse response =
-        await InAppPurchaseConnection.instance.queryProductDetails(productIds);
+    if (Platform.isIOS) {
+      final InAppPurchaseStoreKitPlatformAddition iosPlatformAddition =
+          _inAppPurchase
+              .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+      await iosPlatformAddition.setDelegate(ExamplePaymentQueueDelegate());
+    }
 
-    await loadPurchases();
+    final ProductDetailsResponse productDetailResponse = await _inAppPurchase
+        .queryProductDetails(kProductPlans.toSet());
+    if (productDetailResponse.error != null) {
+      setState(() {
+        _queryProductError = productDetailResponse.error!.message;
+        _isAvailable = isAvailable;
+        _products = productDetailResponse.productDetails;
+        _purchases = <PurchaseDetails>[];
+        _purchasePending = false;
+        _loading = false;
+      });
+      return;
+    }
+
+    if (productDetailResponse.productDetails.isEmpty) {
+      setState(() {
+        _queryProductError = null;
+        _isAvailable = isAvailable;
+        _products = productDetailResponse.productDetails;
+        _purchases = <PurchaseDetails>[];
+        _purchasePending = false;
+        _loading = false;
+      });
+      return;
+    }
 
     setState(() {
-      _products = response.productDetails;
+      _isAvailable = isAvailable;
+      _products = productDetailResponse.productDetails;
+      _purchasePending = false;
+      _loading = false;
     });
   }
 
   @override
   void dispose() {
-    _subscription.cancel();
-    super.dispose();
-  }
-
-  void upgrade(BuildContext context, ProductDetails productDetails) {
-    final store = StoreProvider.of<AppState>(context);
-    final company = store.state.company;
-
-    InAppPurchaseConnection.instance.buyNonConsumable(
-        purchaseParam: PurchaseParam(
-      productDetails: productDetails,
-      applicationUserName: company.companyKey,
-      sandboxTesting: false,
-    ));
-  }
-
-  String convertPlanToString(String plan) {
-    switch (plan) {
-      case kProductPlanPro:
-        return 'Pro - 1 User';
-      case kProductPlanEnterprise2:
-        return 'Enterprise - 2 Users';
-      case kProductPlanEnterprise5:
-        return 'Enterprise - 5 Users';
-      case kProductPlanEnterprise10:
-        return 'Enterprise - 10 Users';
-      case kProductPlanEnterprise20:
-        return 'Enterprise - 20 Users';
-      default:
-        return '';
+    if (Platform.isIOS) {
+      final InAppPurchaseStoreKitPlatformAddition iosPlatformAddition =
+          _inAppPurchase
+              .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+      iosPlatformAddition.setDelegate(null);
     }
+    _subscription.cancel();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
-
-    if (_products == null) {
-      return LoadingIndicator(height: 50);
+    final localization = AppLocalization.of(context)!;
+    final List<Widget> stack = <Widget>[];
+    if (_queryProductError == null) {
+      stack.add(
+        Container(
+          width: isDesktopOS() ? 400 : double.maxFinite,
+          child: Scrollbar(
+            thumbVisibility: true,
+            controller: _scrollController,
+            child: ListView(
+              controller: _scrollController,
+              children: <Widget>[
+                if (Platform.isIOS)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      'Payment will be charged to iTunes Account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period. Account will be charged for renewal within 24-hours prior to the end of the current period, and identify the cost of the renewal. Subscriptions may be managed by the user and auto-renewal may be turned off by going to the user\'s Account Settings after purchase.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ),
+                _buildProductList(),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      stack.add(Center(child: Text(_queryProductError!)));
+    }
+    if (_purchasePending) {
+      stack.add(
+        Stack(
+          children: const <Widget>[
+            Opacity(
+              opacity: 0.3,
+              child: ModalBarrier(dismissible: false, color: Colors.grey),
+            ),
+            Center(child: CircularProgressIndicator()),
+          ],
+        ),
+      );
     }
 
-    _products.sort((product1, product2) =>
-        parseDouble(product1.price) > parseDouble(product2.price) ? 1 : -1);
-
-    return SimpleDialog(
-      title: Column(
-        children: <Widget>[
-          Text(localization.annualSubscription),
-          if (Platform.isIOS)
-            Padding(
-              padding: const EdgeInsets.only(top: 8, bottom: 4),
-              child: Text(
-                'Payment will be charged to iTunes Account at confirmation of purchase. Subscription automatically renews unless auto-renew is turned off at least 24-hours before the end of the current period. Account will be charged for renewal within 24-hours prior to the end of the current period, and identify the cost of the renewal. Subscriptions may be managed by the user and auto-renewal may be turned off by going to the user\'s Account Settings after purchase.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              TextButton(
-                child: Text('Terms', style: TextStyle(fontSize: 12)),
-                onPressed: () => launch(kTermsOfServiceURL),
-              ),
-              TextButton(
-                child: Text('Privacy', style: TextStyle(fontSize: 12)),
-                onPressed: () => launch(kPrivacyPolicyURL),
-              ),
-            ],
-          )
-        ],
+    return AlertDialog(
+      title: Text(localization.upgrade),
+      content: Column(
+        children: [Expanded(child: Stack(children: stack))],
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-      children: [
-        if (_showPastPurchases)
-          ..._purchases.map((purchase) => ListTile(
-                title: Text(purchase.purchaseID),
-                subtitle: Text(formatDate(
-                    convertTimestampToDateString(
-                        (int.parse(purchase.transactionDate) / 1000).floor()),
-                    context)),
-                onTap: () => redeemPurchase(purchase),
-              )),
-        if (_purchases != null)
-          AppButton(
-            label: _showPastPurchases
-                ? localization.back
-                : localization.pastPurchases,
+      actions: [
+        if (!_loading)
+          TextButton(
             onPressed: () {
-              setState(() {
-                _showPastPurchases = !_showPastPurchases;
-
-                if (_showPastPurchases) {
-                  loadPurchases();
-                }
-              });
+              _inAppPurchase.restorePurchases();
             },
+            child: Text(localization.restorePurchases),
           ),
-        if (!_showPastPurchases)
-          ..._products
-              .map((productDetails) => ListTile(
-                    title: Text(productDetails.title ??
-                        convertPlanToString(productDetails.id)),
-                    subtitle: Text(productDetails.description ?? ''),
-                    trailing: Text(productDetails.price ?? '',
-                        style: TextStyle(fontSize: 18)),
-                    onTap: () => upgrade(context, productDetails),
-                  ))
-              .toList()
+        TextButton(
+          child: Text(localization.termsOfService),
+          onPressed: () => launchUrl(Uri.parse(kTermsOfServiceURL)),
+        ),
+        TextButton(
+          child: Text(localization.privacyPolicy),
+          onPressed: () => launchUrl(Uri.parse(kPrivacyPolicyURL)),
+        ),
       ],
     );
   }
+
+  Widget _buildProductList() {
+    if (_loading) {
+      return const Card(
+        child: ListTile(
+          leading: CircularProgressIndicator(),
+          title: Text('Fetching products...'),
+        ),
+      );
+    }
+    if (!_isAvailable) {
+      return const Card();
+    }
+    final List<ListTile> productList = <ListTile>[];
+    final store = StoreProvider.of<AppState>(context);
+    final account = store.state.account;
+
+    final Map<String, PurchaseDetails> purchases =
+        Map<String, PurchaseDetails>.fromEntries(
+          _purchases.map((PurchaseDetails purchase) {
+            if (purchase.pendingCompletePurchase) {
+              _inAppPurchase.completePurchase(purchase);
+            }
+            return MapEntry<String, PurchaseDetails>(
+              purchase.productID,
+              purchase,
+            );
+          }),
+        );
+    _products.sort((p1, p2) => p1.rawPrice.compareTo(p2.rawPrice));
+    productList.addAll(
+      _products.map((ProductDetails productDetails) {
+        final PurchaseDetails? previousPurchase = purchases[productDetails.id];
+
+        return ListTile(
+          title: Text(productDetails.description),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 4),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.green[800],
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  if (previousPurchase != null) {
+                    confirmPriceChange(context);
+                  } else {
+                    PurchaseParam purchaseParam;
+
+                    if (Platform.isAndroid) {
+                      purchaseParam = GooglePlayPurchaseParam(
+                        productDetails: productDetails,
+                        applicationUserName: account.id,
+                      );
+                    } else {
+                      purchaseParam = PurchaseParam(
+                        productDetails: productDetails,
+                        applicationUserName: account.id,
+                      );
+                    }
+
+                    _inAppPurchase.buyNonConsumable(
+                      purchaseParam: purchaseParam,
+                    );
+                  }
+                },
+                child: Text(
+                  previousPurchase != null
+                      ? AppLocalization.of(context)!.activate
+                      : productDetails.price,
+                ),
+              ),
+              SizedBox(height: 20),
+            ],
+          ),
+        );
+      }),
+    );
+
+    return Column(children: productList);
+  }
+
+  void showPendingUI() {
+    setState(() {
+      _purchasePending = true;
+    });
+  }
+
+  Future<void> deliverProduct(PurchaseDetails purchaseDetails) async {
+    // IMPORTANT!! Always verify purchase details before delivering the product.
+    setState(() {
+      _purchases.add(purchaseDetails);
+      _purchasePending = false;
+    });
+
+    //final navigator = Navigator.of(context);
+    final store = StoreProvider.of<AppState>(context);
+    final state = store.state;
+    final url =
+        (state.isStaging ? kAppStagingUrl : kAppProductionUrl) +
+        '/api/admin/subscription';
+
+    final purchaseID = _inAppTransactionId(purchaseDetails);
+    if (purchaseID == null || purchaseID.isEmpty) {
+      // The server requires a non-empty string; posting null just 422s.
+      return;
+    }
+
+    final data = {
+      'inapp_transaction_id': purchaseID,
+      'key': state.account.key,
+      'plan': purchaseDetails.productID.replaceAll('-', '_'),
+    };
+
+    await WebClient().post(
+      url,
+      state.credentials.token,
+      data: jsonEncode(data),
+    );
+
+    store.dispatch(RefreshData());
+
+    /*
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
+     */
+  }
+
+  /// The value the hosted endpoint stores as `accounts.inapp_transaction_id`.
+  ///
+  /// Apple keys its renewal / cancellation / refund notifications on the
+  /// subscription's **original** transaction id and the server matches that
+  /// exactly, so storing a per-transaction id silently orphans the account —
+  /// later notifications find no match and the plan stops being extended. For
+  /// an initial purchase the two are identical; they diverge on restore and on
+  /// renewals, which both reach here.
+  ///
+  /// Google is the opposite: its notifications resolve to the `orderId` that
+  /// already arrives as [PurchaseDetails.purchaseID], so Android falls through
+  /// unchanged.
+  String? _inAppTransactionId(PurchaseDetails purchaseDetails) {
+    if (purchaseDetails is AppStorePurchaseDetails) {
+      // StoreKit 1 — only reached if `enableStoreKit1()` is ever called.
+      // `originalTransaction` is populated for restored transactions only.
+      final originalTransaction =
+          purchaseDetails.skPaymentTransaction.originalTransaction;
+      if (originalTransaction != null) {
+        return originalTransaction.transactionIdentifier;
+      }
+    } else {
+      // StoreKit 2 (the plugin default) drops `originalId` when it builds
+      // SK2PurchaseDetails, but Apple's own transaction JSON is passed through
+      // as `localVerificationData` and still carries it. Google's equivalent
+      // JSON has no such key, so Android returns null here and falls back to
+      // `purchaseID`.
+      final original = _appleOriginalTransactionId(
+        purchaseDetails.verificationData.localVerificationData,
+      );
+      if (original != null) {
+        return original;
+      }
+    }
+    return purchaseDetails.purchaseID;
+  }
+
+  /// Pulls Apple's `originalTransactionId` out of a StoreKit 2 transaction's
+  /// `localVerificationData` — Apple's `Transaction.jsonRepresentation`.
+  ///
+  /// Returns null when the payload is empty, isn't a JSON object, or carries no
+  /// usable `originalTransactionId`. Never throws: this runs inside the
+  /// purchase-stream callback, where an exception would take down delivery of a
+  /// paid purchase. Apple documents the field as a string but encodes some
+  /// numeric ids as JSON numbers, so both are accepted.
+  String? _appleOriginalTransactionId(String localVerificationData) {
+    if (localVerificationData.isEmpty) {
+      return null;
+    }
+    try {
+      final decoded = jsonDecode(localVerificationData);
+      if (decoded is! Map<String, dynamic>) {
+        return null;
+      }
+      final value = decoded['originalTransactionId'];
+      if (value == null) {
+        return null;
+      }
+      final id = value is String ? value : value.toString();
+      return id.isEmpty ? null : id;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void handleError(IAPError? error) {
+    setState(() {
+      _purchasePending = false;
+    });
+  }
+
+  Future<void> _listenToPurchaseUpdated(
+    List<PurchaseDetails> purchaseDetailsList,
+  ) async {
+    for (final PurchaseDetails purchaseDetails in purchaseDetailsList) {
+      if (purchaseDetails.status == PurchaseStatus.pending) {
+        showPendingUI();
+      } else {
+        if (purchaseDetails.status == PurchaseStatus.error) {
+          handleError(purchaseDetails.error);
+        } else if (purchaseDetails.status == PurchaseStatus.purchased ||
+            purchaseDetails.status == PurchaseStatus.restored) {
+          await deliverProduct(purchaseDetails);
+        }
+        if (purchaseDetails.pendingCompletePurchase) {
+          await _inAppPurchase.completePurchase(purchaseDetails);
+        }
+      }
+    }
+  }
+
+  Future<void> confirmPriceChange(BuildContext context) async {
+    if (Platform.isIOS) {
+      final InAppPurchaseStoreKitPlatformAddition iapStoreKitPlatformAddition =
+          _inAppPurchase
+              .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+      await iapStoreKitPlatformAddition.showPriceConsentIfNeeded();
+    }
+  }
 }
-*/
+
+/// Example implementation of the
+/// [`SKPaymentQueueDelegate`](https://developer.apple.com/documentation/storekit/skpaymentqueuedelegate?language=objc).
+///
+/// The payment queue delegate can be implementated to provide information
+/// needed to complete transactions.
+class ExamplePaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
+  @override
+  bool shouldContinueTransaction(
+    SKPaymentTransactionWrapper transaction,
+    SKStorefrontWrapper storefront,
+  ) {
+    return true;
+  }
+
+  @override
+  bool shouldShowPriceConsent() {
+    return false;
+  }
+}

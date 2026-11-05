@@ -1,16 +1,19 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 import 'package:intl/intl.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 
 part 'date_format_model.g.dart';
 
 abstract class DateFormatListResponse
     implements Built<DateFormatListResponse, DateFormatListResponseBuilder> {
-  factory DateFormatListResponse(
-          [void updates(DateFormatListResponseBuilder b)]) =
-      _$DateFormatListResponse;
+  factory DateFormatListResponse([
+    void updates(DateFormatListResponseBuilder b),
+  ]) = _$DateFormatListResponse;
 
   DateFormatListResponse._();
 
@@ -26,9 +29,9 @@ abstract class DateFormatListResponse
 
 abstract class DateFormatItemResponse
     implements Built<DateFormatItemResponse, DateFormatItemResponseBuilder> {
-  factory DateFormatItemResponse(
-          [void updates(DateFormatItemResponseBuilder b)]) =
-      _$DateFormatItemResponse;
+  factory DateFormatItemResponse([
+    void updates(DateFormatItemResponseBuilder b),
+  ]) = _$DateFormatItemResponse;
 
   DateFormatItemResponse._();
 
@@ -44,18 +47,13 @@ abstract class DateFormatItemResponse
 
 class DateFormatFields {
   static const String format = 'format';
-  static const String pickerFormat = 'picker_format';
-  static const String formatMoment = 'format_moment';
 }
 
 abstract class DateFormatEntity extends Object
     with SelectableEntity
     implements Built<DateFormatEntity, DateFormatEntityBuilder> {
   factory DateFormatEntity() {
-    return _$DateFormatEntity._(
-      id: '',
-      format: '',
-    );
+    return _$DateFormatEntity._(id: '', format: '');
   }
 
   DateFormatEntity._();
@@ -68,7 +66,7 @@ abstract class DateFormatEntity extends Object
   String get format;
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     if (filter == null || filter.isEmpty) {
       return true;
     }
@@ -83,7 +81,7 @@ abstract class DateFormatEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     if (filter == null || filter.isEmpty) {
       return null;
     }
@@ -108,7 +106,7 @@ abstract class DateFormatEntity extends Object
   String get listDisplayName => preview;
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   static Serializer<DateFormatEntity> get serializer =>
       _$dateFormatEntitySerializer;

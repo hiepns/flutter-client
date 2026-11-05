@@ -1,17 +1,22 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/widgets.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:invoiceninja_flutter/redux/auth/auth_actions.dart';
+import 'package:redux/redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/settings/settings_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/confirm_email.dart';
 import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/dialogs.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:redux/redux.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 
 class ConfirmEmailBuilder extends StatelessWidget {
-  const ConfirmEmailBuilder({Key key}) : super(key: key);
+  const ConfirmEmailBuilder({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,15 +34,17 @@ class ConfirmEmailVM {
     this.state,
     this.onRefreshPressed,
     this.onResendPressed,
+    this.onLogoutPressed,
     this.onUseLastPressed,
     this.onChangeEmail,
   });
 
-  final AppState state;
-  final Function onResendPressed;
-  final Function onRefreshPressed;
-  final Function(BuildContext, String, String, String) onChangeEmail;
-  final Function(BuildContext) onUseLastPressed;
+  final AppState? state;
+  final Function? onResendPressed;
+  final Function? onRefreshPressed;
+  final Function? onLogoutPressed;
+  final Function(BuildContext, String, String?, String?)? onChangeEmail;
+  final Function(BuildContext)? onUseLastPressed;
 
   static ConfirmEmailVM fromStore(Store<AppState> store) {
     final AppState state = store.state;
@@ -47,33 +54,40 @@ class ConfirmEmailVM {
       onRefreshPressed: () {
         store.dispatch(RefreshData());
       },
+      onLogoutPressed: () {
+        store.dispatch(UserLogout());
+      },
       onResendPressed: () {
         store.dispatch(ResendConfirmation());
       },
       onChangeEmail: (context, email, password, idToken) {
         final user = store.state.user.rebuild((b) => b..email = email);
         final completer = snackBarCompleter<Null>(
-            context, AppLocalization.of(context).savedSettings);
-        store.dispatch(SaveAuthUserRequest(
-          user: user,
-          password: password,
-          idToken: idToken,
-          completer: completer,
-        ));
+          AppLocalization.of(context)!.savedSettings,
+        );
+        store.dispatch(
+          SaveAuthUserRequest(
+            user: user,
+            password: password,
+            idToken: idToken,
+            completer: completer,
+          ),
+        );
       },
       onUseLastPressed: (context) {
         final user = state.user;
         passwordCallback(
-            context: context,
-            callback: (password, idToken) {
-              store.dispatch(
-                SaveAuthUserRequest(
-                  user: user.rebuild((b) => b..email = user.lastEmailAddress),
-                  password: password,
-                  idToken: idToken,
-                ),
-              );
-            });
+          context: context,
+          callback: (password, idToken) {
+            store.dispatch(
+              SaveAuthUserRequest(
+                user: user.rebuild((b) => b..email = user.lastEmailAddress),
+                password: password,
+                idToken: idToken,
+              ),
+            );
+          },
+        );
       },
     );
   }

@@ -1,21 +1,23 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/task_status/task_status_selectors.dart';
 import 'package:invoiceninja_flutter/ui/app/entities/entity_list_tile.dart';
 import 'package:invoiceninja_flutter/ui/app/entity_header.dart';
 import 'package:invoiceninja_flutter/ui/app/lists/list_divider.dart';
 import 'package:invoiceninja_flutter/ui/app/scrollable_listview.dart';
-import 'package:invoiceninja_flutter/ui/task_status/view/task_status_view_vm.dart';
 import 'package:invoiceninja_flutter/ui/app/view_scaffold.dart';
+import 'package:invoiceninja_flutter/ui/task_status/view/task_status_view_vm.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class TaskStatusView extends StatefulWidget {
   const TaskStatusView({
-    Key key,
-    @required this.viewModel,
-    @required this.isFilter,
+    Key? key,
+    required this.viewModel,
+    required this.isFilter,
   }) : super(key: key);
 
   final TaskStatusViewVM viewModel;
@@ -31,9 +33,11 @@ class _TaskStatusViewState extends State<TaskStatusView> {
     final viewModel = widget.viewModel;
     final state = viewModel.state;
     final taskStatus = viewModel.taskStatus;
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final amount = memoizedCalculateTaskStatusAmount(
-        taskStatus.id, viewModel.state.taskState.map);
+      taskStatus.id,
+      viewModel.state.taskState.map,
+    );
 
     return ViewScaffold(
       isFilter: widget.isFilter,
@@ -42,9 +46,10 @@ class _TaskStatusViewState extends State<TaskStatusView> {
       body: ScrollableListView(
         children: <Widget>[
           EntityHeader(
-              entity: taskStatus,
-              label: localization.total,
-              value: formatDuration(Duration(seconds: amount))),
+            entity: taskStatus,
+            label: localization.total,
+            value: formatDuration(Duration(seconds: amount)),
+          ),
           ListDivider(),
           EntitiesListTile(
             entity: taskStatus,
@@ -52,8 +57,9 @@ class _TaskStatusViewState extends State<TaskStatusView> {
             entityType: EntityType.task,
             title: localization.tasks,
             subtitle: memoizedTaskStatsForTaskStatus(
-                    taskStatus.id, state.taskState.map)
-                .present(localization.active, localization.archived),
+              taskStatus.id,
+              state.taskState.map,
+            ).present(localization.active, localization.archived),
           ),
         ],
       ),

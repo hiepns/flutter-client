@@ -1,26 +1,31 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 
 class AppDropdownButton<T> extends StatelessWidget {
   const AppDropdownButton({
-    Key key,
-    @required this.value,
-    @required this.onChanged,
-    @required this.items,
+    Key? key,
+    required this.value,
+    required this.onChanged,
+    required this.items,
     this.selectedItemBuilder,
     this.labelText,
     this.showBlank = false,
     this.blankValue = '',
+    this.blankLabel,
     this.enabled = true,
+    this.autofocus = false,
   }) : super(key: key);
 
-  final String labelText;
+  final String? labelText;
   final dynamic value;
-  final Function(dynamic) onChanged;
+  final Function(dynamic)? onChanged;
   final List<DropdownMenuItem<T>> items;
   final bool showBlank;
   final bool enabled;
+  final bool autofocus;
   final dynamic blankValue;
-  final DropdownButtonBuilder selectedItemBuilder;
+  final String? blankLabel;
+  final DropdownButtonBuilder? selectedItemBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -31,33 +36,24 @@ class AppDropdownButton<T> extends StatelessWidget {
     }
     final bool isEmpty = checkedValue == null || checkedValue == '';
 
-    Widget dropDownButton = DropdownButtonHideUnderline(
-      child: DropdownButton<T>(
-        value: checkedValue,
-        isExpanded: true,
-        isDense: labelText != null,
-        onChanged: enabled ? onChanged : null,
-        selectedItemBuilder: selectedItemBuilder,
-        items: [
-          if (showBlank || isEmpty)
-            DropdownMenuItem<T>(
-              value: blankValue,
-              child: SizedBox(),
-            ),
-          ...items
-        ],
-      ),
-    );
-
-    if (labelText != null) {
-      dropDownButton = InputDecorator(
-          decoration: InputDecoration(
-            labelText: labelText,
+    return DropdownButtonFormField<T>(
+      decoration: labelText != null
+          ? InputDecoration(label: Text(labelText!))
+          : InputDecoration.collapsed(hintText: ''),
+      initialValue: checkedValue == blankValue ? null : checkedValue,
+      isExpanded: true,
+      autofocus: autofocus,
+      isDense: labelText != null,
+      onChanged: enabled ? onChanged : null,
+      selectedItemBuilder: selectedItemBuilder,
+      items: [
+        if (showBlank || isEmpty)
+          DropdownMenuItem<T>(
+            value: blankValue,
+            child: blankLabel == null ? SizedBox() : Text(blankLabel!),
           ),
-          isEmpty: isEmpty,
-          child: dropDownButton);
-    }
-
-    return dropDownButton;
+        ...items,
+      ],
+    );
   }
 }

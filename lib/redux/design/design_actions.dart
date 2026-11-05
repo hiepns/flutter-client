@@ -1,7 +1,14 @@
+// Dart imports:
 import 'dart:async';
-import 'package:built_collection/built_collection.dart';
+
+// Flutter imports:
 import 'package:flutter/widgets.dart';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
@@ -10,33 +17,29 @@ import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class ViewDesignList implements PersistUI {
-  ViewDesignList({
-    this.force = false,
-  });
+  ViewDesignList({this.force = false});
 
   final bool force;
 }
 
 class ViewDesign implements PersistUI, PersistPrefs {
-  ViewDesign({
-    @required this.designId,
-    this.force = false,
-  });
+  ViewDesign({required this.designId, this.force = false});
 
-  final String designId;
+  final String? designId;
   final bool force;
 }
 
 class EditDesign implements PersistUI, PersistPrefs {
-  EditDesign(
-      {@required this.design,
-      this.completer,
-      this.cancelCompleter,
-      this.force = false});
+  EditDesign({
+    required this.design,
+    this.completer,
+    this.cancelCompleter,
+    this.force = false,
+  });
 
   final DesignEntity design;
-  final Completer completer;
-  final Completer cancelCompleter;
+  final Completer? completer;
+  final Completer? cancelCompleter;
   final bool force;
 }
 
@@ -49,21 +52,21 @@ class UpdateDesign implements PersistUI {
 class LoadDesign {
   LoadDesign({this.completer, this.designId});
 
-  final Completer completer;
-  final String designId;
+  final Completer? completer;
+  final String? designId;
 }
 
 class LoadDesignActivity {
   LoadDesignActivity({this.completer, this.designId});
 
-  final Completer completer;
-  final String designId;
+  final Completer? completer;
+  final String? designId;
 }
 
 class LoadDesigns {
   LoadDesigns({this.completer});
 
-  final Completer completer;
+  final Completer? completer;
 }
 
 class LoadDesignRequest implements StartLoading {}
@@ -117,8 +120,8 @@ class LoadDesignsSuccess implements StopLoading {
 class SaveDesignRequest implements StartSaving {
   SaveDesignRequest({this.completer, this.design});
 
-  final Completer completer;
-  final DesignEntity design;
+  final Completer? completer;
+  final DesignEntity? design;
 }
 
 class SaveDesignSuccess implements StopSaving, PersistData, PersistUI {
@@ -155,7 +158,7 @@ class ArchiveDesignsSuccess implements StopSaving, PersistData {
 class ArchiveDesignsFailure implements StopSaving {
   ArchiveDesignsFailure(this.designs);
 
-  final List<DesignEntity> designs;
+  final List<DesignEntity?> designs;
 }
 
 class DeleteDesignsRequest implements StartSaving {
@@ -174,7 +177,7 @@ class DeleteDesignsSuccess implements StopSaving, PersistData {
 class DeleteDesignsFailure implements StopSaving {
   DeleteDesignsFailure(this.designs);
 
-  final List<DesignEntity> designs;
+  final List<DesignEntity?> designs;
 }
 
 class RestoreDesignsRequest implements StartSaving {
@@ -193,13 +196,13 @@ class RestoreDesignsSuccess implements StopSaving, PersistData {
 class RestoreDesignsFailure implements StopSaving {
   RestoreDesignsFailure(this.designs);
 
-  final List<DesignEntity> designs;
+  final List<DesignEntity?> designs;
 }
 
 class FilterDesigns implements PersistUI {
   FilterDesigns(this.filter);
 
-  final String filter;
+  final String? filter;
 }
 
 class SortDesigns implements PersistUI, PersistPrefs {
@@ -239,12 +242,15 @@ class FilterDesignsByCustom4 implements PersistUI {
 }
 
 void handleDesignAction(
-    BuildContext context, List<BaseEntity> designs, EntityAction action) {
+  BuildContext? context,
+  List<BaseEntity> designs,
+  EntityAction? action,
+) {
   if (designs.isEmpty) {
     return;
   }
 
-  final store = StoreProvider.of<AppState>(context);
+  final store = StoreProvider.of<AppState>(context!);
   final state = store.state;
   final localization = AppLocalization.of(context);
   final design = designs.first as DesignEntity;
@@ -252,67 +258,71 @@ void handleDesignAction(
 
   switch (action) {
     case EntityAction.edit:
-      editEntity(context: context, entity: design);
+      editEntity(entity: design);
       break;
     case EntityAction.clone:
-      createEntity(context: context, entity: design.clone);
+      createEntity(entity: design.clone);
       break;
     case EntityAction.newInvoice:
       createEntity(
-          context: context,
-          entity: InvoiceEntity(state: state)
-              .rebuild((b) => b.designId = design.id),
-          filterEntity: design);
+        entity: InvoiceEntity(
+          state: state,
+        ).rebuild((b) => b.designId = design.id),
+      );
       break;
     case EntityAction.newRecurringInvoice:
       createEntity(
-          context: context,
-          entity: InvoiceEntity(
-                  state: state, entityType: EntityType.recurringInvoice)
-              .rebuild((b) => b.designId = design.id),
-          filterEntity: design);
+        entity: InvoiceEntity(
+          state: state,
+          entityType: EntityType.recurringInvoice,
+        ).rebuild((b) => b.designId = design.id),
+      );
       break;
     case EntityAction.newQuote:
       createEntity(
-          context: context,
-          entity: InvoiceEntity(
-            state: state,
-            entityType: EntityType.quote,
-          ).rebuild((b) => b.designId = design.id),
-          filterEntity: design);
+        entity: InvoiceEntity(
+          state: state,
+          entityType: EntityType.quote,
+        ).rebuild((b) => b.designId = design.id),
+      );
       break;
     case EntityAction.newCredit:
       createEntity(
-          context: context,
-          entity: InvoiceEntity(
-            state: state,
-            entityType: EntityType.credit,
-          ).rebuild((b) => b.designId = design.id),
-          filterEntity: design);
+        entity: InvoiceEntity(
+          state: state,
+          entityType: EntityType.credit,
+        ).rebuild((b) => b.designId = design.id),
+      );
       break;
     case EntityAction.restore:
       final message = designIds.length > 1
-          ? localization.restoredDesigns
-              .replaceFirst(':value', designIds.length.toString())
-          : localization.restoredDesign;
-      store.dispatch(RestoreDesignsRequest(
-          snackBarCompleter<Null>(context, message), designIds));
+          ? localization!.restoredDesigns
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', designIds.length.toString())
+          : localization!.restoredDesign;
+      store.dispatch(
+        RestoreDesignsRequest(snackBarCompleter<Null>(message), designIds),
+      );
       break;
     case EntityAction.archive:
       final message = designIds.length > 1
-          ? localization.archivedDesigns
-              .replaceFirst(':value', designIds.length.toString())
-          : localization.archivedDesign;
-      store.dispatch(ArchiveDesignsRequest(
-          snackBarCompleter<Null>(context, message), designIds));
+          ? localization!.archivedDesigns
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', designIds.length.toString())
+          : localization!.archivedDesign;
+      store.dispatch(
+        ArchiveDesignsRequest(snackBarCompleter<Null>(message), designIds),
+      );
       break;
     case EntityAction.delete:
       final message = designIds.length > 1
-          ? localization.deletedDesigns
-              .replaceFirst(':value', designIds.length.toString())
-          : localization.deletedDesign;
-      store.dispatch(DeleteDesignsRequest(
-          snackBarCompleter<Null>(context, message), designIds));
+          ? localization!.deletedDesigns
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', designIds.length.toString())
+          : localization!.deletedDesign;
+      store.dispatch(
+        DeleteDesignsRequest(snackBarCompleter<Null>(message), designIds),
+      );
       break;
     case EntityAction.toggleMultiselect:
       if (!store.state.designListState.isInMultiselect()) {
@@ -332,9 +342,7 @@ void handleDesignAction(
       }
       break;
     case EntityAction.more:
-      showEntityActionsDialog(
-        entities: [design],
-      );
+      showEntityActionsDialog(entities: [design]);
       break;
   }
 }
@@ -344,15 +352,15 @@ class StartDesignMultiselect {
 }
 
 class AddToDesignMultiselect {
-  AddToDesignMultiselect({@required this.entity});
+  AddToDesignMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class RemoveFromDesignMultiselect {
-  RemoveFromDesignMultiselect({@required this.entity});
+  RemoveFromDesignMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class ClearDesignMultiselect {

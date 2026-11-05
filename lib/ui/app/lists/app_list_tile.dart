@@ -1,8 +1,12 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+// Package imports:
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:invoiceninja_flutter/utils/platforms.dart';
 
 class AppListTile extends StatelessWidget {
   const AppListTile({
@@ -10,28 +14,32 @@ class AppListTile extends StatelessWidget {
     this.title,
     this.subtitle,
     this.dense = false,
-    this.onTap,
+    this.onLongPress,
     this.copyValue,
-    this.buttons,
+    this.buttonRow,
+    this.trailing,
   });
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
+  final IconData? icon;
+  final String? title;
+  final String? subtitle;
   final bool dense;
-  final Function onTap;
-  final String copyValue;
-  final List<Widget> buttons;
+  final Function? onLongPress;
+  final String? copyValue;
+  final Widget? buttonRow;
+  final Widget? trailing;
 
-  void _onLongPress(BuildContext context) {
+  void _onTap(BuildContext context) {
     if ((copyValue ?? title ?? '').isEmpty) {
       return;
     }
 
-    Clipboard.setData(ClipboardData(text: copyValue ?? title));
-    showToast(AppLocalization.of(context)
-        .copiedToClipboard
-        .replaceFirst(':value', copyValue ?? title));
+    Clipboard.setData(ClipboardData(text: copyValue ?? title ?? ''));
+    showToast(
+      AppLocalization.of(
+        context,
+      )!.copiedToClipboard.replaceFirst(':value', copyValue ?? title!),
+    );
   }
 
   @override
@@ -41,26 +49,25 @@ class AppListTile extends StatelessWidget {
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 25, vertical: 16),
         leading: Icon(icon),
-        title: Text(title),
-        subtitle: buttons != null || subtitle != null
+        title: Text(title!),
+        trailing: trailing,
+        subtitle: buttonRow != null || subtitle != null
             ? Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (subtitle != null) Text(subtitle),
-                  if (buttons != null)
+                  if (subtitle != null) Text(subtitle!),
+                  if (buttonRow != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
-                      child: Row(
-                        children: buttons,
-                      ),
-                    )
+                      child: buttonRow,
+                    ),
                 ],
               )
             : null,
         dense: dense,
-        onTap: () => isDesktop(context) ? _onLongPress(context) : onTap(),
-        onLongPress: () => _onLongPress(context),
+        onTap: () => _onTap(context),
+        onLongPress: onLongPress as void Function()?,
       ),
     );
   }

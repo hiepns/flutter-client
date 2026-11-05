@@ -1,29 +1,30 @@
+// Dart imports:
 import 'dart:async';
 
+// Package imports:
 import 'package:built_value/built_value.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
 
-abstract class EntityUIState {
+abstract mixin class EntityUIState {
   bool get isCreatingNew;
 
   String get editingId;
 
   ListUIState get listUIState;
 
-  @nullable
-  String get selectedId;
+  String? get selectedId;
 
-  @nullable
-  bool get forceSelected;
+  @BuiltValueField(serialize: false)
+  bool? get forceSelected;
 
   int get tabIndex;
 
-  @nullable
   @BuiltValueField(serialize: false)
-  Completer<SelectableEntity> get saveCompleter;
+  Completer<SelectableEntity>? get saveCompleter;
 
-  @nullable
   @BuiltValueField(serialize: false)
-  Completer<Null> get cancelCompleter;
+  Completer<Null>? get cancelCompleter;
 }

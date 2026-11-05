@@ -1,12 +1,17 @@
-import 'package:charts_flutter/flutter.dart' as charts;
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:nimble_charts/flutter.dart' as charts;
+
+// Project imports:
 import 'package:invoiceninja_flutter/ui/app/form_card.dart';
 import 'package:invoiceninja_flutter/ui/reports/reports_screen.dart';
 import 'package:invoiceninja_flutter/ui/reports/reports_screen_vm.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class ReportCharts extends StatelessWidget {
-  const ReportCharts({@required this.viewModel});
+  const ReportCharts({required this.viewModel});
 
   final ReportsScreenVM viewModel;
 
@@ -25,25 +30,30 @@ class ReportCharts extends StatelessWidget {
         : charts.MaterialPalette.black;
 
     final numericAxis = charts.NumericAxisSpec(
-        renderSpec: charts.GridlineRendererSpec(
-            labelStyle: charts.TextStyleSpec(color: color),
-            lineStyle: charts.LineStyleSpec(color: color)));
+      renderSpec: charts.GridlineRendererSpec(
+        labelStyle: charts.TextStyleSpec(color: color),
+        lineStyle: charts.LineStyleSpec(color: color),
+      ),
+    );
 
     final ordinalAxis = charts.OrdinalAxisSpec(
-        renderSpec: charts.GridlineRendererSpec(
-      lineStyle:
-          charts.LineStyleSpec(color: charts.MaterialPalette.transparent),
-      labelStyle: charts.TextStyleSpec(fontSize: 10, color: color),
-      labelRotation: 45,
-    ));
+      renderSpec: charts.GridlineRendererSpec(
+        lineStyle: charts.LineStyleSpec(
+          color: charts.MaterialPalette.transparent,
+        ),
+        labelStyle: charts.TextStyleSpec(fontSize: 10, color: color),
+        labelRotation: 45,
+      ),
+    );
 
     final dateTimeAxis = charts.DateTimeAxisSpec(
-        renderSpec: charts.SmallTickRendererSpec(
-      labelStyle: charts.TextStyleSpec(color: color),
-      lineStyle: charts.LineStyleSpec(color: color),
-    ));
+      renderSpec: charts.SmallTickRendererSpec(
+        labelStyle: charts.TextStyleSpec(color: color),
+        lineStyle: charts.LineStyleSpec(color: color),
+      ),
+    );
 
-    Widget child;
+    Widget? child;
     final columnType = getReportColumnType(reportState.group, context);
 
     switch (columnType) {
@@ -55,21 +65,21 @@ class ReportCharts extends StatelessWidget {
         child = charts.BarChart(
           [
             charts.Series<dynamic, String>(
-                id: 'chart',
-                colorFn: (dynamic _, __) =>
-                    charts.ColorUtil.fromDartColor(state.accentColor),
-                domainFn: (dynamic item, _) =>
-                    columnType == ReportColumnType.age
-                        ? localization.lookup(item['name'])
-                        : item['name'],
-                measureFn: (dynamic item, _) => item['value'],
-                data: viewModel.groupTotals.rows.map((key) {
-                  return {
-                    'name': key,
-                    'value': viewModel.groupTotals.totals[key]
-                        [reportState.chart]
-                  };
-                }).toList())
+              id: 'chart',
+              colorFn: (dynamic _, __) =>
+                  charts.ColorUtil.fromDartColor(state.accentColor!),
+              domainFn: (dynamic item, _) => columnType == ReportColumnType.age
+                  ? localization!.lookup(item['name'])
+                  : item['name']!,
+              measureFn: (dynamic item, _) => item['value'],
+              data: viewModel.groupTotals.rows!.map((key) {
+                return {
+                  'name': key,
+                  'value':
+                      viewModel.groupTotals.totals![key]![reportState.chart]!,
+                };
+              }).toList(),
+            ),
           ],
           animate: true,
           primaryMeasureAxis: numericAxis,
@@ -78,25 +88,26 @@ class ReportCharts extends StatelessWidget {
         break;
       case ReportColumnType.date:
       case ReportColumnType.dateTime:
-        final keys = viewModel.groupTotals.rows
-            .where((element) => element.isNotEmpty)
+        final keys = viewModel.groupTotals.rows!
+            .where((element) => element!.isNotEmpty)
             .toList();
-        keys.sort((String str1, String str2) => str1.compareTo(str2));
+        keys.sort((String? str1, String? str2) => str1!.compareTo(str2!));
         child = charts.TimeSeriesChart(
           [
             charts.Series<dynamic, DateTime>(
-                id: 'chart',
-                colorFn: (dynamic _, __) =>
-                    charts.ColorUtil.fromDartColor(state.accentColor),
-                domainFn: (dynamic item, _) => DateTime.tryParse(item['name']),
-                measureFn: (dynamic item, _) => item['value'],
-                data: keys.map((key) {
-                  return {
-                    'name': key,
-                    'value': viewModel.groupTotals.totals[key]
-                        [reportState.chart]
-                  };
-                }).toList())
+              id: 'chart',
+              colorFn: (dynamic _, __) =>
+                  charts.ColorUtil.fromDartColor(state.accentColor!),
+              domainFn: (dynamic item, _) => DateTime.parse(item['name']),
+              measureFn: (dynamic item, _) => item['value'],
+              data: keys.map((key) {
+                return {
+                  'name': key,
+                  'value':
+                      viewModel.groupTotals.totals![key]![reportState.chart],
+                };
+              }).toList(),
+            ),
           ],
           animate: true,
           primaryMeasureAxis: numericAxis,
@@ -112,15 +123,8 @@ class ReportCharts extends StatelessWidget {
         break;
     }
 
-    return child == null
-        ? SizedBox()
-        : FormCard(
-            child: ClipRect(
-              child: SizedBox(
-                height: 200,
-                child: child,
-              ),
-            ),
-          );
+    return FormCard(
+      child: ClipRect(child: SizedBox(height: 200, child: child)),
+    );
   }
 }

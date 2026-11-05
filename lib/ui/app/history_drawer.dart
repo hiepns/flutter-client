@@ -1,49 +1,51 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
+import 'package:invoiceninja_flutter/redux/company/company_selectors.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/dashboard/dashboard_actions.dart';
 import 'package:invoiceninja_flutter/redux/reports/reports_actions.dart';
 import 'package:invoiceninja_flutter/redux/settings/settings_actions.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
 import 'package:invoiceninja_flutter/ui/app/entities/entity_actions_dialog.dart';
+import 'package:invoiceninja_flutter/ui/app/history_drawer_vm.dart';
 import 'package:invoiceninja_flutter/ui/app/live_text.dart';
 import 'package:invoiceninja_flutter/ui/app/scrollable_listview.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
-import 'package:timeago/timeago.dart' as timeago;
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
-import 'package:invoiceninja_flutter/ui/app/history_drawer_vm.dart';
 import 'package:invoiceninja_flutter/utils/icons.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class HistoryDrawer extends StatelessWidget {
-  const HistoryDrawer({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const HistoryDrawer({Key? key, required this.viewModel}) : super(key: key);
 
   final AppDrawerVM viewModel;
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final store = StoreProvider.of<AppState>(context);
     final state = store.state;
 
     final widgets = <Widget>[];
     for (var history in state.historyList) {
-      widgets.add(HistoryListTile(
-        history: history,
-      ));
+      widgets.add(HistoryListTile(history: history));
     }
 
     return SizedBox(
-      width: kDrawerWidth,
+      width: kDrawerWidthMobile,
       child: Drawer(
         child: Scaffold(
           appBar: AppBar(
@@ -65,17 +67,16 @@ class HistoryDrawer extends StatelessWidget {
                   icon: Icon(Icons.close),
                   onPressed: () {
                     store.dispatch(
-                        UpdateUserPreferences(sidebar: AppSidebar.history));
+                      UpdateUserPreferences(sidebar: AppSidebar.history),
+                    );
                   },
-                )
+                ),
             ],
           ),
           body: FocusTraversalGroup(
             child: ColoredBox(
               color: Theme.of(context).cardColor,
-              child: ScrollableListView(
-                children: widgets,
-              ),
+              child: ScrollableListView(children: widgets),
             ),
           ),
         ),
@@ -85,7 +86,7 @@ class HistoryDrawer extends StatelessWidget {
 }
 
 class HistoryListTile extends StatefulWidget {
-  const HistoryListTile({@required this.history});
+  const HistoryListTile({required this.history});
 
   final HistoryRecord history;
 
@@ -104,28 +105,35 @@ class _HistoryListTileState extends State<HistoryListTile> {
 
     final history = widget.history;
 
-    Widget title;
-    Widget subtitle;
-    String clientId;
-    BaseEntity entity;
+    Widget title = SizedBox();
+    Widget subtitle = SizedBox();
+    String? clientId;
+    BaseEntity? entity;
 
     if ([
       EntityType.dashboard,
       EntityType.reports,
       EntityType.settings,
     ].contains(history.entityType)) {
-      title = Text(localization.lookup(history.entityType.toString()));
+      title = Text(localization!.lookup(history.entityType.toString()));
       if (history.entityType == EntityType.reports) {
-        subtitle =
-            Text(localization.lookup(state.uiState.reportsUIState.report));
+        subtitle = Text(
+          localization.lookup(state.uiState.reportsUIState.report),
+          style: Theme.of(context).textTheme.bodySmall,
+        );
       } else if (history.entityType == EntityType.settings) {
-        subtitle =
-            Text(localization.lookup(history.id ?? kSettingsCompanyDetails));
+        subtitle = Text(
+          localization.lookup(history.id ?? kSettingsCompanyDetails),
+          style: Theme.of(context).textTheme.bodySmall,
+        );
       }
+    } else if (history.id == null) {
+      title = Text(localization!.lookup(history.entityType.plural));
     } else {
-      entity = state.getEntityMap(history.entityType)[history.id] as BaseEntity;
+      entity =
+          state.getEntityMap(history.entityType)![history.id] as BaseEntity?;
 
-      if (entity == null || !entity.isActive) {
+      if (entity == null) {
         return SizedBox();
       }
 
@@ -133,13 +141,21 @@ class _HistoryListTileState extends State<HistoryListTile> {
         clientId = (entity as BelongsToClient).clientId;
       }
 
-      title = Text(entity.listDisplayName.isEmpty
-          ? formatNumber(entity.listDisplayAmount, context,
-              formatNumberType: entity.listDisplayAmountType,
-              clientId: clientId)
-          : entity.listDisplayName);
+      title = Text(
+        entity.listDisplayName.isEmpty
+            ? formatNumber(
+                entity.listDisplayAmount,
+                context,
+                formatNumberType: entity.listDisplayAmountType,
+                clientId: clientId,
+              )!
+            : entity.listDisplayName,
+      );
 
-      subtitle = Text(localization.lookup('${history.entityType}'));
+      subtitle = Text(
+        localization!.lookup('${history.entityType}'),
+        style: Theme.of(context).textTheme.bodySmall,
+      );
     }
 
     return Container(
@@ -148,12 +164,27 @@ class _HistoryListTileState extends State<HistoryListTile> {
       child: ListTile(
         key: ValueKey('__${history.id}_${history.entityType}__'),
         leading: Icon(getEntityIcon(history.entityType)),
-        title: title,
-        subtitle: subtitle,
-        // TODO this needs to be localized
-        trailing: LiveText(
-          () => timeago.format(history.dateTime, locale: 'en_short'),
-          duration: Duration(minutes: 1),
+        title: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [title, subtitle],
+              ),
+            ),
+            SizedBox(width: 8),
+            Flexible(
+              child: LiveText(
+                () => timeago.format(
+                  history.dateTime,
+                  locale: localeSelector(state, twoLetter: true) + '_short',
+                ),
+                duration: Duration(minutes: 1),
+                maxLines: 2,
+              ),
+            ),
+          ],
         ),
         /*
         trailing: _isHovered
@@ -190,7 +221,7 @@ class _HistoryListTileState extends State<HistoryListTile> {
                 },
               )
             : LiveText(
-                () => timeago.format(history.dateTime, locale: 'en_short'),
+                () => timeago.format(history.dateTime, locale: localeSelector(state, twoLetter: true) + '_short'),
                 duration: Duration(minutes: 1),
               ),
 
@@ -207,28 +238,35 @@ class _HistoryListTileState extends State<HistoryListTile> {
               store.dispatch(ViewReports());
               break;
             case EntityType.settings:
-              store.dispatch(ViewSettings(
-                section: history.id,
-                company: state.company,
-              ));
+              store.dispatch(
+                ViewSettings(
+                  section: history.id,
+                  company: state.company,
+                  tabIndex: 0,
+                ),
+              );
               break;
             default:
-              viewEntityById(
-                entityId: history.id,
-                entityType: history.entityType,
-              );
+              if (history.id == null) {
+                viewEntitiesByType(entityType: history.entityType);
+              } else {
+                viewEntityById(
+                  entityId: history.id,
+                  entityType: history.entityType,
+                );
+              }
           }
         },
         onLongPress: entity == null
             ? null
             : () {
                 showEntityActionsDialog(
-                  entities: [entity],
+                  entities: [entity!],
                   completer: state.prefState.isHistoryFloated
                       ? (Completer<Null>()
-                        ..future.then((value) {
-                          Navigator.pop(context);
-                        }))
+                          ..future.then<Null>((_) {
+                            Navigator.pop(navigatorKey.currentContext!);
+                          }))
                       : null,
                 );
               },

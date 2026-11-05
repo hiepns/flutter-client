@@ -1,9 +1,15 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:built_collection/built_collection.dart';
+// Flutter imports:
 import 'package:flutter/widgets.dart';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:http/http.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/group_model.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
@@ -21,20 +27,17 @@ class ViewGroupList implements PersistUI {
 }
 
 class ViewGroup implements PersistUI, PersistPrefs {
-  ViewGroup({
-    @required this.groupId,
-    this.force = false,
-  });
+  ViewGroup({required this.groupId, this.force = false});
 
-  final String groupId;
+  final String? groupId;
   final bool force;
 }
 
 class EditGroup implements PersistUI, PersistPrefs {
-  EditGroup({@required this.group, this.completer, this.force = false});
+  EditGroup({required this.group, this.completer, this.force = false});
 
   final GroupEntity group;
-  final Completer completer;
+  final Completer? completer;
   final bool force;
 }
 
@@ -47,21 +50,21 @@ class UpdateGroup implements PersistUI {
 class LoadGroup {
   LoadGroup({this.completer, this.groupId});
 
-  final Completer completer;
-  final String groupId;
+  final Completer? completer;
+  final String? groupId;
 }
 
 class LoadGroupActivity {
   LoadGroupActivity({this.completer, this.groupId});
 
-  final Completer completer;
-  final String groupId;
+  final Completer? completer;
+  final String? groupId;
 }
 
 class LoadGroups {
   LoadGroups({this.completer});
 
-  final Completer completer;
+  final Completer? completer;
 }
 
 class LoadGroupRequest implements StartLoading {}
@@ -115,8 +118,8 @@ class LoadGroupsSuccess implements StopLoading {
 class SaveGroupRequest implements StartSaving {
   SaveGroupRequest({this.completer, this.group});
 
-  final Completer completer;
-  final GroupEntity group;
+  final Completer? completer;
+  final GroupEntity? group;
 }
 
 class SaveGroupSuccess implements StopSaving, PersistData, PersistUI {
@@ -153,7 +156,7 @@ class ArchiveGroupSuccess implements StopSaving, PersistData {
 class ArchiveGroupFailure implements StopSaving {
   ArchiveGroupFailure(this.groups);
 
-  final List<GroupEntity> groups;
+  final List<GroupEntity?> groups;
 }
 
 class DeleteGroupRequest implements StartSaving {
@@ -172,7 +175,7 @@ class DeleteGroupSuccess implements StopSaving, PersistData {
 class DeleteGroupFailure implements StopSaving {
   DeleteGroupFailure(this.groups);
 
-  final List<GroupEntity> groups;
+  final List<GroupEntity?> groups;
 }
 
 class RestoreGroupRequest implements StartSaving {
@@ -191,13 +194,13 @@ class RestoreGroupSuccess implements StopSaving, PersistData {
 class RestoreGroupFailure implements StopSaving {
   RestoreGroupFailure(this.groups);
 
-  final List<GroupEntity> groups;
+  final List<GroupEntity?> groups;
 }
 
 class FilterGroups implements PersistUI {
   FilterGroups(this.filter);
 
-  final String filter;
+  final String? filter;
 }
 
 class SortGroups implements PersistUI, PersistPrefs {
@@ -213,54 +216,69 @@ class FilterGroupsByState implements PersistUI {
 }
 
 void handleGroupAction(
-    BuildContext context, List<BaseEntity> groups, EntityAction action) {
+  BuildContext? context,
+  List<BaseEntity> groups,
+  EntityAction? action,
+) {
   if (groups.isEmpty) {
     return;
   }
 
-  final store = StoreProvider.of<AppState>(context);
+  final store = StoreProvider.of<AppState>(context!);
+  final state = store.state;
   final localization = AppLocalization.of(context);
   final group = groups.first;
   final groupIds = groups.map((group) => group.id).toList();
 
   switch (action) {
     case EntityAction.edit:
-      editEntity(context: context, entity: group);
+      editEntity(entity: group);
       break;
     case EntityAction.settings:
-      store.dispatch(ViewSettings(
-        group: group,
-        section: kSettingsCompanyDetails,
-      ));
+      store.dispatch(
+        ViewSettings(
+          company: store.state.company,
+          user: store.state.user,
+          group: group as GroupEntity?,
+          section: state.prefState.isDesktop ? kSettingsLocalization : null,
+          clearFilter: true,
+        ),
+      );
       break;
     case EntityAction.newClient:
       createEntity(
-          context: context,
-          entity: ClientEntity().rebuild((b) => b..groupId = group.id));
+        entity: ClientEntity().rebuild((b) => b..groupId = group.id),
+      );
       break;
     case EntityAction.restore:
       final message = groupIds.length > 1
-          ? localization.restoredGroups
-              .replaceFirst(':value', groupIds.length.toString())
-          : localization.restoredGroup;
-      store.dispatch(RestoreGroupRequest(
-          snackBarCompleter<Null>(context, message), groupIds));
+          ? localization!.restoredGroups
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', groupIds.length.toString())
+          : localization!.restoredGroup;
+      store.dispatch(
+        RestoreGroupRequest(snackBarCompleter<Null>(message), groupIds),
+      );
       break;
     case EntityAction.archive:
       final message = groupIds.length > 1
-          ? localization.archivedGroups
-              .replaceFirst(':value', groupIds.length.toString())
-          : localization.archivedGroup;
-      store.dispatch(ArchiveGroupRequest(
-          snackBarCompleter<Null>(context, message), groupIds));
+          ? localization!.archivedGroups
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', groupIds.length.toString())
+          : localization!.archivedGroup;
+      store.dispatch(
+        ArchiveGroupRequest(snackBarCompleter<Null>(message), groupIds),
+      );
       break;
     case EntityAction.delete:
       final message = groupIds.length > 1
-          ? localization.deletedGroups
-              .replaceFirst(':value', groupIds.length.toString())
-          : localization.deletedGroup;
-      store.dispatch(DeleteGroupRequest(
-          snackBarCompleter<Null>(context, message), groupIds));
+          ? localization!.deletedGroups
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', groupIds.length.toString())
+          : localization!.deletedGroup;
+      store.dispatch(
+        DeleteGroupRequest(snackBarCompleter<Null>(message), groupIds),
+      );
       break;
     case EntityAction.toggleMultiselect:
       if (!store.state.groupListState.isInMultiselect()) {
@@ -280,9 +298,7 @@ void handleGroupAction(
       }
       break;
     case EntityAction.more:
-      showEntityActionsDialog(
-        entities: [group],
-      );
+      showEntityActionsDialog(entities: [group]);
       break;
   }
 }
@@ -290,28 +306,30 @@ void handleGroupAction(
 class StartGroupMultiselect {}
 
 class AddToGroupMultiselect {
-  AddToGroupMultiselect({@required this.entity});
+  AddToGroupMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class RemoveFromGroupMultiselect {
-  RemoveFromGroupMultiselect({@required this.entity});
+  RemoveFromGroupMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class ClearGroupMultiselect {}
 
 class SaveGroupDocumentRequest implements StartSaving {
   SaveGroupDocumentRequest({
-    @required this.completer,
-    @required this.multipartFile,
-    @required this.group,
+    required this.isPrivate,
+    required this.completer,
+    required this.multipartFiles,
+    required this.group,
   });
 
+  final bool isPrivate;
   final Completer completer;
-  final MultipartFile multipartFile;
+  final List<MultipartFile> multipartFiles;
   final GroupEntity group;
 }
 

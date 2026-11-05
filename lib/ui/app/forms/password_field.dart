@@ -1,21 +1,24 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/ui/app/forms/decorated_form_field.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class PasswordFormField extends StatefulWidget {
   const PasswordFormField({
     this.controller,
-    this.autoValidate,
     this.newPassword = true,
+    this.validate = true,
     this.onSavePressed,
     this.labelText,
   });
 
-  final TextEditingController controller;
-  final Function(BuildContext) onSavePressed;
-  final bool autoValidate;
+  final TextEditingController? controller;
+  final Function(BuildContext)? onSavePressed;
   final bool newPassword;
-  final String labelText;
+  final bool validate;
+  final String? labelText;
 
   @override
   _PasswordFormFieldState createState() => _PasswordFormFieldState();
@@ -35,18 +38,17 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
     final localization = AppLocalization.of(context);
 
     return DecoratedFormField(
-      key: ValueKey(widget.labelText ?? localization.password),
+      key: ValueKey(widget.labelText ?? localization!.password),
       controller: widget.controller,
       onSavePressed: widget.onSavePressed,
       autocorrect: false,
-      autovalidate: widget.autoValidate,
       decoration: InputDecoration(
-        labelText: widget.labelText ?? localization.password,
+        labelText: widget.labelText ?? localization!.password,
         suffixIcon: IconButton(
           alignment: Alignment.bottomCenter,
           tooltip: _isPasswordObscured
-              ? localization.showPassword
-              : localization.hidePassword,
+              ? localization!.showPassword
+              : localization!.hidePassword,
           icon: Icon(
             _isPasswordObscured ? Icons.visibility : Icons.visibility_off,
             color: Colors.grey,
@@ -59,6 +61,10 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
         ),
       ),
       validator: (value) {
+        if (!widget.validate) {
+          return null;
+        }
+
         if (value.isEmpty || value.trim().isEmpty) {
           return widget.newPassword
               ? null
@@ -81,9 +87,13 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
       },
       obscureText: _isPasswordObscured,
       keyboardType: TextInputType.visiblePassword,
-      autofillHints: [
-        widget.newPassword ? AutofillHints.newPassword : AutofillHints.password,
-      ],
+      autofillHints: widget.validate
+          ? [
+              widget.newPassword
+                  ? AutofillHints.newPassword
+                  : AutofillHints.password,
+            ]
+          : null,
     );
   }
 }

@@ -1,10 +1,15 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:invoiceninja_flutter/data/models/system_log_model.dart';
 
-IconData getEntityActionIcon(EntityAction entityAction) {
+IconData? getEntityActionIcon(EntityAction? entityAction) {
   switch (entityAction) {
     case EntityAction.edit:
       return MdiIcons.circleEditOutline;
@@ -12,9 +17,16 @@ IconData getEntityActionIcon(EntityAction entityAction) {
     case EntityAction.viewPdf:
     case EntityAction.bulkDownload:
       return Icons.picture_as_pdf;
+    case EntityAction.viewDocument:
+      return Icons.photo;
+    case EntityAction.bulkPrint:
+    case EntityAction.printPdf:
+      return Icons.print;
     case EntityAction.download:
+    case EntityAction.documents:
       return Icons.download;
     case EntityAction.clientPortal:
+    case EntityAction.vendorPortal:
       return Icons.cloud_circle;
     case EntityAction.clone:
     case EntityAction.cloneToOther:
@@ -23,20 +35,19 @@ IconData getEntityActionIcon(EntityAction entityAction) {
     case EntityAction.cloneToQuote:
     case EntityAction.cloneToCredit:
     case EntityAction.cloneToRecurring:
+    case EntityAction.cloneToPurchaseOrder:
       return Icons.control_point_duplicate;
     case EntityAction.markSent:
       return Icons.public;
     case EntityAction.markPaid:
       return Icons.payment;
-    case EntityAction.bulkEmailCredit:
-    case EntityAction.bulkEmailInvoice:
-    case EntityAction.bulkEmailQuote:
-    case EntityAction.emailQuote:
-    case EntityAction.emailInvoice:
-    case EntityAction.emailCredit:
-    case EntityAction.emailPayment:
+    case EntityAction.sendEmail:
+    case EntityAction.bulkSendEmail:
     case EntityAction.resendInvite:
+    case EntityAction.sendNow:
       return Icons.send;
+    case EntityAction.schedule:
+      return Icons.schedule;
     case EntityAction.archive:
       return Icons.archive;
     case EntityAction.delete:
@@ -45,9 +56,15 @@ IconData getEntityActionIcon(EntityAction entityAction) {
       return Icons.remove_circle_outline;
     case EntityAction.restore:
       return Icons.restore;
+    case EntityAction.convert:
+    case EntityAction.convertMatched:
     case EntityAction.convertToInvoice:
+    case EntityAction.convertToExpense:
+    case EntityAction.convertToProject:
+    case EntityAction.convertToPayment:
       return Icons.content_copy;
     case EntityAction.approve:
+    case EntityAction.accept:
       return Icons.check_circle_outline;
     case EntityAction.newInvoice:
     case EntityAction.newExpense:
@@ -59,9 +76,11 @@ IconData getEntityActionIcon(EntityAction entityAction) {
     case EntityAction.newRecurringInvoice:
     case EntityAction.newRecurringQuote:
     case EntityAction.newRecurringExpense:
+    case EntityAction.newPurchaseOrder:
     case EntityAction.invoiceTask:
     case EntityAction.invoiceExpense:
     case EntityAction.invoiceProject:
+    case EntityAction.addToInvoice:
       return Icons.add_circle_outline;
     case EntityAction.resume:
     case EntityAction.start:
@@ -71,7 +90,7 @@ IconData getEntityActionIcon(EntityAction entityAction) {
     case EntityAction.settings:
       return Icons.settings;
     case EntityAction.refundPayment:
-    case EntityAction.cancel:
+    case EntityAction.cancelInvoice:
       return Icons.remove_circle_outline;
     case EntityAction.reverse:
       return Icons.undo;
@@ -82,12 +101,53 @@ IconData getEntityActionIcon(EntityAction entityAction) {
       return Icons.payment;
     case EntityAction.disconnect:
       return MdiIcons.lanDisconnect;
+    case EntityAction.reconnect:
+      return MdiIcons.connection;
+    case EntityAction.purge:
+      return Icons.delete_forever;
+    case EntityAction.viewInvoice:
+      return MdiIcons.fileAccount;
+    case EntityAction.viewExpense:
+      return MdiIcons.fileImage;
+    case EntityAction.changeStatus:
+      return Icons.adjust;
+    case EntityAction.back:
+      return Icons.cancel_outlined;
+    case EntityAction.save:
+      return Icons.cloud_upload;
+    case EntityAction.addToInventory:
+      return Icons.inventory;
+    case EntityAction.merge:
+      return MdiIcons.merge;
+    case EntityAction.autoBill:
+      return MdiIcons.contactlessPaymentCircle;
+    case EntityAction.updatePrices:
+      return MdiIcons.syncIcon;
+    case EntityAction.increasePrices:
+      return MdiIcons.arrowUpBoldBoxOutline;
+    case EntityAction.setTaxCategory:
+      return MdiIcons.tag;
+    case EntityAction.eInvoice:
+    case EntityAction.eQuote:
+    case EntityAction.eCredit:
+    case EntityAction.ePurchaseOrder:
+      return MdiIcons.xml;
+    case EntityAction.unlink:
+      return MdiIcons.pipeDisconnected;
+    case EntityAction.runTemplate:
+      return MdiIcons.arrowRightCircleOutline;
+    case EntityAction.bulkUpdate:
+      return MdiIcons.squareEditOutline;
+    case EntityAction.addComment:
+      return MdiIcons.comment;
+    case EntityAction.assignGroup:
+      return MdiIcons.accountMultiple;
     default:
       return null;
   }
 }
 
-IconData getEntityIcon(EntityType entityType) {
+IconData getEntityIcon(EntityType? entityType) {
   switch (entityType) {
     case EntityType.dashboard:
       return MdiIcons.viewDashboard;
@@ -136,17 +196,32 @@ IconData getEntityIcon(EntityType entityType) {
     case EntityType.expenseCategory:
     case EntityType.taskStatus:
       return MdiIcons.label;
-    case EntityType.subscription:
+    case EntityType.paymentLink:
       return MdiIcons.shopping;
+    case EntityType.purchaseOrder:
+      return MdiIcons.fileDocument;
+    case EntityType.transaction:
+      return MdiIcons.bankTransfer;
+    case EntityType.bankAccount:
+      return MdiIcons.bank;
+    case EntityType.transactionRule:
+      return Icons.rule_folder;
+    case EntityType.schedule:
+      return Icons.schedule;
+    case EntityType.document:
+      return Icons.photo;
+    case EntityType.company:
+    case EntityType.location:
+      return Icons.business;
     default:
       return MdiIcons.crosshairsQuestion;
   }
 }
 
-IconData getFileTypeIcon(String type) {
+IconData? getFileTypeIcon(String type) {
   switch (type) {
     case 'pdf':
-      return MdiIcons.filePdf;
+      return MdiIcons.filePdfBox;
     case 'psd':
       return MdiIcons.fileImage;
     case 'txt':
@@ -165,7 +240,7 @@ IconData getFileTypeIcon(String type) {
   }
 }
 
-IconData getSettingIcon(String section) {
+IconData? getSettingIcon(String section) {
   switch (section) {
     case kSettingsCompanyDetails:
       return Icons.business;
@@ -173,7 +248,7 @@ IconData getSettingIcon(String section) {
       return Icons.person;
     case kSettingsLocalization:
       return Icons.language;
-    case kSettingsOnlinePayments:
+    case kSettingsPaymentSettings:
     case kSettingsCompanyGateways:
       return MdiIcons.creditCard;
     case kSettingsTaxSettings:
@@ -197,8 +272,6 @@ IconData getSettingIcon(String section) {
       return MdiIcons.sourceBranch;
     case kSettingsClientPortal:
       return MdiIcons.cloud;
-    case kSettingsBuyNowButtons:
-      return MdiIcons.link;
     case kSettingsEmailSettings:
       return Icons.mail;
     case kSettingsTemplatesAndReminders:
@@ -219,8 +292,16 @@ IconData getSettingIcon(String section) {
     case kSettingsTasks:
     case kSettingsTaskStatuses:
       return getEntityIcon(EntityType.task);
-    case kSettingsSubscriptions:
-      return getEntityIcon(EntityType.subscription);
+    case kSettingsPaymentLinks:
+      return getEntityIcon(EntityType.paymentLink);
+    case kSettingsSchedules:
+      return getEntityIcon(EntityType.schedule);
+    case kSettingsBankAccounts:
+      return MdiIcons.bank;
+    case kSettingsTransactionRules:
+      return Icons.rule_folder;
+    case kSettingsEInvoiceSettings:
+      return MdiIcons.fileXmlBox;
     default:
       return null;
   }

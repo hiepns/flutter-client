@@ -1,21 +1,24 @@
+// Flutter imports:
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/task_model.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/date_picker.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/duration_picker.dart';
+import 'package:invoiceninja_flutter/ui/app/forms/growable_form_field.dart';
 import 'package:invoiceninja_flutter/ui/app/forms/time_picker.dart';
 import 'package:invoiceninja_flutter/ui/app/help_text.dart';
 import 'package:invoiceninja_flutter/ui/app/responsive_padding.dart';
 import 'package:invoiceninja_flutter/ui/app/scrollable_listview.dart';
 import 'package:invoiceninja_flutter/ui/task/edit/task_edit_times_vm.dart';
 import 'package:invoiceninja_flutter/ui/task/task_time_view.dart';
-import 'package:flutter/material.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class TaskEditTimes extends StatefulWidget {
-  const TaskEditTimes({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const TaskEditTimes({Key? key, required this.viewModel}) : super(key: key);
 
   final TaskEditTimesVM viewModel;
 
@@ -24,34 +27,62 @@ class TaskEditTimes extends StatefulWidget {
 }
 
 class _TaskEditTimesState extends State<TaskEditTimes> {
-  TaskTime selectedTaskTime;
+  TaskTime? selectedTaskTime;
 
-  void _showTaskTimeEditor(TaskTime taskTime, BuildContext context) {
+  void _showTaskTimeEditor(TaskTime? taskTime, BuildContext context) {
+    if (taskTime == null) {
+      return;
+    }
+
+    final viewModel = widget.viewModel;
+    final task = viewModel.task!;
+    final taskTimes = task.getTaskTimes();
+
+    if (taskTimes.where((time) => time.equalTo(taskTime)).isEmpty) {
+      return;
+    }
+
+    int? index;
+
+    final List<dynamic> rawTaskTimes = task.timeLog.isNotEmpty
+        ? jsonDecode(task.timeLog)
+        : <dynamic>[];
+    for (var i = 0; i < rawTaskTimes.length; i++) {
+      final each = rawTaskTimes[i] as List<dynamic>;
+      if (each[0] * 1000 == taskTime.startDate?.millisecondsSinceEpoch &&
+          each[1] * 1000 == taskTime.endDate?.millisecondsSinceEpoch) {
+        index = i;
+      }
+    }
+
+    if (index == null) {
+      return;
+    }
+
     showDialog<ResponsivePadding>(
-        barrierDismissible: false,
-        context: context,
-        builder: (BuildContext context) {
-          final viewModel = widget.viewModel;
-          final task = viewModel.task;
-          final taskTimes = task.getTaskTimes();
-          return TimeEditDetails(
-            viewModel: viewModel,
-            taskTime: taskTime,
-            index: taskTimes.indexOf(
-                taskTimes.firstWhere((time) => time.equalTo(taskTime))),
-          );
-        });
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return TimeEditDetails(
+          viewModel: viewModel,
+          taskTime: taskTime,
+          index: index!,
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalization.of(context);
     final viewModel = widget.viewModel;
-    final task = viewModel.task;
+    final task = viewModel.task!;
     final taskTimes = task.getTaskTimes();
-    final taskTime = viewModel.taskTimeIndex != null &&
-            taskTimes.length > viewModel.taskTimeIndex
-        ? taskTimes[viewModel.taskTimeIndex]
+    final invalidTimes = task.getInvalidTimeIndices;
+    final taskTime =
+        viewModel.taskTimeIndex != null &&
+            taskTimes.length > viewModel.taskTimeIndex!
+        ? taskTimes[viewModel.taskTimeIndex!]
         : null;
 
     if (taskTime != null && taskTime != selectedTaskTime) {
@@ -62,35 +93,38 @@ class _TaskEditTimesState extends State<TaskEditTimes> {
     }
 
     if (task.getTaskTimes().isEmpty) {
-      return HelpText(localization.clickPlusToAddTime);
+      return HelpText(localization!.clickPlusToAddTime);
     }
 
-    final taskTimeWidgets = task
-        .getTaskTimes()
-        .toList()
-        .reversed
-        .map<Widget>((taskTime) => TaskTimeListTile(
-              task: task,
-              taskTime: taskTime,
-              onTap: (context) => _showTaskTimeEditor(taskTime, context),
-            ));
+    final sortedTaskTimes = task.getTaskTimes().toList().reversed.toList();
+    final taskTimeWidgets = <Widget>[];
 
-    return ScrollableListView(
-      children: taskTimeWidgets.toList(),
-    );
+    for (var i = 0; i < sortedTaskTimes.length; i++) {
+      final taskTime = sortedTaskTimes[i];
+      taskTimeWidgets.add(
+        TaskTimeListTile(
+          task: task,
+          taskTime: taskTime,
+          onTap: (context) => _showTaskTimeEditor(taskTime, context),
+          isValid: !invalidTimes.contains(sortedTaskTimes.length - i - 1),
+        ),
+      );
+    }
+
+    return ScrollableListView(children: taskTimeWidgets.toList());
   }
 }
 
 class TimeEditDetails extends StatefulWidget {
   const TimeEditDetails({
-    Key key,
-    @required this.index,
-    @required this.taskTime,
-    @required this.viewModel,
+    Key? key,
+    required this.index,
+    required this.taskTime,
+    required this.viewModel,
   }) : super(key: key);
 
   final int index;
-  final TaskTime taskTime;
+  final TaskTime? taskTime;
   final TaskEditTimesVM viewModel;
 
   @override
@@ -98,7 +132,7 @@ class TimeEditDetails extends StatefulWidget {
 }
 
 class TimeEditDetailsState extends State<TimeEditDetails> {
-  TaskTime _taskTime = TaskTime();
+  TaskTime? _taskTime = TaskTime();
   int _startDateUpdatedAt = 0;
   int _startTimeUpdatedAt = 0;
   int _endDateUpdatedAt = 0;
@@ -114,10 +148,14 @@ class TimeEditDetailsState extends State<TimeEditDetails> {
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final viewModel = widget.viewModel;
-    final company = viewModel.company;
+    final company = viewModel.company!;
     final showEndDate = company.showTaskEndDate;
+
+    // Handle the end time being before the start time
+    final times = _taskTime!.asList;
+    final duration = Duration(seconds: times[1] - times[0]);
 
     return AlertDialog(
       content: SingleChildScrollView(
@@ -126,14 +164,18 @@ class TimeEditDetailsState extends State<TimeEditDetails> {
           children: <Widget>[
             DatePicker(
               key: ValueKey('__date_${_startTimeUpdatedAt}__'),
-              labelText: localization.date,
-              selectedDate: _taskTime.startDate == null
+              labelText: showEndDate
+                  ? localization.startDate
+                  : localization.date,
+              selectedDate: _taskTime!.startDate == null
                   ? null
-                  : convertDateTimeToSqlDate(_taskTime.startDate.toLocal()),
-              onSelected: (date) {
+                  : convertDateTimeToSqlDate(_taskTime!.startDate!.toLocal()),
+              onSelected: (date, _) {
                 setState(() {
-                  _taskTime = _taskTime.copyWithStartDate(date,
-                      syncDates: !showEndDate);
+                  _taskTime = _taskTime!.copyWithStartDate(
+                    date,
+                    syncDates: !showEndDate,
+                  );
                   viewModel.onUpdatedTaskTime(_taskTime, widget.index);
                   _startDateUpdatedAt = DateTime.now().millisecondsSinceEpoch;
                 });
@@ -142,60 +184,96 @@ class TimeEditDetailsState extends State<TimeEditDetails> {
             TimePicker(
               key: ValueKey('__start_time_${_durationUpdateAt}__'),
               labelText: localization.startTime,
-              selectedDateTime: _taskTime.startDate,
+              selectedDateTime: _taskTime!.startDate,
               onSelected: (timeOfDay) {
+                if (timeOfDay == null) {
+                  return;
+                }
+
                 setState(() {
-                  _taskTime = _taskTime.copyWithStartTime(timeOfDay);
+                  _taskTime = _taskTime!.copyWithStartTime(timeOfDay);
                   viewModel.onUpdatedTaskTime(_taskTime, widget.index);
                   _startTimeUpdatedAt = DateTime.now().millisecondsSinceEpoch;
                 });
               },
             ),
-            TimePicker(
-              key: ValueKey(
-                  '__end_time_${_endDateUpdatedAt}_${_durationUpdateAt}__'),
-              labelText: localization.endTime,
-              selectedDateTime: _taskTime.endDate,
-              isEndTime: true,
-              onSelected: (timeOfDay) {
-                setState(() {
-                  _taskTime = _taskTime.copyWithEndTime(timeOfDay);
-                  viewModel.onUpdatedTaskTime(_taskTime, widget.index);
-                  _endTimeUpdatedAt = DateTime.now().millisecondsSinceEpoch;
-                });
-              },
-            ),
             if (showEndDate)
               DatePicker(
+                labelText: localization.endDate,
                 key: ValueKey(
-                    '__${_startDateUpdatedAt}_${_durationUpdateAt}_${_endTimeUpdatedAt}__'),
-                selectedDate: _taskTime.startDate == null
+                  '__${_startDateUpdatedAt}_${_durationUpdateAt}_${_endTimeUpdatedAt}__',
+                ),
+                selectedDate: _taskTime!.endDate == null
                     ? null
-                    : convertDateTimeToSqlDate(_taskTime.endDate.toLocal()),
-                onSelected: (date) {
+                    : convertDateTimeToSqlDate(_taskTime!.endDate!.toLocal()),
+                onSelected: (date, _) {
                   setState(() {
-                    _taskTime = _taskTime.copyWithEndDate(date);
+                    _taskTime = _taskTime!.copyWithEndDate(date);
                     viewModel.onUpdatedTaskTime(_taskTime, widget.index);
                     _endDateUpdatedAt = DateTime.now().millisecondsSinceEpoch;
                   });
                 },
               ),
+            TimePicker(
+              key: ValueKey(
+                '__end_time_${_endDateUpdatedAt}_${_durationUpdateAt}__',
+              ),
+              labelText: localization.endTime,
+              selectedDateTime: _taskTime!.endDate,
+              isEndTime: true,
+              onSelected: (timeOfDay) {
+                setState(() {
+                  if (timeOfDay == null) {
+                    return;
+                  }
+
+                  _taskTime = _taskTime!.copyWithEndTime(timeOfDay);
+                  viewModel.onUpdatedTaskTime(_taskTime, widget.index);
+                  _endTimeUpdatedAt = DateTime.now().millisecondsSinceEpoch;
+                });
+              },
+            ),
             DurationPicker(
               key: ValueKey(
-                  '__duration_${_startTimeUpdatedAt}_${_endTimeUpdatedAt}_${_startDateUpdatedAt}_${_endDateUpdatedAt}_'),
+                '__duration_${_startTimeUpdatedAt}_${_endTimeUpdatedAt}_${_startDateUpdatedAt}_${_endDateUpdatedAt}_',
+              ),
               labelText: localization.duration,
               onSelected: (Duration duration) {
                 setState(() {
-                  _taskTime = _taskTime.copyWithDuration(duration);
+                  _taskTime = _taskTime!.copyWithDuration(duration);
                   viewModel.onUpdatedTaskTime(_taskTime, widget.index);
                   _durationUpdateAt = DateTime.now().millisecondsSinceEpoch;
                 });
               },
               selectedDuration:
-                  (_taskTime.startDate == null || _taskTime.endDate == null)
-                      ? null
-                      : _taskTime.duration,
+                  (_taskTime!.startDate == null || _taskTime!.endDate == null)
+                  ? null
+                  : duration,
             ),
+            if (company.settings.showTaskItemDescription!)
+              GrowableFormField(
+                label: localization.description,
+                initialValue: _taskTime!.description,
+                onChanged: (value) {
+                  _taskTime = _taskTime!.rebuild((b) => b..description = value);
+                  viewModel.onUpdatedTaskTime(_taskTime, widget.index);
+                },
+              ),
+            if (company.settings.allowBillableTaskItems!)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: SwitchListTile(
+                  title: Text(localization.billable),
+                  value: _taskTime!.isBillable,
+                  onChanged: (value) {
+                    _taskTime = _taskTime!.rebuild(
+                      (b) => b..isBillable = value,
+                    );
+                    viewModel.onUpdatedTaskTime(_taskTime, widget.index);
+                    setState(() {});
+                  },
+                ),
+              ),
           ],
         ),
       ),
@@ -213,7 +291,7 @@ class TimeEditDetailsState extends State<TimeEditDetails> {
             widget.viewModel.onDoneTaskTimePressed();
             Navigator.of(context).pop();
           },
-        )
+        ),
       ],
     );
   }

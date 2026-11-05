@@ -1,6 +1,14 @@
+// Flutter imports:
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:invoiceninja_flutter/utils/colors.dart';
+import 'package:invoiceninja_flutter/utils/formatting.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
@@ -11,13 +19,9 @@ import 'package:invoiceninja_flutter/ui/settings/settings_list_vm.dart';
 import 'package:invoiceninja_flutter/utils/icons.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class SettingsList extends StatefulWidget {
-  const SettingsList({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const SettingsList({Key? key, required this.viewModel}) : super(key: key);
 
   final SettingsListVM viewModel;
 
@@ -26,7 +30,7 @@ class SettingsList extends StatefulWidget {
 }
 
 class _SettingsListState extends State<SettingsList> {
-  ScrollController _scrollController;
+  ScrollController? _scrollController;
 
   @override
   void initState() {
@@ -36,7 +40,7 @@ class _SettingsListState extends State<SettingsList> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController!.dispose();
     super.dispose();
   }
 
@@ -69,7 +73,7 @@ class _SettingsListState extends State<SettingsList> {
           if (state.isLoading) LinearProgressIndicator(),
         ],
       );
-    else if (settingsUIState.filter != null)
+    else if (settingsUIState.filter != null || settingsUIState.showNewSettings)
       return SettingsSearch(
         viewModel: widget.viewModel,
         filter: settingsUIState.filter,
@@ -96,11 +100,11 @@ class _SettingsListState extends State<SettingsList> {
                 ),
               ),
             Container(
-              color: Theme.of(context).backgroundColor,
+              color: Theme.of(context).colorScheme.surface,
               padding: const EdgeInsets.only(left: 19, top: 16, bottom: 16),
               child: Text(
-                localization.basicSettings,
-                style: Theme.of(context).textTheme.bodyText2,
+                localization!.basicSettings,
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
             SettingsListTile(
@@ -117,7 +121,7 @@ class _SettingsListState extends State<SettingsList> {
               viewModel: widget.viewModel,
             ),
             SettingsListTile(
-              section: kSettingsOnlinePayments,
+              section: kSettingsPaymentSettings,
               viewModel: widget.viewModel,
             ),
             SettingsListTile(
@@ -161,17 +165,17 @@ class _SettingsListState extends State<SettingsList> {
                 section: kSettingsDeviceSettings,
                 viewModel: widget.viewModel,
               ),
-            if (showAll && state.userCompany.isOwner)
+            if (showAll && state.userCompany.isAdmin)
               SettingsListTile(
                 section: kSettingsAccountManagement,
                 viewModel: widget.viewModel,
               ),
             Container(
-              color: Theme.of(context).backgroundColor,
+              color: Theme.of(context).colorScheme.surface,
               padding: const EdgeInsets.only(left: 19, top: 16, bottom: 16),
               child: Text(
                 localization.advancedSettings,
-                style: Theme.of(context).textTheme.bodyText2,
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
 
@@ -189,15 +193,24 @@ class _SettingsListState extends State<SettingsList> {
               viewModel: widget.viewModel,
             ),
             SettingsListTile(
-              section: kSettingsEmailSettings,
-              viewModel: widget.viewModel,
-            ),
-            SettingsListTile(
               section: kSettingsClientPortal,
               viewModel: widget.viewModel,
             ),
             SettingsListTile(
+              section: kSettingsEmailSettings,
+              viewModel: widget.viewModel,
+            ),
+            SettingsListTile(
               section: kSettingsTemplatesAndReminders,
+              viewModel: widget.viewModel,
+            ),
+            if (showAll)
+              SettingsListTile(
+                section: kSettingsBankAccounts,
+                viewModel: widget.viewModel,
+              ),
+            SettingsListTile(
+              section: kSettingsEInvoiceSettings,
               viewModel: widget.viewModel,
             ),
             if (showAll)
@@ -207,7 +220,7 @@ class _SettingsListState extends State<SettingsList> {
               ),
             if (showAll)
               SettingsListTile(
-                section: kSettingsSubscriptions,
+                section: kSettingsPaymentLinks,
                 viewModel: widget.viewModel,
               ),
             /*
@@ -227,11 +240,16 @@ class _SettingsListState extends State<SettingsList> {
                 viewModel: viewModel,
               ),
                */
-            if (showAll)
+            if (showAll) ...[
+              SettingsListTile(
+                section: kSettingsSchedules,
+                viewModel: widget.viewModel,
+              ),
               SettingsListTile(
                 section: kSettingsUserManagement,
                 viewModel: widget.viewModel,
               ),
+            ],
           ],
         ),
         if (state.isLoading) LinearProgressIndicator(),
@@ -240,42 +258,65 @@ class _SettingsListState extends State<SettingsList> {
   }
 }
 
-class SettingsListTile extends StatelessWidget {
-  const SettingsListTile({
-    @required this.section,
-    @required this.viewModel,
-  });
+class SettingsListTile extends StatefulWidget {
+  const SettingsListTile({required this.section, required this.viewModel});
 
   final String section;
   final SettingsListVM viewModel;
 
   @override
-  Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+  State<SettingsListTile> createState() => _SettingsListTileState();
+}
 
-    IconData icon;
-    if (section == kSettingsDeviceSettings) {
+class _SettingsListTileState extends State<SettingsListTile> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final localization = AppLocalization.of(context)!;
+    final store = StoreProvider.of<AppState>(context);
+    final state = store.state;
+
+    IconData? icon;
+    if (widget.section == kSettingsDeviceSettings) {
       icon = isMobile(context) ? Icons.phone_android : MdiIcons.desktopClassic;
     } else {
-      icon = getSettingIcon(section);
+      icon = getSettingIcon(widget.section);
     }
 
-    return Container(
-      color: Theme.of(context).cardColor,
-      child: SelectedIndicator(
-        isSelected: viewModel.state.uiState.containsRoute('/$section') &&
-            isDesktop(context),
-        child: ListTile(
-          dense: isDesktop(context),
-          leading: Padding(
-            padding: const EdgeInsets.only(left: 6, top: 2),
-            child: Icon(icon ?? icon, size: 22),
+    final isSelected =
+        widget.viewModel.state.uiState.containsRoute('/${widget.section}') &&
+        isDesktop(context);
+
+    final hoverColor = convertHexStringToColor(
+      state.prefState.enableDarkMode
+          ? kDefaultDarkSelectedColorMenu
+          : kDefaultLightSelectedColorMenu,
+    );
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: Container(
+        color: Theme.of(context).cardColor,
+        child: SelectedIndicator(
+          isSelected: isSelected,
+          child: ListTile(
+            tileColor: _isHovered && !isSelected ? hoverColor : null,
+            dense: isDesktop(context),
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 6, top: 2),
+              child: Icon(icon ?? icon, size: 22),
+            ),
+            title: Text(
+              localization.lookup(widget.section),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge!.copyWith(fontSize: 14),
+            ),
+            onTap: () =>
+                widget.viewModel.loadSection(context, widget.section, 0),
           ),
-          title: Text(
-            localization.lookup(section),
-            style: Theme.of(context).textTheme.bodyText1.copyWith(fontSize: 14),
-          ),
-          onTap: () => viewModel.loadSection(context, section, 0),
         ),
       ),
     );
@@ -285,12 +326,12 @@ class SettingsListTile extends StatelessWidget {
 class SettingsSearch extends StatelessWidget {
   const SettingsSearch({this.filter, this.viewModel});
 
-  final SettingsListVM viewModel;
-  final String filter;
+  final SettingsListVM? viewModel;
+  final String? filter;
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final store = StoreProvider.of<AppState>(context);
     final company = store.state.company;
 
@@ -300,6 +341,7 @@ class SettingsSearch extends StatelessWidget {
           'name',
           'id_number',
           'vat_number',
+          'classification#2023-10-17',
           'website',
           'email',
           'phone',
@@ -312,23 +354,12 @@ class SettingsSearch extends StatelessWidget {
           if (company.hasCustomField(CustomFieldType.company3))
             company.getCustomFieldLabel(CustomFieldType.company3),
           if (company.hasCustomField(CustomFieldType.company4))
-            company.getCustomFieldLabel(CustomFieldType.company4)
+            company.getCustomFieldLabel(CustomFieldType.company4),
         ],
-        [
-          'address',
-          'postal_code',
-          'country',
-        ],
-        [
-          'logo',
-        ],
+        ['address', 'postal_code', 'country'],
+        ['logo'],
         [
           'defaults',
-          'auto_bill',
-          'payment_type',
-          'payment_terms',
-          'online_payment_email',
-          'manual_payment_email',
           'invoice_terms',
           'invoice_footer',
           'quote_terms',
@@ -336,9 +367,7 @@ class SettingsSearch extends StatelessWidget {
           'credit_terms',
           'credit_footer',
         ],
-        [
-          'default_documents',
-        ]
+        ['default_documents', 'documents_public_by_default#2026-08-21'],
       ],
       kSettingsUserDetails: [
         [
@@ -353,6 +382,8 @@ class SettingsSearch extends StatelessWidget {
           'enable_two_factor',
         ],
         [
+          'user_logged_in_notification#2024-05-21',
+          'task_assigned_notification#2024-06-21',
           'notifications',
         ],
       ],
@@ -363,33 +394,45 @@ class SettingsSearch extends StatelessWidget {
           'timezone',
           'date_format',
           'military_time',
+          'decimal_comma',
           'first_month_of_the_year',
+          'rappen_rounding#2024-04-08',
         ],
-        [
-          'custom_labels',
-        ],
+        ['custom_labels'],
       ],
-      kSettingsOnlinePayments: [
+      kSettingsPaymentSettings: [
         [
           'company_gateways',
+          'auto_bill',
           'auto_bill_on',
           'use_available_credits',
+          'admin_initiated_payments#2022-06-06',
           'allow_over_payment',
           'allow_under_payment',
-        ]
+          'auto_bill_standard_invoices#2023-01-17',
+          'client_initiated_payments#2023-03-20',
+          'use_available_payments#2024-02-19',
+          'one_page_checkout#2024-08-19',
+        ],
+        ['payment_type', 'payment_terms'],
+        [
+          'online_payment_email',
+          'manual_payment_email',
+          'send_emails_to#2023-11-30',
+        ],
       ],
       kSettingsTaxSettings: [
-        [
-          'tax_settings',
-        ],
+        ['tax_settings', 'inclusive_taxes', 'calculate_taxes#2023-06-11'],
       ],
       kSettingsTaxRates: [
-        [
-          'tax_rates',
-        ],
+        ['tax_rates'],
       ],
       kSettingsProducts: [
         [
+          'track_inventory#2022-06-03',
+          'stock_notifications#2022-06-03',
+          'show_product_discount',
+          'show_product_cost',
           'fill_products',
           'update_products',
           'convert_products',
@@ -400,72 +443,72 @@ class SettingsSearch extends StatelessWidget {
           'task_settings',
           'auto_start_tasks',
           'show_tasks_table',
+          'client_portal',
+          'lock_invoiced_tasks#2022-11-30',
+          'invoice_task_hours#2023-01-19',
+          'allow_billable_task_items#2023-03-22',
+          'show_task_item_description#2023-03-22',
+          'project_location#2023-06-06',
+          if (supportsLatestFeatures('5.8.55')) 'round_tasks#2024-05-06',
         ],
       ],
       kSettingsTaskStatuses: [
-        [
-          'task_statuses',
-        ],
+        ['task_statuses'],
       ],
       kSettingsExpenses: [
         [
           'should_be_invoiced',
           'mark_paid',
+          'inclusive_taxes',
+          'convert_currency',
+          'notify_vendor_when_paid#2023-01-08',
         ],
       ],
       kSettingsExpenseCategories: [
-        [
-          'expense_categories',
-        ],
+        ['expense_categories'],
       ],
       kSettingsWorkflowSettings: [
         [
           'auto_email_invoice',
-          'auto_archive_invoice',
+          'stop_on_unpaid',
+          'auto_archive_paid_invoices',
+          'auto_archive_cancelled_invoices',
           'lock_invoices',
         ],
-        [
-          'auto_convert',
-        ],
+        ['auto_convert', 'use_quote_terms#2022-05-17'],
       ],
       kSettingsImportExport: [
-        [
-          'import',
-          'export',
-        ],
+        ['import'],
+        ['export'],
       ],
       kSettingsDeviceSettings: [
         [
-          'rows_per_page',
           'long_press_multiselect',
           'biometric_authentication',
+          'enable_flexible_search#2022-07-05',
+          'enable_tooltips#2022-07-05',
+          'show_pdf_preview',
+          'pdf_preview_location#2022-10-24',
           'refresh_data',
+          if (!kIsWeb) 'downloads_folder#2023-10-29',
         ],
-        [
-          'dark_mode',
-          'custom_colors',
-        ],
+        ['dark_mode', 'custom_colors'],
       ],
       kSettingsAccountManagement: [
         [
           'activate_company',
           'enable_markdown',
-          'decimal_comma',
+          'include_drafts',
+          'include_deleted#2022-10-07',
           'api_tokens',
           'api_webhooks',
           'purge_data',
           'delete_company',
         ],
-        [
-          'enabled_modules',
-        ],
-        [
-          'google_analytics',
-        ],
-        [
-          'password_timeout',
-          'web_session_timeout',
-        ],
+        ['enabled_modules'],
+        ['google_analytics', 'matomo_id#2022-12-12'],
+        ['password_timeout', 'web_session_timeout'],
+        ['referral_program#2024-06-21'],
       ],
       kSettingsInvoiceDesign: [
         [
@@ -478,17 +521,22 @@ class SettingsSearch extends StatelessWidget {
           'primary_color',
           'secondary_color',
           'empty_columns',
+          'logo_size#2023-01-26',
+          'show_paid_stamp#2023-01-29',
+          'show_shipping_address#2023-01-29',
+          'share_invoice_quote_columns#2023-03-20',
+          'invoice_embed_documents#2023-10-27',
+          'delivery_note_design#2023-11-06',
+          'statement_design#2023-11-06',
+          'payment_receipt_design#2023-11-06',
+          'payment_refund_design#2023-11-06',
         ],
       ],
       kSettingsCustomDesigns: [
-        [
-          'custom_designs',
-        ],
+        ['custom_designs'],
       ],
       kSettingsCustomFields: [
-        [
-          'custom_fields',
-        ],
+        ['custom_fields'],
       ],
       kSettingsGeneratedNumbers: [
         [
@@ -506,13 +554,17 @@ class SettingsSearch extends StatelessWidget {
         [
           'client_portal',
           'dashboard',
-          'tasks',
           'portal_mode',
           'subdomain',
           'domain',
-          'client_registration',
-          'document_upload',
+          'client_document_upload',
+          'vendor_document_upload#2022-07-06',
+          'accept_purchase_order_number#2023-02-02',
+          'mobile_version#2024-01-29',
+          'enable_client_profile_update#2025-04-28',
+          'preference_product_notes_for_html_view#2025-04-29',
         ],
+        ['client_registration'],
         [
           'enable_portal_password',
           'show_accept_invoice_terms',
@@ -520,11 +572,12 @@ class SettingsSearch extends StatelessWidget {
           'require_invoice_signature',
           'require_quote_signature',
         ],
+        ['messages'],
         [
-          'messages',
-        ],
-        [
+          'header',
+          'footer',
           'custom_css',
+          if (isSelfHosted(context)) 'custom_javascript',
         ],
       ],
       kSettingsEmailSettings: [
@@ -539,51 +592,137 @@ class SettingsSearch extends StatelessWidget {
           'attach_documents',
           'attach_ubl',
           'email_signature',
+          'microsoft',
+          'postmark#2023-01-11',
+          'mailgun#2023-01-11',
+          'email_alignment#2023-01-17',
+          'show_email_footer#2023-01-17',
+          'enable_e_invoice#2023-06-11',
         ],
       ],
       kSettingsTemplatesAndReminders: [
-        [
-          'template',
-          'send_reminders',
-          'late_fees',
-        ]
+        ['template', 'send_reminders', 'late_fees'],
+      ],
+      kSettingsBankAccounts: [
+        ['bank_accounts#2022-09-13'],
+      ],
+      kSettingsEInvoiceSettings: [
+        ['e_invoice_settings#2024-05-20', 'merge_to_pdf#2024-07-03'],
+      ],
+      kSettingsTransactionRules: [
+        ['transaction_rules#2022-11-21'],
       ],
       kSettingsGroupSettings: [
-        [
-          'groups',
-        ],
+        ['groups'],
       ],
-      kSettingsSubscriptions: [
-        [
-          'subscriptions',
-        ],
+      kSettingsPaymentLinks: [
+        ['payment_links'],
+      ],
+      kSettingsSchedules: [
+        ['schedules#2023-02-15'],
       ],
       kSettingsUserManagement: [
-        [
-          'users',
-        ],
-      ]
+        ['users'],
+      ],
     };
 
-    return ScrollableListView(
-      children: <Widget>[
-        for (var section in map.keys)
-          for (int i = 0; i < map[section].length; i++)
-            for (var field in map[section][i])
-              if (localization
-                  .lookup(field)
-                  .toLowerCase()
-                  .contains(filter.toLowerCase()))
-                ListTile(
-                  title: Text(localization.lookup(field)),
-                  leading: Padding(
-                    padding: const EdgeInsets.only(left: 6, top: 10),
-                    child: Icon(getSettingIcon(section), size: 22),
-                  ),
-                  subtitle: Text(localization.lookup(section)),
-                  onTap: () => viewModel.loadSection(context, section, i),
+    if (store.state.settingsUIState.showNewSettings) {
+      final sections = <String>[];
+      for (var section in map.keys) {
+        for (var tab = 0; tab < map[section]!.length; tab++) {
+          final fields = map[section]![tab];
+          for (var field in fields) {
+            final List<String> parts = field.split('#');
+            final dateAdded = parts.length == 1
+                ? ''
+                : convertSqlDateToDateTime(parts[1]);
+            sections.add('$dateAdded#${parts[0]}#$section#$tab');
+          }
+        }
+      }
+
+      sections.sort((a, b) {
+        if (a.startsWith('#') && b.startsWith('#')) {
+          return a.compareTo(b);
+        } else if (a.startsWith('#')) {
+          return 1;
+        } else if (b.startsWith('#')) {
+          return -1;
+        }
+
+        return b.compareTo(a);
+      });
+
+      return ScrollableListView(
+        children: [
+          for (var parts in sections.map(
+            (section) => section.split('#').toList(),
+          ))
+            if ((filter ?? '').trim().isEmpty ||
+                localization
+                    .lookup(parts[1])
+                    .toLowerCase()
+                    .contains(filter!.toLowerCase()))
+              ListTile(
+                title: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(localization.lookup(parts[1])),
+                          Text(
+                            localization.lookup(parts[2]),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                    /*
+                  SizedBox(width: 8),
+                  if (parts[0].isNotEmpty)
+                    Flexible(
+                        child: Text(timeago.format(DateTime.parse(parts[0]),
+                            locale:
+                                localeSelector(store.state, twoLetter: true) +
+                                    '_short'))),
+                                    */
+                  ],
                 ),
-      ],
-    );
+                leading: Padding(
+                  padding: const EdgeInsets.only(left: 6, top: 10),
+                  child: Icon(getSettingIcon(parts[2]), size: 22),
+                ),
+                onTap: () => viewModel!.loadSection(
+                  context,
+                  parts[2],
+                  parseInt(parts[3]),
+                ),
+              ),
+        ],
+      );
+    } else {
+      return ScrollableListView(
+        children: [
+          for (var section in map.keys)
+            for (int i = 0; i < map[section]!.length; i++)
+              for (var field in map[section]![i])
+                if (localization
+                    .lookup(field.split('#')[0])
+                    .toLowerCase()
+                    .contains(filter!.toLowerCase()))
+                  ListTile(
+                    title: Text(localization.lookup(field.split('#')[0])),
+                    leading: Padding(
+                      padding: const EdgeInsets.only(left: 6, top: 10),
+                      child: Icon(getSettingIcon(section), size: 22),
+                    ),
+                    subtitle: Text(localization.lookup(section)),
+                    onTap: () => viewModel!.loadSection(context, section, i),
+                  ),
+        ],
+      );
+    }
   }
 }

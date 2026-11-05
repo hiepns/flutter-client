@@ -1,6 +1,9 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 
 part 'credit_model.g.dart';
@@ -43,6 +46,7 @@ class CreditFields {
   static const String total = 'total';
   static const String amount = 'amount';
   static const String balance = 'balance';
+  static const String remaining = 'remaining';
   static const String clientId = 'client_id';
   static const String client = 'client';
   static const String status = 'status';
@@ -70,4 +74,12 @@ class CreditFields {
   static const String taxAmount = 'tax_amount';
   static const String exchangeRate = 'exchange_rate';
   static const String isViewed = 'is_viewed';
+  static const String project = 'project';
+  static const String vendor = 'vendor';
+  static const String contactName = 'contact_name';
+  static const String contactEmail = 'contact_email';
+  static const String clientCity = 'client_city';
+  static const String clientState = 'client_state';
+  static const String clientPostalCode = 'client_postal_code';
+  static const String clientCountry = 'client_country';
 }

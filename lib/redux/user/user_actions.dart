@@ -1,16 +1,22 @@
+// Dart imports:
 import 'dart:async';
+
+// Flutter imports:
 import 'package:flutter/widgets.dart';
+
+// Package imports:
 import 'package:built_collection/built_collection.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/app/app_actions.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:invoiceninja_flutter/data/models/user_model.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/auth/auth_actions.dart';
 import 'package:invoiceninja_flutter/ui/app/entities/entity_actions_dialog.dart';
+import 'package:invoiceninja_flutter/utils/completers.dart';
 import 'package:invoiceninja_flutter/utils/dialogs.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
-import 'package:invoiceninja_flutter/utils/completers.dart';
 
 class ViewUserList implements PersistUI {
   ViewUserList({this.force = false});
@@ -19,20 +25,17 @@ class ViewUserList implements PersistUI {
 }
 
 class ViewUser implements PersistUI, PersistPrefs {
-  ViewUser({
-    @required this.userId,
-    this.force = false,
-  });
+  ViewUser({required this.userId, this.force = false});
 
-  final String userId;
+  final String? userId;
   final bool force;
 }
 
 class EditUser implements PersistUI, PersistPrefs {
-  EditUser({@required this.user, this.completer, this.force = false});
+  EditUser({required this.user, this.completer, this.force = false});
 
   final UserEntity user;
-  final Completer completer;
+  final Completer? completer;
   final bool force;
 }
 
@@ -52,21 +55,21 @@ class UpdateUserCompany implements PersistUI {
 class LoadUser {
   LoadUser({this.completer, this.userId});
 
-  final Completer completer;
-  final String userId;
+  final Completer? completer;
+  final String? userId;
 }
 
 class LoadUserActivity {
   LoadUserActivity({this.completer, this.userId});
 
-  final Completer completer;
-  final String userId;
+  final Completer? completer;
+  final String? userId;
 }
 
 class LoadUsers {
   LoadUsers({this.completer});
 
-  final Completer completer;
+  final Completer? completer;
 }
 
 class LoadUserRequest implements StartLoading {}
@@ -119,16 +122,16 @@ class LoadUsersSuccess implements StopLoading {
 
 class SaveUserRequest implements StartSaving {
   SaveUserRequest({
-    @required this.completer,
-    @required this.user,
+    required this.completer,
+    required this.user,
     this.password,
     this.idToken,
   });
 
   final Completer completer;
-  final UserEntity user;
-  final String password;
-  final String idToken;
+  final UserEntity? user;
+  final String? password;
+  final String? idToken;
 }
 
 class SaveUserSuccess
@@ -159,10 +162,10 @@ class ArchiveUserRequest implements StartSaving {
     this.idToken,
   });
 
-  final Completer completer;
-  final List<String> userIds;
-  final String password;
-  final String idToken;
+  final Completer? completer;
+  final List<String>? userIds;
+  final String? password;
+  final String? idToken;
 }
 
 class ArchiveUserSuccess
@@ -175,7 +178,7 @@ class ArchiveUserSuccess
 class ArchiveUserFailure implements StopSaving {
   ArchiveUserFailure(this.users);
 
-  final List<UserEntity> users;
+  final List<UserEntity?> users;
 }
 
 class DeleteUserRequest implements StartSaving {
@@ -186,10 +189,10 @@ class DeleteUserRequest implements StartSaving {
     this.idToken,
   });
 
-  final Completer completer;
-  final List<String> userIds;
-  final String password;
-  final String idToken;
+  final Completer? completer;
+  final List<String>? userIds;
+  final String? password;
+  final String? idToken;
 }
 
 class DeleteUserSuccess
@@ -202,7 +205,7 @@ class DeleteUserSuccess
 class DeleteUserFailure implements StopSaving {
   DeleteUserFailure(this.users);
 
-  final List<UserEntity> users;
+  final List<UserEntity?> users;
 }
 
 class RestoreUserRequest implements StartSaving {
@@ -213,10 +216,10 @@ class RestoreUserRequest implements StartSaving {
     this.idToken,
   });
 
-  final Completer completer;
-  final List<String> userIds;
-  final String password;
-  final String idToken;
+  final Completer? completer;
+  final List<String>? userIds;
+  final String? password;
+  final String? idToken;
 }
 
 class RestoreUserSuccess
@@ -229,27 +232,22 @@ class RestoreUserSuccess
 class RestoreUserFailure implements StopSaving {
   RestoreUserFailure(this.users);
 
-  final List<UserEntity> users;
+  final List<UserEntity?> users;
 }
 
 class RemoveUserRequest implements StartSaving {
-  RemoveUserRequest({
-    this.completer,
-    this.userId,
-    this.password,
-    this.idToken,
-  });
+  RemoveUserRequest({this.completer, this.userId, this.password, this.idToken});
 
-  final Completer completer;
-  final String userId;
-  final String password;
-  final String idToken;
+  final Completer? completer;
+  final String? userId;
+  final String? password;
+  final String? idToken;
 }
 
 class RemoveUserSuccess implements StopSaving, PersistData {
   RemoveUserSuccess(this.userId);
 
-  final String userId;
+  final String? userId;
 }
 
 class RemoveUserFailure implements StopSaving {
@@ -266,16 +264,16 @@ class ResendInviteRequest implements StartSaving {
     this.idToken,
   });
 
-  final Completer completer;
-  final String userId;
-  final String password;
-  final String idToken;
+  final Completer? completer;
+  final String? userId;
+  final String? password;
+  final String? idToken;
 }
 
 class ResendInviteSuccess implements StopSaving, PersistData {
   ResendInviteSuccess(this.userId);
 
-  final String userId;
+  final String? userId;
 }
 
 class ResendInviteFailure implements StopSaving {
@@ -287,7 +285,7 @@ class ResendInviteFailure implements StopSaving {
 class FilterUsers {
   FilterUsers(this.filter);
 
-  final String filter;
+  final String? filter;
 }
 
 class SortUsers implements PersistUI, PersistPrefs {
@@ -327,12 +325,15 @@ class FilterUsersByCustom4 implements PersistUI {
 }
 
 void handleUserAction(
-    BuildContext context, List<BaseEntity> users, EntityAction action) {
+  BuildContext? context,
+  List<BaseEntity> users,
+  EntityAction? action,
+) {
   if (users.isEmpty) {
     return;
   }
 
-  final store = StoreProvider.of<AppState>(context);
+  final store = StoreProvider.of<AppState>(context!);
   final state = store.state;
   final localization = AppLocalization.of(context);
   final user = users.first as UserEntity;
@@ -340,180 +341,178 @@ void handleUserAction(
 
   switch (action) {
     case EntityAction.edit:
-      editEntity(context: context, entity: user);
+      editEntity(entity: user);
       break;
     case EntityAction.newClient:
       createEntity(
-          context: context,
-          entity: ClientEntity(state: state)
-              .rebuild((b) => b.assignedUserId = user.id),
-          filterEntity: user);
+        entity: ClientEntity(
+          state: state,
+        ).rebuild((b) => b.assignedUserId = user.id),
+      );
       break;
     case EntityAction.newInvoice:
       createEntity(
-          context: context,
-          entity: InvoiceEntity(state: state)
-              .rebuild((b) => b.assignedUserId = user.id),
-          filterEntity: user);
+        entity: InvoiceEntity(
+          state: state,
+        ).rebuild((b) => b.assignedUserId = user.id),
+      );
       break;
     case EntityAction.newRecurringInvoice:
       createEntity(
-          context: context,
-          entity: InvoiceEntity(
-                  state: state, entityType: EntityType.recurringInvoice)
-              .rebuild((b) => b.assignedUserId = user.id),
-          filterEntity: user);
+        entity: InvoiceEntity(
+          state: state,
+          entityType: EntityType.recurringInvoice,
+        ).rebuild((b) => b.assignedUserId = user.id),
+      );
       break;
     case EntityAction.newQuote:
       createEntity(
-        context: context,
         entity: InvoiceEntity(
           state: state,
           entityType: EntityType.quote,
         ).rebuild((b) => b.assignedUserId = user.id),
-        filterEntity: user,
       );
       break;
     case EntityAction.newCredit:
       createEntity(
-        context: context,
         entity: InvoiceEntity(
           state: state,
           entityType: EntityType.credit,
         ).rebuild((b) => b.assignedUserId = user.id),
-        filterEntity: user,
       );
       break;
     case EntityAction.newExpense:
       createEntity(
-        context: context,
-        entity: ExpenseEntity(state: state)
-            .rebuild((b) => b.assignedUserId = user.id),
-        filterEntity: user,
+        entity: ExpenseEntity(
+          state: state,
+        ).rebuild((b) => b.assignedUserId = user.id),
       );
       break;
     case EntityAction.newPayment:
       createEntity(
-        context: context,
-        entity: PaymentEntity(state: state)
-            .rebuild((b) => b.assignedUserId = user.id),
-        filterEntity: user,
+        entity: PaymentEntity(
+          state: state,
+        ).rebuild((b) => b.assignedUserId = user.id),
       );
       break;
     case EntityAction.newProject:
       createEntity(
-        context: context,
-        entity: ProjectEntity(state: state)
-            .rebuild((b) => b.assignedUserId = user.id),
-        filterEntity: user,
+        entity: ProjectEntity(
+          state: state,
+        ).rebuild((b) => b.assignedUserId = user.id),
       );
       break;
     case EntityAction.newTask:
       createEntity(
-        context: context,
-        entity:
-            TaskEntity(state: state).rebuild((b) => b.assignedUserId = user.id),
-        filterEntity: user,
+        entity: TaskEntity(
+          state: state,
+        ).rebuild((b) => b.assignedUserId = user.id),
       );
       break;
     case EntityAction.newVendor:
       createEntity(
-        context: context,
-        entity: VendorEntity(state: state)
-            .rebuild((b) => b.assignedUserId = user.id),
-        filterEntity: user,
+        entity: VendorEntity(
+          state: state,
+        ).rebuild((b) => b.assignedUserId = user.id),
       );
       break;
     case EntityAction.restore:
       final message = userIds.length > 1
-          ? localization.restoredUsers
-              .replaceFirst(':value', userIds.length.toString())
-          : localization.restoredUser;
-      final dispatch = ([String password, String idToken]) =>
-          store.dispatch(RestoreUserRequest(
-            completer: snackBarCompleter<Null>(context, message),
-            userIds: userIds,
-            password: password,
-            idToken: idToken,
-          ));
+          ? localization!.restoredUsers
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', userIds.length.toString())
+          : localization!.restoredUser;
+      final dispatch = ([String? password, String? idToken]) => store.dispatch(
+        RestoreUserRequest(
+          completer: snackBarCompleter<Null>(message),
+          userIds: userIds,
+          password: password,
+          idToken: idToken,
+        ),
+      );
       passwordCallback(
-          context: context,
-          callback: (password, idToken) {
-            dispatch(password, idToken);
-          });
+        context: context,
+        callback: (password, idToken) {
+          dispatch(password, idToken);
+        },
+      );
       break;
     case EntityAction.archive:
       final message = userIds.length > 1
-          ? localization.archivedUsers
-              .replaceFirst(':value', userIds.length.toString())
-          : localization.archivedUser;
-      final dispatch = ([String password, String idToken]) =>
-          store.dispatch(ArchiveUserRequest(
-            completer: snackBarCompleter<Null>(context, message),
-            userIds: userIds,
-            password: password,
-            idToken: idToken,
-          ));
+          ? localization!.archivedUsers
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', userIds.length.toString())
+          : localization!.archivedUser;
+      final dispatch = ([String? password, String? idToken]) => store.dispatch(
+        ArchiveUserRequest(
+          completer: snackBarCompleter<Null>(message),
+          userIds: userIds,
+          password: password,
+          idToken: idToken,
+        ),
+      );
       passwordCallback(
-          context: context,
-          callback: (password, idToken) {
-            dispatch(password, idToken);
-          });
+        context: context,
+        callback: (password, idToken) {
+          dispatch(password, idToken);
+        },
+      );
       break;
     case EntityAction.delete:
       final message = userIds.length > 1
-          ? localization.deletedUsers
-              .replaceFirst(':value', userIds.length.toString())
-          : localization.deletedUser;
-      final dispatch = ([
-        String password,
-        String idToken,
-      ]) =>
-          store.dispatch(DeleteUserRequest(
-            completer: snackBarCompleter<Null>(context, message),
-            userIds: userIds,
-            password: password,
-            idToken: idToken,
-          ));
+          ? localization!.deletedUsers
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', userIds.length.toString())
+          : localization!.deletedUser;
+      final dispatch = ([String? password, String? idToken]) => store.dispatch(
+        DeleteUserRequest(
+          completer: snackBarCompleter<Null>(message),
+          userIds: userIds,
+          password: password,
+          idToken: idToken,
+        ),
+      );
       passwordCallback(
-          context: context,
-          callback: (password, idToken) {
-            dispatch(password, idToken);
-          });
+        context: context,
+        callback: (password, idToken) {
+          dispatch(password, idToken);
+        },
+      );
       break;
     case EntityAction.newRecurringExpense:
       createEntity(
-          context: context,
-          entity: ExpenseEntity(
-              state: state,
-              user: user,
-              entityType: EntityType.recurringExpense),
-          filterEntity: user);
+        entity: ExpenseEntity(
+          state: state,
+          user: user,
+          entityType: EntityType.recurringExpense,
+        ),
+      );
       break;
     case EntityAction.remove:
       final message = userIds.length > 1
-          ? localization.removedUsers
-              .replaceFirst(':value', userIds.length.toString())
-          : localization.removedUser;
-      final dispatch = ([
-        String password,
-        String idToken,
-      ]) =>
-          store.dispatch(RemoveUserRequest(
-            completer: snackBarCompleter<Null>(context, message),
-            userId: user.id,
-            password: password,
-            idToken: idToken,
-          ));
+          ? localization!.removedUsers
+                .replaceFirst(':value', ':count')
+                .replaceFirst(':count', userIds.length.toString())
+          : localization!.removedUser;
+      final dispatch = ([String? password, String? idToken]) => store.dispatch(
+        RemoveUserRequest(
+          completer: snackBarCompleter<Null>(message),
+          userId: user.id,
+          password: password,
+          idToken: idToken,
+        ),
+      );
       confirmCallback(
-          context: context,
-          callback: (_) {
-            passwordCallback(
-                context: context,
-                callback: (password, idToken) {
-                  dispatch(password, idToken);
-                });
-          });
+        context: context,
+        callback: (_) {
+          passwordCallback(
+            context: context,
+            callback: (password, idToken) {
+              dispatch(password, idToken);
+            },
+          );
+        },
+      );
       break;
     case EntityAction.toggleMultiselect:
       if (!store.state.userListState.isInMultiselect()) {
@@ -534,21 +533,23 @@ void handleUserAction(
       break;
     case EntityAction.resendInvite:
       passwordCallback(
-          context: context,
-          callback: (password, idToken) {
-            store.dispatch(ResendInviteRequest(
+        context: context,
+        callback: (password, idToken) {
+          store.dispatch(
+            ResendInviteRequest(
               userId: user.id,
               password: password,
               idToken: idToken,
               completer: snackBarCompleter<Null>(
-                  context, localization.emailSentToConfirmEmail),
-            ));
-          });
+                localization!.emailSentToConfirmEmail,
+              ),
+            ),
+          );
+        },
+      );
       break;
     case EntityAction.more:
-      showEntityActionsDialog(
-        entities: [user],
-      );
+      showEntityActionsDialog(entities: [user]);
       break;
   }
 }
@@ -556,15 +557,15 @@ void handleUserAction(
 class StartUserMultiselect {}
 
 class AddToUserMultiselect {
-  AddToUserMultiselect({@required this.entity});
+  AddToUserMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class RemoveFromUserMultiselect {
-  RemoveFromUserMultiselect({@required this.entity});
+  RemoveFromUserMultiselect({required this.entity});
 
-  final BaseEntity entity;
+  final BaseEntity? entity;
 }
 
 class ClearUserMultiselect {}

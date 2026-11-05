@@ -1,9 +1,16 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:invoiceninja_flutter/data/models/entities.dart';
+import 'package:collection/collection.dart';
+import 'package:diacritic/diacritic.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/design/design_selectors.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/strings.dart';
 
@@ -63,16 +70,17 @@ class ProjectFields {
   static const String archivedAt = 'archived_at';
   static const String isDeleted = 'is_deleted';
   static const String documents = 'documents';
+  static const String totalHours = 'total_hours';
 }
 
 abstract class ProjectEntity extends Object
     with BaseEntity, SelectableEntity, BelongsToClient
     implements Built<ProjectEntity, ProjectEntityBuilder> {
   factory ProjectEntity({
-    String id,
-    AppState state,
-    ClientEntity client,
-    UserEntity user,
+    String? id,
+    AppState? state,
+    ClientEntity? client,
+    UserEntity? user,
   }) {
     return _$ProjectEntity._(
       id: id ?? BaseEntity.nextId,
@@ -96,6 +104,7 @@ abstract class ProjectEntity extends Object
       createdUserId: '',
       createdAt: 0,
       assignedUserId: user?.id ?? '',
+      totalHours: 0.0,
       documents: BuiltList<DocumentEntity>(),
     );
   }
@@ -106,12 +115,14 @@ abstract class ProjectEntity extends Object
   @memoized
   int get hashCode;
 
-  ProjectEntity get clone => rebuild((b) => b
-    ..id = BaseEntity.nextId
-    ..number = ''
-    ..documents.clear()
-    ..isChanged = false
-    ..isDeleted = false);
+  ProjectEntity get clone => rebuild(
+    (b) => b
+      ..id = BaseEntity.nextId
+      ..number = ''
+      ..documents.clear()
+      ..isChanged = false
+      ..isDeleted = false,
+  );
 
   @override
   EntityType get entityType {
@@ -155,24 +166,28 @@ abstract class ProjectEntity extends Object
 
   String get number;
 
+  @BuiltValueField(wireName: 'current_hours')
+  double get totalHours;
+
   BuiltList<DocumentEntity> get documents;
 
   @override
-  List<EntityAction> getActions(
-      {UserCompanyEntity userCompany,
-      ClientEntity client,
-      bool includeEdit = false,
-      bool includePreview = false,
-      bool multiselect = false}) {
-    final actions = <EntityAction>[];
+  List<EntityAction?> getActions({
+    UserCompanyEntity? userCompany,
+    ClientEntity? client,
+    bool includeEdit = false,
+    bool includePreview = false,
+    bool multiselect = false,
+  }) {
+    final actions = <EntityAction?>[];
 
-    if (!multiselect && !isDeleted) {
-      if (includeEdit && userCompany.canEditEntity(this)) {
+    if (!multiselect && !isDeleted!) {
+      if (includeEdit && userCompany!.canEditEntity(this)) {
         actions.add(EntityAction.edit);
       }
 
       if (isActive) {
-        if (userCompany.canCreate(EntityType.task)) {
+        if (userCompany!.canCreate(EntityType.task)) {
           actions.add(EntityAction.newTask);
         }
         if (userCompany.canCreate(EntityType.expense)) {
@@ -181,12 +196,30 @@ abstract class ProjectEntity extends Object
       }
     }
 
-    if (userCompany.canCreate(EntityType.invoice) && !isDeleted) {
+    if (userCompany!.canCreate(EntityType.invoice) && !isDeleted!) {
       actions.add(EntityAction.invoiceProject);
     }
 
     if (userCompany.canCreate(EntityType.project)) {
       actions.add(EntityAction.clone);
+    }
+
+    if (!isDeleted! && multiselect) {
+      actions.add(EntityAction.documents);
+    }
+
+    if (!isDeleted!) {
+      final store = StoreProvider.of<AppState>(navigatorKey.currentContext!);
+      if (hasDesignTemplatesForEntityType(
+        store.state.designState.map,
+        entityType,
+      )) {
+        actions.add(EntityAction.runTemplate);
+      }
+
+      if (!multiselect) {
+        //actions.add(EntityAction.addComment);
+      }
     }
 
     if (actions.isNotEmpty && actions.last != null) {
@@ -197,19 +230,21 @@ abstract class ProjectEntity extends Object
   }
 
   int compareTo(
-      ProjectEntity project,
-      String sortField,
-      bool sortAscending,
-      BuiltMap<String, UserEntity> userMap,
-      BuiltMap<String, ClientEntity> clientMap) {
+    ProjectEntity project,
+    String sortField,
+    bool sortAscending,
+    BuiltMap<String, UserEntity> userMap,
+    BuiltMap<String, ClientEntity> clientMap,
+  ) {
     int response = 0;
     final ProjectEntity projectA = sortAscending ? this : project;
     final ProjectEntity projectB = sortAscending ? project : this;
 
     switch (sortField) {
       case ProjectFields.name:
-        response =
-            projectA.name.toLowerCase().compareTo(projectB.name.toLowerCase());
+        response = projectA.name.toLowerCase().compareTo(
+          projectB.name.toLowerCase(),
+        );
         break;
       case ProjectFields.taskRate:
         response = projectA.taskRate.compareTo(projectB.taskRate);
@@ -217,23 +252,23 @@ abstract class ProjectEntity extends Object
       case ProjectFields.client:
         final clientA = clientMap[projectA.clientId] ?? ClientEntity();
         final clientB = clientMap[projectB.clientId] ?? ClientEntity();
-        response = clientA.listDisplayName
+        response = removeDiacritics(clientA.listDisplayName)
             .toLowerCase()
-            .compareTo(clientB.listDisplayName.toLowerCase());
+            .compareTo(removeDiacritics(clientB.listDisplayName).toLowerCase());
         break;
       case ProjectFields.clientNumber:
         final clientA = clientMap[projectA.clientId] ?? ClientEntity();
         final clientB = clientMap[projectB.clientId] ?? ClientEntity();
-        response = clientA.number
-            .toLowerCase()
-            .compareTo(clientB.number.toLowerCase());
+        response = clientA.number.toLowerCase().compareTo(
+          clientB.number.toLowerCase(),
+        );
         break;
       case ProjectFields.clientIdNumber:
         final clientA = clientMap[projectA.clientId] ?? ClientEntity();
         final clientB = clientMap[projectB.clientId] ?? ClientEntity();
-        response = clientA.idNumber
-            .toLowerCase()
-            .compareTo(clientB.idNumber.toLowerCase());
+        response = clientA.idNumber.toLowerCase().compareTo(
+          clientB.idNumber.toLowerCase(),
+        );
         break;
       case ProjectFields.dueDate:
         response = projectA.dueDate.compareTo(projectB.dueDate);
@@ -247,13 +282,15 @@ abstract class ProjectEntity extends Object
       case ProjectFields.budgetedHours:
         response = projectA.budgetedHours.compareTo(projectB.budgetedHours);
         break;
+      case ProjectFields.totalHours:
+        response = projectA.totalHours.compareTo(projectB.totalHours);
+        break;
       case EntityFields.state:
-        final stateA =
-            EntityState.valueOf(projectA.entityState) ?? EntityState.active;
-        final stateB =
-            EntityState.valueOf(projectB.entityState) ?? EntityState.active;
-        response =
-            stateA.name.toLowerCase().compareTo(stateB.name.toLowerCase());
+        final stateA = EntityState.valueOf(projectA.entityState);
+        final stateB = EntityState.valueOf(projectB.entityState);
+        response = stateA.name.toLowerCase().compareTo(
+          stateB.name.toLowerCase(),
+        );
         break;
       case EntityFields.createdAt:
         response = projectA.createdAt.compareTo(projectB.createdAt);
@@ -267,23 +304,24 @@ abstract class ProjectEntity extends Object
       case EntityFields.assignedTo:
         final userA = userMap[projectA.assignedUserId] ?? UserEntity();
         final userB = userMap[projectB.assignedUserId] ?? UserEntity();
-        response = userA.listDisplayName
-            .toLowerCase()
-            .compareTo(userB.listDisplayName.toLowerCase());
+        response = userA.listDisplayName.toLowerCase().compareTo(
+          userB.listDisplayName.toLowerCase(),
+        );
         break;
       case EntityFields.createdBy:
         final userA = userMap[projectA.createdUserId] ?? UserEntity();
         final userB = userMap[projectB.createdUserId] ?? UserEntity();
-        response = userA.listDisplayName
-            .toLowerCase()
-            .compareTo(userB.listDisplayName.toLowerCase());
+        response = userA.listDisplayName.toLowerCase().compareTo(
+          userB.listDisplayName.toLowerCase(),
+        );
         break;
       case ProjectFields.documents:
-        response =
-            projectA.documents.length.compareTo(projectB.documents.length);
+        response = projectA.documents.length.compareTo(
+          projectB.documents.length,
+        );
         break;
       case ProjectFields.number:
-        response = (projectA.number ?? '').compareTo(projectB.number ?? '');
+        response = compareNatural(projectA.number, projectB.number);
         break;
       case ProjectFields.customValue1:
         response = projectA.customValue1.compareTo(projectB.customValue1);
@@ -309,11 +347,11 @@ abstract class ProjectEntity extends Object
     return response;
   }
 
-  bool matchesName(String filter) =>
-      name.toLowerCase().contains(filter.toLowerCase());
+  bool matchesName(String? filter) =>
+      name.toLowerCase().contains((filter ?? '').toLowerCase());
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     return matchesStrings(
       haystacks: [
         name,
@@ -330,7 +368,7 @@ abstract class ProjectEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     return matchesStringsValue(
       haystacks: [
         name,
@@ -352,16 +390,17 @@ abstract class ProjectEntity extends Object
   }
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
-  bool get hasClient => clientId != null && clientId.isNotEmpty;
+  bool get hasClient => clientId.isNotEmpty;
 
   @override
   FormatNumberType get listDisplayAmountType => FormatNumberType.money;
 
   // ignore: unused_element
-  static void _initializeBuilder(ProjectEntityBuilder builder) =>
-      builder..color = '';
+  static void _initializeBuilder(ProjectEntityBuilder builder) => builder
+    ..color = ''
+    ..totalHours = 0;
 
   static Serializer<ProjectEntity> get serializer => _$projectEntitySerializer;
 }

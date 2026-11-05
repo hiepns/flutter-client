@@ -1,20 +1,24 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
+import 'package:diacritic/diacritic.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
-import 'package:invoiceninja_flutter/data/models/company_model.dart';
-import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/gateway_token_model.dart';
 import 'package:invoiceninja_flutter/data/models/group_model.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/data/models/settings_model.dart';
 import 'package:invoiceninja_flutter/data/models/system_log_model.dart';
+import 'package:invoiceninja_flutter/data/models/tax_model.dart';
+import 'package:invoiceninja_flutter/main_app.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/design/design_selectors.dart';
 import 'package:invoiceninja_flutter/redux/static/static_state.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
 import 'package:invoiceninja_flutter/utils/strings.dart';
-import 'package:collection/collection.dart';
 
 part 'client_model.g.dart';
 
@@ -60,6 +64,7 @@ class ClientFields {
   static const String country = 'country';
   static const String balance = 'balance';
   static const String creditBalance = 'credit_balance';
+  static const String paymentBalance = 'payment_balance';
   static const String vatNumber = 'vat_number';
   static const String idNumber = 'id_number';
   static const String number = 'number';
@@ -89,6 +94,7 @@ class ClientFields {
   static const String createdById = 'created_by_id';
   static const String cityStatePostal = 'city_state_postal';
   static const String postalCityState = 'postal_city_state';
+  static const String postalCity = 'postal_city';
   static const String documents = 'documents';
   static const String postalCode = 'postal_code';
   static const String city = 'city';
@@ -99,25 +105,37 @@ class ClientFields {
   static const String shippingPostalCode = 'shipping_postal_code';
   static const String shippingCountry = 'shipping_country';
   static const String group = 'group';
+  static const String routingId = 'routing_id';
+  static const String isTaxExempt = 'tax_exempt';
+  static const String classification = 'classification';
+  static const String sizeId = 'size_id';
+  static const String industryId = 'industry_id';
+  static const String countryId = 'country_id';
+  static const String locationName = 'location_name';
 }
 
 abstract class ClientEntity extends Object
-    with BaseEntity, SelectableEntity
+    with BaseEntity, SelectableEntity, HasActivities
     implements Built<ClientEntity, ClientEntityBuilder> {
   factory ClientEntity({
-    String id,
-    AppState state,
-    UserEntity user,
-    GroupEntity group,
+    String? id,
+    AppState? state,
+    UserEntity? user,
+    GroupEntity? group,
   }) {
     return _$ClientEntity._(
       id: id ?? BaseEntity.nextId,
       isChanged: false,
-      settings: SettingsEntity(),
+      settings: SettingsEntity().rebuild(
+        (b) => b
+          //..languageId = state?.company.languageId ?? ''
+          ..currencyId = state?.company.currencyId ?? '',
+      ),
       name: '',
       displayName: '',
       balance: 0,
       creditBalance: 0,
+      paymentBalance: 0,
       paidToDate: 0,
       lastLogin: 0,
       address1: '',
@@ -146,13 +164,19 @@ abstract class ClientEntity extends Object
       customValue2: '',
       customValue3: '',
       customValue4: '',
-      contacts: BuiltList<ContactEntity>(
-        <ContactEntity>[ContactEntity().rebuild((b) => b..isPrimary = true)],
-      ),
+      routingId: '',
+      isTaxExempt: false,
+      hasValidVatNumber: false,
+      classification: '',
+      taxData: TaxDataEntity(),
+      contacts: BuiltList<ClientContactEntity>(<ClientContactEntity>[
+        ClientContactEntity().rebuild((b) => b..isPrimary = true),
+      ]),
       activities: BuiltList<ActivityEntity>(),
       ledger: BuiltList<LedgerEntity>(),
       gatewayTokens: BuiltList<GatewayTokenEntity>(),
       systemLogs: BuiltList<SystemLogEntity>(),
+      locations: BuiltList<LocationEntity>(),
       loadedAt: 0,
       updatedAt: 0,
       archivedAt: 0,
@@ -171,28 +195,29 @@ abstract class ClientEntity extends Object
   @memoized
   int get hashCode;
 
-  ClientEntity get clone => rebuild((b) => b
-    ..id = BaseEntity.nextId
-    ..idNumber = ''
-    ..documents.clear()
-    ..isChanged = false
-    ..isDeleted = false);
+  ClientEntity get clone => rebuild(
+    (b) => b
+      ..id = BaseEntity.nextId
+      ..idNumber = ''
+      ..documents.clear()
+      ..isChanged = false
+      ..isDeleted = false,
+  );
 
   @BuiltValueField(wireName: 'group_settings_id')
   String get groupId;
 
-  @nullable
   @BuiltValueField(compare: false)
-  int get loadedAt;
+  int? get loadedAt;
 
-  bool get isLoaded => loadedAt != null && loadedAt > 0;
+  bool get isLoaded => loadedAt != null && loadedAt! > 0;
 
   bool get isStale {
     if (!isLoaded) {
       return true;
     }
 
-    return DateTime.now().millisecondsSinceEpoch - loadedAt >
+    return DateTime.now().millisecondsSinceEpoch - loadedAt! >
         kMillisecondsToRefreshActivities;
   }
 
@@ -210,6 +235,9 @@ abstract class ClientEntity extends Object
 
   @BuiltValueField(wireName: 'credit_balance')
   double get creditBalance;
+
+  @BuiltValueField(wireName: 'payment_balance')
+  double get paymentBalance;
 
   @BuiltValueField(wireName: 'paid_to_date')
   double get paidToDate;
@@ -292,8 +320,23 @@ abstract class ClientEntity extends Object
   @BuiltValueField(wireName: 'custom_value4')
   String get customValue4;
 
-  BuiltList<ContactEntity> get contacts;
+  @BuiltValueField(wireName: 'routing_id')
+  String get routingId;
 
+  @BuiltValueField(wireName: 'is_tax_exempt')
+  bool get isTaxExempt;
+
+  @BuiltValueField(wireName: 'has_valid_vat_number')
+  bool get hasValidVatNumber;
+
+  @BuiltValueField(wireName: 'tax_info')
+  TaxDataEntity get taxData;
+
+  String get classification;
+
+  BuiltList<ClientContactEntity> get contacts;
+
+  @override
   BuiltList<ActivityEntity> get activities;
 
   BuiltList<LedgerEntity> get ledger;
@@ -306,6 +349,8 @@ abstract class ClientEntity extends Object
   @BuiltValueField(wireName: 'system_logs')
   BuiltList<SystemLogEntity> get systemLogs;
 
+  BuiltList<LocationEntity> get locations;
+
   //String get last_login;
   //String get custom_messages;
 
@@ -314,33 +359,24 @@ abstract class ClientEntity extends Object
     return displayName;
   }
 
-  bool getManualPaymentEmail(
-      {@required CompanyEntity company, @required GroupEntity group}) {
+  bool? getManualPaymentEmail({
+    required CompanyEntity company,
+    required GroupEntity? group,
+  }) {
     if (settings.clientManualPaymentNotification != null) {
       return settings.clientManualPaymentNotification;
-    } else if (group?.settings?.clientManualPaymentNotification != null) {
-      return group.settings.clientManualPaymentNotification;
+    } else if (group?.settings.clientManualPaymentNotification != null) {
+      return group!.settings.clientManualPaymentNotification;
     } else {
       return company.settings.clientManualPaymentNotification;
     }
   }
 
-  Iterable<ActivityEntity> getActivities({String invoiceId, String typeId}) {
-    return activities.where((activity) {
-      if (invoiceId != null && activity.invoiceId != invoiceId) {
-        return false;
-      }
-      if (typeId != null && activity.activityTypeId != typeId) {
-        return false;
-      }
-      return true;
-    });
-  }
-
   EmailTemplate getNextEmailTemplate(String invoiceId) {
     EmailTemplate template = EmailTemplate.invoice;
-    getActivities(invoiceId: invoiceId, typeId: kActivityEmailInvoice)
-        .forEach((activity) {
+    getActivities(invoiceId: invoiceId, typeId: kActivityEmailInvoice).forEach((
+      activity,
+    ) {
       if (template == EmailTemplate.invoice) {
         template = EmailTemplate.reminder1;
       }
@@ -353,185 +389,201 @@ abstract class ClientEntity extends Object
     return template;
   }
 
-  ContactEntity get primaryContact =>
-      contacts.firstWhere((contact) => contact.isPrimary,
-          orElse: () => ContactEntity());
+  ClientContactEntity get primaryContact => contacts.firstWhere(
+    (contact) => contact.isPrimary,
+    orElse: () => ClientContactEntity(),
+  );
 
-  List<ContactEntity> get emailContacts {
+  List<ClientContactEntity> get emailContacts {
     final list = contacts.where((contact) => contact.sendEmail).toList();
     return list.isEmpty ? [primaryContact] : list;
   }
 
-  bool get hasGroup => groupId != null && groupId.isNotEmpty;
+  bool get hasGroup => groupId.isNotEmpty;
 
-  bool get hasUser => assignedUserId != null && assignedUserId.isNotEmpty;
+  bool get hasUser => assignedUserId != null && assignedUserId!.isNotEmpty;
 
   bool get hasLanguage =>
-      settings.languageId != null && settings.languageId.isNotEmpty;
+      settings.languageId != null && settings.languageId!.isNotEmpty;
 
   bool get hasEmailAddress =>
-      contacts.where((contact) => contact.email?.isNotEmpty).isNotEmpty;
+      contacts.where((contact) => contact.email.isNotEmpty).isNotEmpty;
 
-  int compareTo(ClientEntity client, String sortField, bool sortAscending,
-      BuiltMap<String, UserEntity> userMap, StaticState staticState) {
+  int compareTo(
+    ClientEntity? client,
+    String sortField,
+    bool sortAscending,
+    BuiltMap<String, UserEntity> userMap,
+    StaticState staticState,
+  ) {
     int response = 0;
-    final ClientEntity clientA = sortAscending ? this : client;
-    final ClientEntity clientB = sortAscending ? client : this;
+    final ClientEntity? clientA = sortAscending ? this : client;
+    final ClientEntity? clientB = sortAscending ? client : this;
 
     switch (sortField) {
       case ClientFields.name:
-        response = clientA.displayName
+        response = removeDiacritics(clientA!.displayName)
             .toLowerCase()
-            .compareTo(clientB.displayName.toLowerCase());
+            .compareTo(removeDiacritics(clientB!.displayName).toLowerCase());
         break;
       case ClientFields.contactName:
-        response = clientA.primaryContact.fullName
+        response = removeDiacritics(clientA!.primaryContact.fullName)
             .toLowerCase()
-            .compareTo(clientB.primaryContact.fullName.toLowerCase());
+            .compareTo(
+              removeDiacritics(clientB!.primaryContact.fullName).toLowerCase(),
+            );
         break;
       case ClientFields.contactEmail:
-        response = clientA.primaryContact.email
-            .toLowerCase()
-            .compareTo(clientB.primaryContact.email.toLowerCase());
+        response = clientA!.primaryContact.email.toLowerCase().compareTo(
+          clientB!.primaryContact.email.toLowerCase(),
+        );
         break;
       case ClientFields.balance:
-        response = clientA.balance.compareTo(clientB.balance);
+        response = clientA!.balance.compareTo(clientB!.balance);
         break;
       case ClientFields.creditBalance:
-        response = clientA.creditBalance.compareTo(clientB.creditBalance);
+        response = clientA!.creditBalance.compareTo(clientB!.creditBalance);
+        break;
+      case ClientFields.paymentBalance:
+        response = clientA!.paymentBalance.compareTo(clientB!.paymentBalance);
         break;
       case ClientFields.paidToDate:
-        response = clientA.paidToDate.compareTo(clientB.paidToDate);
+        response = clientA!.paidToDate.compareTo(clientB!.paidToDate);
         break;
       case ClientFields.updatedAt:
-        response = clientA.updatedAt.compareTo(clientB.updatedAt);
+        response = clientA!.updatedAt.compareTo(clientB!.updatedAt);
         break;
       case ClientFields.idNumber:
-        response = clientA.idNumber.compareTo(clientB.idNumber);
+        response = clientA!.idNumber.compareTo(clientB!.idNumber);
         break;
       case ClientFields.number:
-        response = compareNatural(
-            clientA.number.toLowerCase(), clientB.number.toLowerCase());
+        response = compareNatural(clientA!.number, clientB!.number);
         break;
       case ClientFields.website:
-        response = clientA.website
-            .toLowerCase()
-            .compareTo(clientB.website.toLowerCase());
+        response = clientA!.website.toLowerCase().compareTo(
+          clientB!.website.toLowerCase(),
+        );
         break;
       case ClientFields.address1:
-        response = clientA.address1
-            .toLowerCase()
-            .compareTo(clientB.address1.toLowerCase());
+        response = clientA!.address1.toLowerCase().compareTo(
+          clientB!.address1.toLowerCase(),
+        );
         break;
       case ClientFields.address2:
-        response = clientA.address2
-            .toLowerCase()
-            .compareTo(clientB.address2.toLowerCase());
+        response = clientA!.address2.toLowerCase().compareTo(
+          clientB!.address2.toLowerCase(),
+        );
         break;
       case ClientFields.phone:
-        response =
-            clientA.phone.toLowerCase().compareTo(clientB.phone.toLowerCase());
+        response = clientA!.phone.toLowerCase().compareTo(
+          clientB!.phone.toLowerCase(),
+        );
         break;
       case ClientFields.publicNotes:
-        response = clientA.publicNotes
-            .toLowerCase()
-            .compareTo(clientB.publicNotes.toLowerCase());
+        response = clientA!.publicNotes.toLowerCase().compareTo(
+          clientB!.publicNotes.toLowerCase(),
+        );
         break;
       case ClientFields.privateNotes:
-        response = clientA.privateNotes
-            .toLowerCase()
-            .compareTo(clientB.privateNotes.toLowerCase());
+        response = clientA!.privateNotes.toLowerCase().compareTo(
+          clientB!.privateNotes.toLowerCase(),
+        );
         break;
       case ClientFields.vatNumber:
-        response = clientA.vatNumber
-            .toLowerCase()
-            .compareTo(clientB.vatNumber.toLowerCase());
+        response = clientA!.vatNumber.toLowerCase().compareTo(
+          clientB!.vatNumber.toLowerCase(),
+        );
         break;
       case ClientFields.assignedToId:
       case EntityFields.assignedTo:
-        final userA = userMap[clientA.assignedUserId] ?? UserEntity();
-        final userB = userMap[clientB.assignedUserId] ?? UserEntity();
-        response = userA.listDisplayName
-            .toLowerCase()
-            .compareTo(userB.listDisplayName.toLowerCase());
+        final userA = userMap[clientA!.assignedUserId] ?? UserEntity();
+        final userB = userMap[clientB!.assignedUserId] ?? UserEntity();
+        response = userA.listDisplayName.toLowerCase().compareTo(
+          userB.listDisplayName.toLowerCase(),
+        );
         break;
       case ClientFields.createdById:
       case EntityFields.createdBy:
-        final userA = userMap[clientA.createdUserId] ?? UserEntity();
-        final userB = userMap[clientB.createdUserId] ?? UserEntity();
-        response = userA.listDisplayName
-            .toLowerCase()
-            .compareTo(userB.listDisplayName.toLowerCase());
+        final userA = userMap[clientA!.createdUserId] ?? UserEntity();
+        final userB = userMap[clientB!.createdUserId] ?? UserEntity();
+        response = userA.listDisplayName.toLowerCase().compareTo(
+          userB.listDisplayName.toLowerCase(),
+        );
         break;
       case ClientFields.country:
         final countryA =
-            staticState.countryMap[clientA.countryId] ?? CountryEntity();
+            staticState.countryMap[clientA!.countryId] ?? CountryEntity();
         final countryB =
-            staticState.countryMap[clientB.countryId] ?? CountryEntity();
-        response =
-            countryA.name.toLowerCase().compareTo(countryB.name.toLowerCase());
+            staticState.countryMap[clientB!.countryId] ?? CountryEntity();
+        response = countryA.name.toLowerCase().compareTo(
+          countryB.name.toLowerCase(),
+        );
         break;
       case ClientFields.currency:
         final currencyA =
-            staticState.currencyMap[clientA.currencyId] ?? CurrencyEntity();
+            staticState.currencyMap[clientA!.currencyId] ?? CurrencyEntity();
         final currencyB =
-            staticState.currencyMap[clientB.currencyId] ?? CurrencyEntity();
-        response = currencyA.name
-            .toLowerCase()
-            .compareTo(currencyB.name.toLowerCase());
+            staticState.currencyMap[clientB!.currencyId] ?? CurrencyEntity();
+        response = currencyA.name.toLowerCase().compareTo(
+          currencyB.name.toLowerCase(),
+        );
         break;
       case EntityFields.state:
       case ClientFields.state:
-        final stateA =
-            EntityState.valueOf(clientA.entityState) ?? EntityState.active;
-        final stateB =
-            EntityState.valueOf(clientB.entityState) ?? EntityState.active;
-        response =
-            stateA.name.toLowerCase().compareTo(stateB.name.toLowerCase());
+        final stateA = EntityState.valueOf(clientA!.entityState);
+        final stateB = EntityState.valueOf(clientB!.entityState);
+        response = stateA.name.toLowerCase().compareTo(
+          stateB.name.toLowerCase(),
+        );
         break;
       case ClientFields.language:
         final languageA =
-            staticState.languageMap[clientA.languageId] ?? LanguageEntity();
+            staticState.languageMap[clientA!.languageId] ?? LanguageEntity();
         final languageB =
-            staticState.languageMap[clientB.languageId] ?? LanguageEntity();
-        response = languageA.name
-            .toLowerCase()
-            .compareTo(languageB.name.toLowerCase());
+            staticState.languageMap[clientB!.languageId] ?? LanguageEntity();
+        response = languageA.name.toLowerCase().compareTo(
+          languageB.name.toLowerCase(),
+        );
         break;
       case ClientFields.createdAt:
-        response = clientA.createdAt.compareTo(clientB.createdAt);
+        response = clientA!.createdAt.compareTo(clientB!.createdAt);
         break;
       case ClientFields.archivedAt:
-        response = clientA.archivedAt.compareTo(clientB.archivedAt);
+        response = clientA!.archivedAt.compareTo(clientB!.archivedAt);
         break;
       case ClientFields.lastLoginAt:
-        response = clientA.lastLogin.compareTo(clientB.lastLogin);
+        response = clientA!.lastLogin.compareTo(clientB!.lastLogin);
         break;
       case ClientFields.custom1:
-        response = clientA.customValue1
-            .toLowerCase()
-            .compareTo(clientB.customValue1.toLowerCase());
+        response = clientA!.customValue1.toLowerCase().compareTo(
+          clientB!.customValue1.toLowerCase(),
+        );
         break;
       case ClientFields.custom2:
-        response = clientA.customValue2
-            .toLowerCase()
-            .compareTo(clientB.customValue2.toLowerCase());
+        response = clientA!.customValue2.toLowerCase().compareTo(
+          clientB!.customValue2.toLowerCase(),
+        );
         break;
       case ClientFields.custom3:
-        response = clientA.customValue3
-            .toLowerCase()
-            .compareTo(clientB.customValue3.toLowerCase());
+        response = clientA!.customValue3.toLowerCase().compareTo(
+          clientB!.customValue3.toLowerCase(),
+        );
         break;
       case ClientFields.custom4:
-        response = clientA.customValue4
-            .toLowerCase()
-            .compareTo(clientB.customValue4.toLowerCase());
+        response = clientA!.customValue4.toLowerCase().compareTo(
+          clientB!.customValue4.toLowerCase(),
+        );
         break;
       case ClientFields.documents:
-        response = clientA.documents.length.compareTo(clientA.documents.length);
+        response = clientA!.documents.length.compareTo(
+          clientA.documents.length,
+        );
         break;
       case ClientFields.group:
-        response = clientA.groupId.compareTo(clientB.groupId);
+        response = clientA!.groupId.compareTo(clientB!.groupId);
+        break;
+      case ClientFields.classification:
+        response = clientA!.classification.compareTo(clientB!.classification);
         break;
       default:
         print('## ERROR: sort by client.$sortField not implemented');
@@ -539,17 +591,33 @@ abstract class ClientEntity extends Object
     }
 
     if (response == 0) {
-      response = client.number.toLowerCase().compareTo(number.toLowerCase());
+      response = client!.number.toLowerCase().compareTo(number.toLowerCase());
     }
 
     return response;
   }
 
-  bool matchesName(String filter) =>
-      displayName.toLowerCase().contains(filter.toLowerCase());
+  bool matchesNameOrEmail(String? filter) {
+    if (matchesString(haystack: name, needle: filter)) {
+      return true;
+    }
+
+    for (var i = 0; i < contacts.length; i++) {
+      final contact = contacts[i];
+      if (matchesString(haystack: contact.fullName, needle: filter)) {
+        return true;
+      }
+
+      if (matchesString(haystack: contact.email, needle: filter)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   @override
-  bool matchesFilter(String filter) {
+  bool matchesFilter(String? filter) {
     for (var i = 0; i < contacts.length; i++) {
       if (contacts[i].matchesFilter(filter)) {
         return true;
@@ -576,7 +644,7 @@ abstract class ClientEntity extends Object
   }
 
   @override
-  String matchesFilterValue(String filter) {
+  String? matchesFilterValue(String? filter) {
     for (var i = 0; i < contacts.length; i++) {
       final value = contacts[i].matchesFilterValue(filter);
       if (value != null) {
@@ -603,15 +671,16 @@ abstract class ClientEntity extends Object
   }
 
   @override
-  List<EntityAction> getActions(
-      {UserCompanyEntity userCompany,
-      ClientEntity client,
-      bool includeEdit = false,
-      bool multiselect = false}) {
-    final actions = <EntityAction>[];
+  List<EntityAction?> getActions({
+    UserCompanyEntity? userCompany,
+    ClientEntity? client,
+    bool includeEdit = false,
+    bool multiselect = false,
+  }) {
+    final actions = <EntityAction?>[];
 
-    if (!isDeleted && !multiselect) {
-      if (includeEdit && userCompany.canEditEntity(this)) {
+    if (!isDeleted! && !multiselect) {
+      if (includeEdit && userCompany!.canEditEntity(this)) {
         actions.add(EntityAction.edit);
       }
 
@@ -619,28 +688,50 @@ abstract class ClientEntity extends Object
 
       actions.add(EntityAction.clientPortal);
 
-      if (userCompany.canEditEntity(this)) {
+      if (userCompany!.canEditEntity(this)) {
         actions.add(EntityAction.settings);
       }
+    }
 
+    if (!isDeleted! && multiselect) {
+      actions.add(EntityAction.documents);
+    }
+
+    if (!isDeleted!) {
+      final store = StoreProvider.of<AppState>(navigatorKey.currentContext!);
+      if (hasDesignTemplatesForEntityType(
+        store.state.designState.map,
+        entityType,
+      )) {
+        actions.add(EntityAction.runTemplate);
+      }
+
+      actions.add(EntityAction.assignGroup);
+
+      if (!multiselect) {
+        actions.add(EntityAction.addComment);
+      }
+    }
+
+    if (!isDeleted!) {
+      actions.add(EntityAction.bulkUpdate);
+    }
+
+    if (!isDeleted! && !multiselect) {
       if (actions.isNotEmpty && actions.last != null) {
         actions.add(null);
       }
 
-      if (userCompany.canCreate(EntityType.invoice)) {
+      if (userCompany!.canCreate(EntityType.invoice)) {
         actions.add(EntityAction.newInvoice);
-      }
-
-      if (userCompany.canCreate(EntityType.payment)) {
-        actions.add(EntityAction.newPayment);
       }
 
       if (userCompany.canCreate(EntityType.quote)) {
         actions.add(EntityAction.newQuote);
       }
 
-      if (userCompany.canCreate(EntityType.credit)) {
-        actions.add(EntityAction.newCredit);
+      if (userCompany.canCreate(EntityType.payment)) {
+        actions.add(EntityAction.newPayment);
       }
 
       if (userCompany.canCreate(EntityType.task)) {
@@ -656,11 +747,21 @@ abstract class ClientEntity extends Object
       actions.add(null);
     }
 
-    return actions..addAll(super.getActions(userCompany: userCompany));
+    if (userCompany!.isAdmin && !multiselect) {
+      actions.add(EntityAction.merge);
+    }
+
+    actions..addAll(super.getActions(userCompany: userCompany));
+
+    if (userCompany.isAdmin && !multiselect) {
+      actions.add(EntityAction.purge);
+    }
+
+    return actions;
   }
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   @override
   FormatNumberType get listDisplayAmountType => FormatNumberType.money;
@@ -687,7 +788,7 @@ abstract class ClientEntity extends Object
       shippingCity.isNotEmpty ||
       shippingState.isNotEmpty ||
       shippingPostalCode.isNotEmpty ||
-      (shippingCountryId ?? '').isNotEmpty;
+      shippingCountryId.isNotEmpty;
 
   bool get hasBillingAddress =>
       address1.isNotEmpty ||
@@ -695,16 +796,21 @@ abstract class ClientEntity extends Object
       city.isNotEmpty ||
       state.isNotEmpty ||
       postalCode.isNotEmpty ||
-      (countryId ?? '').isNotEmpty;
+      countryId.isNotEmpty;
 
-  bool get hasCountry => countryId != null && countryId.isNotEmpty;
+  bool get hasCountry => countryId.isNotEmpty;
 
-  String get currencyId => settings.currencyId;
+  String? get currencyId => settings.currencyId;
 
   bool get hasCurrency =>
-      settings.currencyId != null && settings.currencyId.isNotEmpty;
+      settings.currencyId != null && settings.currencyId!.isNotEmpty;
 
-  String get languageId => settings.languageId;
+  String get languageId => settings.languageId ?? '';
+
+  ClientContactEntity getContact(String? contactId) => contacts.firstWhere(
+    (contact) => contact.id == contactId,
+    orElse: () => ClientContactEntity(),
+  );
 
   bool get hasNameSet {
     if (contacts.isEmpty) {
@@ -726,8 +832,15 @@ abstract class ClientEntity extends Object
   */
 
   // ignore: unused_element
-  static void _initializeBuilder(ClientEntityBuilder builder) =>
-      builder..number = '';
+  static void _initializeBuilder(ClientEntityBuilder builder) => builder
+    ..number = ''
+    ..routingId = ''
+    ..isTaxExempt = false
+    ..hasValidVatNumber = false
+    ..taxData.replace(TaxDataEntity())
+    ..locations.replace(BuiltList<LocationEntity>())
+    ..paymentBalance = 0
+    ..classification = '';
 
   static Serializer<ClientEntity> get serializer => _$clientEntitySerializer;
 }
@@ -744,11 +857,11 @@ class ContactFields {
   static const String custom4 = 'custom4';
 }
 
-abstract class ContactEntity extends Object
+abstract class ClientContactEntity extends Object
     with BaseEntity, SelectableEntity
-    implements Built<ContactEntity, ContactEntityBuilder> {
-  factory ContactEntity() {
-    return _$ContactEntity._(
+    implements Built<ClientContactEntity, ClientContactEntityBuilder> {
+  factory ClientContactEntity() {
+    return _$ClientContactEntity._(
       id: BaseEntity.nextId,
       isChanged: false,
       firstName: '',
@@ -771,10 +884,11 @@ abstract class ContactEntity extends Object
       assignedUserId: '',
       createdUserId: '',
       link: '',
+      ccOnly: false,
     );
   }
 
-  ContactEntity._();
+  ClientContactEntity._();
 
   @override
   @memoized
@@ -818,6 +932,9 @@ abstract class ContactEntity extends Object
 
   String get link;
 
+  @BuiltValueField(wireName: 'cc_only')
+  bool get ccOnly;
+
   String get silentLink => '$link?silent=true';
 
   String get fullName {
@@ -829,6 +946,14 @@ abstract class ContactEntity extends Object
       return fullName;
     } else {
       return email;
+    }
+  }
+
+  String get emailOrFullName {
+    if (email.isNotEmpty) {
+      return email;
+    } else {
+      return fullName;
     }
   }
 
@@ -852,42 +977,19 @@ abstract class ContactEntity extends Object
   }
 
   @override
-  bool matchesFilter(String filter) {
-    if (filter == null || filter.isEmpty) {
-      return true;
-    }
-    filter = filter.toLowerCase();
-    if (firstName.toLowerCase().contains(filter)) {
-      return true;
-    }
-    if (lastName.toLowerCase().contains(filter)) {
-      return true;
-    }
-    if (phone.toLowerCase().contains(filter)) {
-      return true;
-    }
-    if (email.toLowerCase().contains(filter)) {
-      return true;
-    }
-    return false;
+  bool matchesFilter(String? filter) {
+    return matchesStrings(
+      haystacks: ['$firstName $lastName', email, phone],
+      needle: filter,
+    );
   }
 
   @override
-  String matchesFilterValue(String filter) {
-    if (filter == null || filter.isEmpty) {
-      return null;
-    }
-
-    filter = filter.toLowerCase();
-    if (fullName.toLowerCase().contains(filter)) {
-      return fullName;
-    } else if (email.toLowerCase().contains(filter)) {
-      return email;
-    } else if (phone.toLowerCase().contains(filter)) {
-      return phone;
-    }
-
-    return null;
+  String? matchesFilterValue(String? filter) {
+    return matchesStringsValue(
+      haystacks: ['$firstName $lastName', email, phone],
+      needle: filter,
+    );
   }
 
   @override
@@ -896,10 +998,126 @@ abstract class ContactEntity extends Object
   }
 
   @override
-  double get listDisplayAmount => null;
+  double? get listDisplayAmount => null;
 
   @override
   FormatNumberType get listDisplayAmountType => FormatNumberType.money;
 
-  static Serializer<ContactEntity> get serializer => _$contactEntitySerializer;
+  // ignore: unused_element
+  static void _initializeBuilder(ClientContactEntityBuilder builder) =>
+      builder..ccOnly = false;
+
+  static Serializer<ClientContactEntity> get serializer =>
+      _$clientContactEntitySerializer;
+}
+
+class LocationFields {
+  static const String name = 'name';
+  static const String address1 = 'address1';
+  static const String address2 = 'address2';
+  static const String city = 'city';
+  static const String state = 'state';
+  static const String postalCode = 'postal_code';
+  static const String countryId = 'country_id';
+  static const String customValue1 = 'custom_value1';
+  static const String customValue2 = 'custom_value2';
+  static const String customValue3 = 'custom_value3';
+  static const String customValue4 = 'custom_value4';
+  static const String isShipping = 'is_shipping_location';
+}
+
+abstract class LocationEntity extends Object
+    with BaseEntity, SelectableEntity
+    implements Built<LocationEntity, LocationEntityBuilder> {
+  factory LocationEntity({String? clientId, String? countryId}) {
+    return _$LocationEntity._(
+      id: BaseEntity.nextId,
+      isChanged: false,
+      clientId: clientId ?? '',
+      name: '',
+      address1: '',
+      address2: '',
+      city: '',
+      countryId: countryId ?? '',
+      isShipping: false,
+      postalCode: '',
+      state: '',
+      createdAt: 0,
+      updatedAt: 0,
+      archivedAt: 0,
+      customValue1: '',
+      customValue2: '',
+      customValue3: '',
+      customValue4: '',
+    );
+  }
+
+  LocationEntity._();
+
+  @override
+  @memoized
+  int get hashCode;
+
+  String get name;
+
+  String get address1;
+
+  String get address2;
+
+  String get city;
+
+  String get state;
+
+  @BuiltValueField(wireName: 'client_id')
+  String get clientId;
+
+  @BuiltValueField(wireName: 'postal_code')
+  String get postalCode;
+
+  @BuiltValueField(wireName: 'country_id')
+  String get countryId;
+
+  @BuiltValueField(wireName: 'is_shipping_location')
+  bool get isShipping;
+
+  @BuiltValueField(wireName: 'custom_value1')
+  String get customValue1;
+
+  @BuiltValueField(wireName: 'custom_value2')
+  String get customValue2;
+
+  @BuiltValueField(wireName: 'custom_value3')
+  String get customValue3;
+
+  @BuiltValueField(wireName: 'custom_value4')
+  String get customValue4;
+
+  @override
+  EntityType get entityType {
+    return EntityType.client;
+  }
+
+  @override
+  bool matchesFilter(String? filter) {
+    return matchesStrings(haystacks: [name], needle: filter);
+  }
+
+  @override
+  String? matchesFilterValue(String? filter) {
+    return matchesStringsValue(haystacks: [name], needle: filter);
+  }
+
+  @override
+  String get listDisplayName {
+    return name;
+  }
+
+  @override
+  double? get listDisplayAmount => null;
+
+  @override
+  FormatNumberType get listDisplayAmountType => FormatNumberType.money;
+
+  static Serializer<LocationEntity> get serializer =>
+      _$locationEntitySerializer;
 }

@@ -1,11 +1,15 @@
+// Dart imports:
 import 'dart:async';
+
+// Package imports:
+import 'package:built_collection/built_collection.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
-import 'package:built_collection/built_collection.dart';
-import 'package:invoiceninja_flutter/data/models/token_model.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/entity_ui_state.dart';
 import 'package:invoiceninja_flutter/redux/ui/list_ui_state.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/ui/pref_state.dart';
 
 part 'token_state.g.dart';
@@ -35,9 +39,11 @@ abstract class TokenState implements Built<TokenState, TokenStateBuilder> {
       value: (dynamic item) => item,
     );
 
-    return rebuild((b) => b
-      ..map.addAll(map)
-      ..list.replace((map.keys.toList() + list.toList()).toSet().toList()));
+    return rebuild(
+      (b) => b
+        ..map.addAll(map)
+        ..list.replace((map.keys.toList() + list.toList()).toSet().toList()),
+    );
   }
 
   static Serializer<TokenState> get serializer => _$tokenStateSerializer;
@@ -46,10 +52,12 @@ abstract class TokenState implements Built<TokenState, TokenStateBuilder> {
 abstract class TokenUIState extends Object
     with EntityUIState
     implements Built<TokenUIState, TokenUIStateBuilder> {
-  factory TokenUIState(PrefStateSortField sortField) {
+  factory TokenUIState(PrefStateSortField? sortField) {
     return _$TokenUIState._(
-      listUIState: ListUIState(sortField?.field ?? TokenFields.name,
-          sortAscending: sortField?.ascending),
+      listUIState: ListUIState(
+        sortField?.field ?? TokenFields.name,
+        sortAscending: sortField?.ascending,
+      ),
       editing: TokenEntity(),
       selectedId: '',
       tabIndex: 0,
@@ -62,14 +70,13 @@ abstract class TokenUIState extends Object
   @memoized
   int get hashCode;
 
-  @nullable
-  TokenEntity get editing;
+  TokenEntity? get editing;
 
   @override
-  bool get isCreatingNew => editing.isNew;
+  bool get isCreatingNew => editing!.isNew;
 
   @override
-  String get editingId => editing.id;
+  String get editingId => editing!.id;
 
   static Serializer<TokenUIState> get serializer => _$tokenUIStateSerializer;
 }

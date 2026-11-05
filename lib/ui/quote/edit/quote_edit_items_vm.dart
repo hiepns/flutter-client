@@ -1,35 +1,41 @@
-import 'package:flutter/foundation.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
+
+// Project imports:
+import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/redux/app/app_state.dart';
+import 'package:invoiceninja_flutter/redux/quote/quote_actions.dart';
 import 'package:invoiceninja_flutter/ui/invoice/edit/invoice_edit_items.dart';
 import 'package:invoiceninja_flutter/ui/invoice/edit/invoice_edit_items_desktop.dart';
 import 'package:invoiceninja_flutter/ui/invoice/edit/invoice_edit_items_vm.dart';
 import 'package:invoiceninja_flutter/ui/invoice/edit/invoice_edit_vm.dart';
-import 'package:redux/redux.dart';
-import 'package:invoiceninja_flutter/redux/quote/quote_actions.dart';
-import 'package:invoiceninja_flutter/data/models/models.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 
 class QuoteEditItemsScreen extends StatelessWidget {
   const QuoteEditItemsScreen({
-    Key key,
-    @required this.viewModel,
+    Key? key,
+    required this.viewModel,
+    this.isTasks = false,
   }) : super(key: key);
 
   final AbstractInvoiceEditVM viewModel;
+  final bool isTasks;
 
   @override
   Widget build(BuildContext context) {
     return StoreConnector<AppState, QuoteEditItemsVM>(
       converter: (Store<AppState> store) {
-        return QuoteEditItemsVM.fromStore(store);
+        return QuoteEditItemsVM.fromStore(store, isTasks);
       },
       builder: (context, viewModel) {
-        if (viewModel.state.prefState.isEditorFullScreen(EntityType.invoice)) {
+        if (viewModel.state!.prefState.isEditorFullScreen(EntityType.invoice)) {
           return InvoiceEditItemsDesktop(
             viewModel: viewModel,
             entityViewModel: this.viewModel,
-            isTasks: false,
+            isTasks: isTasks,
           );
         } else {
           return InvoiceEditItems(
@@ -44,35 +50,41 @@ class QuoteEditItemsScreen extends StatelessWidget {
 
 class QuoteEditItemsVM extends EntityEditItemsVM {
   QuoteEditItemsVM({
-    AppState state,
-    CompanyEntity company,
-    InvoiceEntity invoice,
-    int invoiceItemIndex,
-    Function addLineItem,
-    Function deleteLineItem,
-    Function(int) onRemoveInvoiceItemPressed,
-    Function onDoneInvoiceItemPressed,
-    Function(InvoiceItemEntity, int) onChangedInvoiceItem,
-    Function(int, int) onMovedInvoiceItem,
+    AppState? state,
+    CompanyEntity? company,
+    InvoiceEntity? invoice,
+    int? invoiceItemIndex,
+    Function? addLineItem,
+    Function? cloneLineItem,
+    Function? deleteLineItem,
+    Function(int)? onRemoveInvoiceItemPressed,
+    Function? onDoneInvoiceItemPressed,
+    Function(InvoiceItemEntity, int)? onChangedInvoiceItem,
+    Function(int, int)? onMovedInvoiceItem,
   }) : super(
-          state: state,
-          company: company,
-          invoice: invoice,
-          addLineItem: addLineItem,
-          deleteLineItem: deleteLineItem,
-          invoiceItemIndex: invoiceItemIndex,
-          onRemoveInvoiceItemPressed: onRemoveInvoiceItemPressed,
-          clearSelectedInvoiceItem: onDoneInvoiceItemPressed,
-          onChangedInvoiceItem: onChangedInvoiceItem,
-          onMovedInvoiceItem: onMovedInvoiceItem,
-        );
+         state: state,
+         company: company,
+         invoice: invoice,
+         addLineItem: addLineItem,
+         cloneLineItem: cloneLineItem,
+         deleteLineItem: deleteLineItem,
+         invoiceItemIndex: invoiceItemIndex,
+         onRemoveInvoiceItemPressed: onRemoveInvoiceItemPressed,
+         clearSelectedInvoiceItem: onDoneInvoiceItemPressed,
+         onChangedInvoiceItem: onChangedInvoiceItem,
+         onMovedInvoiceItem: onMovedInvoiceItem,
+       );
 
-  factory QuoteEditItemsVM.fromStore(Store<AppState> store) {
+  factory QuoteEditItemsVM.fromStore(Store<AppState> store, bool isTasks) {
+    final state = store.state;
+    final company = state.company;
+    final quote = store.state.quoteUIState.editing;
+
     return QuoteEditItemsVM(
-      state: store.state,
-      company: store.state.company,
-      invoice: store.state.quoteUIState.editing,
-      invoiceItemIndex: store.state.quoteUIState.editingItemIndex,
+      state: state,
+      company: company,
+      invoice: quote,
+      invoiceItemIndex: state.quoteUIState.editingItemIndex,
       onRemoveInvoiceItemPressed: (index) {
         store.dispatch(DeleteQuoteItem(index));
       },
@@ -80,16 +92,33 @@ class QuoteEditItemsVM extends EntityEditItemsVM {
         store.dispatch(EditQuoteItem());
       },
       onChangedInvoiceItem: (quoteItem, index) {
-        final quote = store.state.quoteUIState.editing;
+        final quote = store.state.quoteUIState.editing!;
         if (index == quote.lineItems.length) {
-          store.dispatch(AddQuoteItem(quoteItem: quoteItem));
+          store.dispatch(
+            AddQuoteItem(
+              quoteItem: quoteItem.rebuild(
+                (b) => b
+                  ..typeId = isTasks
+                      ? InvoiceItemEntity.TYPE_TASK
+                      : InvoiceItemEntity.TYPE_STANDARD,
+              ),
+            ),
+          );
         } else {
           store.dispatch(UpdateQuoteItem(quoteItem: quoteItem, index: index));
         }
       },
       onMovedInvoiceItem: (oldIndex, newIndex) {
+        store.dispatch(MoveQuoteItem(oldIndex: oldIndex, newIndex: newIndex));
+      },
+      addLineItem: ([int? index]) {
         store.dispatch(
-          MoveQuoteItem(oldIndex: oldIndex, newIndex: newIndex),
+          AddQuoteItem(index: index, quoteItem: InvoiceItemEntity()),
+        );
+      },
+      cloneLineItem: (int? index) {
+        store.dispatch(
+          AddQuoteItem(index: index, quoteItem: quote!.lineItems[index!].clone),
         );
       },
     );

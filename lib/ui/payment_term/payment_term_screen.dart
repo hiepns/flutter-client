@@ -1,5 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/data/models/payment_term_model.dart';
@@ -14,10 +19,8 @@ import 'package:invoiceninja_flutter/utils/localization.dart';
 import 'payment_term_screen_vm.dart';
 
 class PaymentTermScreen extends StatelessWidget {
-  const PaymentTermScreen({
-    Key key,
-    @required this.viewModel,
-  }) : super(key: key);
+  const PaymentTermScreen({Key? key, required this.viewModel})
+    : super(key: key);
 
   static const String route = '/$kSettings/$kSettingsPaymentTerms';
 
@@ -33,16 +36,20 @@ class PaymentTermScreen extends StatelessWidget {
     return ListScaffold(
       entityType: EntityType.paymentTerm,
       onHamburgerLongPress: () => store.dispatch(StartPaymentTermMultiselect()),
-      onCancelSettingsSection: kSettingsCompanyDetails,
-      onCancelSettingsIndex: 3,
+      onCancelSettingsSection: kSettingsPaymentSettings,
+      onCancelSettingsIndex: 1,
       appBarTitle: ListFilter(
         key: ValueKey(
-            '__filter_${state.paymentTermListState.filterClearedAt}__'),
+          '__filter_${state.paymentTermListState.filterClearedAt}__',
+        ),
         entityType: EntityType.paymentTerm,
         entityIds: viewModel.paymentTermList,
         filter: state.paymentTermListState.filter,
         onFilterChanged: (value) {
           store.dispatch(FilterPaymentTerms(value));
+        },
+        onSelectedState: (EntityState state, value) {
+          store.dispatch(FilterPaymentTermsByState(state));
         },
       ),
       onCheckboxPressed: () {
@@ -58,9 +65,7 @@ class PaymentTermScreen extends StatelessWidget {
         onSelectedSortField: (value) {
           store.dispatch(SortPaymentTerms(value));
         },
-        sortFields: [
-          PaymentTermFields.name,
-        ],
+        sortFields: [PaymentTermFields.name],
         onSelectedState: (EntityState state, value) {
           store.dispatch(FilterPaymentTermsByState(state));
         },
@@ -80,20 +85,20 @@ class PaymentTermScreen extends StatelessWidget {
         onSelectedCustom4: (value) =>
             store.dispatch(FilterPaymentTermsByCustom4(value)),
       ),
-      floatingActionButton: state.prefState.isMobile &&
+      floatingActionButton:
+          state.prefState.isMobile &&
               userCompany.canCreate(EntityType.paymentTerm)
           ? FloatingActionButton(
               heroTag: 'payment_term_fab',
               backgroundColor: Theme.of(context).primaryColorDark,
               onPressed: () {
                 createEntityByType(
-                    context: context, entityType: EntityType.paymentTerm);
+                  context: context,
+                  entityType: EntityType.paymentTerm,
+                );
               },
-              child: Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-              tooltip: localization.newPaymentTerm,
+              child: Icon(Icons.add, color: Colors.white),
+              tooltip: localization!.newPaymentTerm,
             )
           : null,
     );

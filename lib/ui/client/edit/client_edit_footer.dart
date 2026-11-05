@@ -1,5 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
 import 'package:invoiceninja_flutter/data/models/client_model.dart';
 import 'package:invoiceninja_flutter/data/models/entities.dart';
@@ -10,7 +15,7 @@ import 'package:invoiceninja_flutter/utils/localization.dart';
 import 'package:invoiceninja_flutter/utils/platforms.dart';
 
 class ClientEditFooter extends StatelessWidget {
-  const ClientEditFooter({@required this.client});
+  const ClientEditFooter({required this.client});
 
   final ClientEntity client;
 
@@ -37,16 +42,18 @@ class ClientEditFooter extends StatelessWidget {
               if (showLayoutToggle)
                 Tooltip(
                   message: useSidebarEditor
-                      ? localization.fullscreenEditor
-                      : localization.sidebarEditor,
+                      ? localization!.fullscreenEditor
+                      : localization!.sidebarEditor,
                   child: InkWell(
                     onTap: () =>
                         store.dispatch(ToggleEditorLayout(EntityType.client)),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Icon(useSidebarEditor
-                          ? Icons.chevron_left
-                          : Icons.chevron_right),
+                      child: Icon(
+                        useSidebarEditor
+                            ? Icons.chevron_left
+                            : Icons.chevron_right,
+                      ),
                     ),
                   ),
                 ),
@@ -55,7 +62,9 @@ class ClientEditFooter extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.only(left: 16, top: 8),
                   child: Text(
-                    client.calculateDisplayName,
+                    client.number.isEmpty
+                        ? client.calculateDisplayName
+                        : '${client.number} • ${client.calculateDisplayName}',
                     style: TextStyle(
                       color: state.prefState.enableDarkMode
                           ? Colors.white

@@ -1,4 +1,10 @@
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_redux/flutter_redux.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/client/client_selectors.dart';
@@ -18,22 +24,18 @@ import 'package:invoiceninja_flutter/ui/app/lists/list_divider.dart';
 import 'package:invoiceninja_flutter/ui/app/scrollable_listview.dart';
 import 'package:invoiceninja_flutter/ui/app/view_scaffold.dart';
 import 'package:invoiceninja_flutter/ui/user/view/user_view_vm.dart';
-import 'package:flutter/material.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class UserView extends StatelessWidget {
-  const UserView({
-    Key key,
-    @required this.viewModel,
-    @required this.isFilter,
-  }) : super(key: key);
+  const UserView({Key? key, required this.viewModel, required this.isFilter})
+    : super(key: key);
 
   final UserViewVM viewModel;
   final bool isFilter;
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
+    final localization = AppLocalization.of(context)!;
     final user = viewModel.user;
     final state = StoreProvider.of<AppState>(context).state;
     final userCompany = state.userCompany;
@@ -45,8 +47,10 @@ class UserView extends StatelessWidget {
       body: ScrollableListView(
         children: <Widget>[
           if (user.emailVerifiedAt == null)
-            IconMessage(localization.emailSentToConfirmEmail,
-                color: Colors.orange),
+            IconMessage(
+              localization.emailSentToConfirmEmail,
+              color: Colors.orange,
+            ),
           EntityHeader(
             entity: user,
             value: user.email,
@@ -54,37 +58,29 @@ class UserView extends StatelessWidget {
             secondLabel: localization.phone,
           ),
           ListDivider(),
-          if (userCompany.canViewOrCreate(EntityType.client))
+          if (userCompany.canViewCreateOrEdit(EntityType.client))
             EntitiesListTile(
               entity: user,
               isFilter: isFilter,
               title: localization.clients,
               entityType: EntityType.client,
-              subtitle:
-                  memoizedClientStatsForUser(user.id, state.clientState.map)
-                      .present(localization.active, localization.archived),
+              subtitle: memoizedClientStatsForUser(
+                user.id,
+                state.clientState.map,
+              ).present(localization.active, localization.archived),
             ),
-          if (userCompany.canViewOrCreate(EntityType.invoice))
+          if (userCompany.canViewCreateOrEdit(EntityType.invoice))
             EntitiesListTile(
               entity: user,
               isFilter: isFilter,
               title: localization.invoices,
               entityType: EntityType.invoice,
-              subtitle:
-                  memoizedInvoiceStatsForUser(user.id, state.invoiceState.map)
-                      .present(localization.active, localization.archived),
+              subtitle: memoizedInvoiceStatsForUser(
+                user.id,
+                state.invoiceState.map,
+              ).present(localization.active, localization.archived),
             ),
-          if (userCompany.canViewOrCreate(EntityType.recurringInvoice))
-            EntitiesListTile(
-              entity: user,
-              isFilter: isFilter,
-              title: localization.recurringInvoices,
-              entityType: EntityType.recurringInvoice,
-              subtitle: memoizedRecurringInvoiceStatsForUser(
-                      user.id, state.recurringInvoiceState.map)
-                  .present(localization.active, localization.archived),
-            ),
-          if (userCompany.canViewOrCreate(EntityType.quote))
+          if (userCompany.canViewCreateOrEdit(EntityType.quote))
             EntitiesListTile(
               entity: user,
               isFilter: isFilter,
@@ -95,7 +91,7 @@ class UserView extends StatelessWidget {
                 state.quoteState.map,
               ).present(localization.active, localization.archived),
             ),
-          if (userCompany.canViewOrCreate(EntityType.credit))
+          if (userCompany.canViewCreateOrEdit(EntityType.credit))
             EntitiesListTile(
               entity: user,
               isFilter: isFilter,
@@ -106,18 +102,7 @@ class UserView extends StatelessWidget {
                 state.creditState.map,
               ).present(localization.active, localization.archived),
             ),
-          if (userCompany.canViewOrCreate(EntityType.project))
-            EntitiesListTile(
-              entity: user,
-              isFilter: isFilter,
-              entityType: EntityType.project,
-              title: localization.projects,
-              subtitle: memoizedProjectStatsForUser(
-                user.id,
-                state.projectState.map,
-              ).present(localization.active, localization.archived),
-            ),
-          if (userCompany.canViewOrCreate(EntityType.task))
+          if (userCompany.canViewCreateOrEdit(EntityType.task))
             EntitiesListTile(
               entity: user,
               isFilter: isFilter,
@@ -128,18 +113,18 @@ class UserView extends StatelessWidget {
                 state.taskState.map,
               ).present(localization.active, localization.archived),
             ),
-          if (userCompany.canViewOrCreate(EntityType.vendor))
+          if (userCompany.canViewCreateOrEdit(EntityType.project))
             EntitiesListTile(
               entity: user,
               isFilter: isFilter,
-              entityType: EntityType.vendor,
-              title: localization.vendors,
-              subtitle: memoizedVendorStatsForUser(
+              entityType: EntityType.project,
+              title: localization.projects,
+              subtitle: memoizedProjectStatsForUser(
                 user.id,
-                state.vendorState.map,
+                state.projectState.map,
               ).present(localization.active, localization.archived),
             ),
-          if (userCompany.canViewOrCreate(EntityType.expense))
+          if (userCompany.canViewCreateOrEdit(EntityType.expense))
             EntitiesListTile(
               entity: user,
               isFilter: isFilter,
@@ -150,7 +135,29 @@ class UserView extends StatelessWidget {
                 state.expenseState.map,
               ).present(localization.active, localization.archived),
             ),
-          if (userCompany.canViewOrCreate(EntityType.recurringExpense))
+          if (userCompany.canViewCreateOrEdit(EntityType.vendor))
+            EntitiesListTile(
+              entity: user,
+              isFilter: isFilter,
+              entityType: EntityType.vendor,
+              title: localization.vendors,
+              subtitle: memoizedVendorStatsForUser(
+                user.id,
+                state.vendorState.map,
+              ).present(localization.active, localization.archived),
+            ),
+          if (userCompany.canViewCreateOrEdit(EntityType.recurringInvoice))
+            EntitiesListTile(
+              entity: user,
+              isFilter: isFilter,
+              title: localization.recurringInvoices,
+              entityType: EntityType.recurringInvoice,
+              subtitle: memoizedRecurringInvoiceStatsForUser(
+                user.id,
+                state.recurringInvoiceState.map,
+              ).present(localization.active, localization.archived),
+            ),
+          if (userCompany.canViewCreateOrEdit(EntityType.recurringExpense))
             EntitiesListTile(
               entity: user,
               isFilter: isFilter,

@@ -1,18 +1,21 @@
+// Package imports:
 import 'package:built_collection/built_collection.dart';
-import 'package:invoiceninja_flutter/utils/enums.dart';
+
+import 'package:memoize/memoize.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/constants.dart';
-import 'package:invoiceninja_flutter/data/models/tax_rate_model.dart';
-import 'package:invoiceninja_flutter/data/models/company_model.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
 import 'package:invoiceninja_flutter/redux/reports/reports_state.dart';
 import 'package:invoiceninja_flutter/redux/static/static_state.dart';
 import 'package:invoiceninja_flutter/ui/reports/reports_screen.dart';
-import 'package:memoize/memoize.dart';
+import 'package:invoiceninja_flutter/utils/enums.dart';
 
 enum TaxRateReportFields {
   client,
   invoice,
   invoice_amount,
+  invoice_net_amount,
   invoice_date,
   payment_date,
   tax_name,
@@ -20,27 +23,38 @@ enum TaxRateReportFields {
   tax_amount,
   tax_paid,
   payment_amount,
-  currency
+  currency,
+  transaction_reference,
 }
 
-var memoizedPaymentTaxReport = memo9((
-  UserCompanyEntity userCompany,
-  ReportsUIState reportsUIState,
-  BuiltMap<String, TaxRateEntity> taxRateMap,
-  BuiltMap<String, InvoiceEntity> invoiceMap,
-  BuiltMap<String, InvoiceEntity> creditMap,
-  BuiltMap<String, ClientEntity> clientMap,
-  BuiltMap<String, PaymentEntity> paymentMap,
-  BuiltMap<String, UserEntity> userMap,
-  StaticState staticState,
-) =>
-    paymentTaxReport(userCompany, reportsUIState, taxRateMap, invoiceMap,
-        creditMap, clientMap, paymentMap, userMap, staticState));
+var memoizedPaymentTaxReport = memo9(
+  (
+    UserCompanyEntity? userCompany,
+    ReportsUIState reportsUIState,
+    BuiltMap<String?, TaxRateEntity?> taxRateMap,
+    BuiltMap<String, InvoiceEntity> invoiceMap,
+    BuiltMap<String, InvoiceEntity> creditMap,
+    BuiltMap<String, ClientEntity> clientMap,
+    BuiltMap<String, PaymentEntity> paymentMap,
+    BuiltMap<String, UserEntity> userMap,
+    StaticState staticState,
+  ) => paymentTaxReport(
+    userCompany!,
+    reportsUIState,
+    taxRateMap,
+    invoiceMap,
+    creditMap,
+    clientMap,
+    paymentMap,
+    userMap,
+    staticState,
+  ),
+);
 
 ReportResult paymentTaxReport(
   UserCompanyEntity userCompany,
   ReportsUIState reportsUIState,
-  BuiltMap<String, TaxRateEntity> taxRateMap,
+  BuiltMap<String?, TaxRateEntity?> taxRateMap,
   BuiltMap<String, InvoiceEntity> invoiceMap,
   BuiltMap<String, InvoiceEntity> creditMap,
   BuiltMap<String, ClientEntity> clientMap,
@@ -52,10 +66,9 @@ ReportResult paymentTaxReport(
   BuiltList<TaxRateReportFields> columns;
 
   final reportSettings = userCompany.settings.reportSettings;
-  final taxRateReportSettings =
-      reportSettings != null && reportSettings.containsKey(kReportPaymentTax)
-          ? reportSettings[kReportPaymentTax]
-          : ReportSettingsEntity();
+  final taxRateReportSettings = reportSettings.containsKey(kReportPaymentTax)
+      ? reportSettings[kReportPaymentTax]!
+      : ReportSettingsEntity();
 
   final defaultColumns = [
     TaxRateReportFields.tax_name,
@@ -68,10 +81,12 @@ ReportResult paymentTaxReport(
   ];
 
   if (taxRateReportSettings.columns.isNotEmpty) {
-    columns = BuiltList(taxRateReportSettings.columns
-        .map((e) => EnumUtils.fromString(TaxRateReportFields.values, e))
-        .where((element) => element != null)
-        .toList());
+    columns = BuiltList(
+      taxRateReportSettings.columns
+          .map((e) => EnumUtils.fromString(TaxRateReportFields.values, e))
+          .nonNulls
+          .toList(),
+    );
   } else {
     columns = BuiltList(defaultColumns);
   }
@@ -79,8 +94,8 @@ ReportResult paymentTaxReport(
   for (var paymentId in paymentMap.keys) {
     final payment = paymentMap[paymentId] ?? PaymentEntity();
 
-    if (!payment.isDeleted) {
-      final client = clientMap[payment.clientId];
+    if (!payment.isDeleted!) {
+      final client = clientMap[payment.clientId]!;
       final precision =
           staticState.currencyMap[client.currencyId]?.precision ?? 2;
 
@@ -88,25 +103,27 @@ ReportResult paymentTaxReport(
         InvoiceEntity invoice;
         int multiplier = 1;
         if (paymentable.entityType == EntityType.invoice) {
+          // Skip invoice paymentables on pure credit-application payments
+          // (no cash flow); the paired credit paymentable will still emit a
+          // negative row representing the refund / credit usage.
+          if (payment.amount == 0) {
+            continue;
+          }
           invoice = invoiceMap[paymentable.invoiceId] ?? InvoiceEntity();
         } else {
           invoice = creditMap[paymentable.creditId] ?? InvoiceEntity();
           multiplier = -1;
         }
 
-        if (invoice.isSent && !invoice.isDeleted) {
+        if (invoice.isSent && !invoice.isDeleted!) {
           final taxes = invoice.getTaxes(precision);
 
           for (final key in taxes.keys) {
             bool skip = false;
 
             final List<ReportElement> row = [];
-            final String taxName = taxes[key]['name'];
-            final double taxRate = taxes[key]['rate'];
-
-            if (taxRate == null || taxRate == 0) {
-              continue;
-            }
+            final String? taxName = taxes[key]!['name'];
+            final double? taxRate = taxes[key]!['rate'];
 
             for (var column in columns) {
               dynamic value = '';
@@ -124,8 +141,12 @@ ReportResult paymentTaxReport(
                 case TaxRateReportFields.payment_date:
                   value = payment.date;
                   break;
+                case TaxRateReportFields.invoice_net_amount:
+                  value = invoice.netAmount;
+                  break;
                 case TaxRateReportFields.invoice_amount:
-                  value = invoice.amount *
+                  value =
+                      invoice.amount *
                       paymentable.amount /
                       invoice.amount *
                       multiplier;
@@ -137,13 +158,15 @@ ReportResult paymentTaxReport(
                   value = taxRate;
                   break;
                 case TaxRateReportFields.tax_amount:
-                  value = (taxes[key]['amount'] ?? 0.0) *
+                  value =
+                      (taxes[key]!['amount'] ?? 0.0) *
                       paymentable.amount /
                       invoice.amount *
                       multiplier;
                   break;
                 case TaxRateReportFields.tax_paid:
-                  value = (taxes[key]['paid'] ?? 0.0) *
+                  value =
+                      (taxes[key]!['paid'] ?? 0.0) *
                       paymentable.amount /
                       invoice.amount *
                       multiplier;
@@ -152,8 +175,12 @@ ReportResult paymentTaxReport(
                   value = paymentable.amount * multiplier;
                   break;
                 case TaxRateReportFields.currency:
-                  value = staticState.currencyMap[client.currencyId]?.name ??
+                  value =
+                      staticState.currencyMap[client.currencyId]?.name ??
                       staticState.currencyMap[client.settings.currencyId]?.name;
+                  break;
+                case TaxRateReportFields.transaction_reference:
+                  value = payment.transactionReference;
                   break;
               }
 
@@ -162,7 +189,7 @@ ReportResult paymentTaxReport(
                 userCompany: userCompany,
                 reportsUIState: reportsUIState,
                 column: EnumUtils.parse(column),
-              )) {
+              )!) {
                 skip = true;
               }
 
@@ -170,8 +197,12 @@ ReportResult paymentTaxReport(
                 row.add(invoice.getReportBool(value: value));
               } else if (value.runtimeType == double ||
                   value.runtimeType == int) {
-                row.add(invoice.getReportDouble(
-                    value: value, currencyId: client.settings.currencyId));
+                row.add(
+                  invoice.getReportDouble(
+                    value: value,
+                    currencyId: client.settings.currencyId,
+                  ),
+                );
               } else {
                 row.add(invoice.getReportString(value: value));
               }
@@ -187,15 +218,23 @@ ReportResult paymentTaxReport(
   }
 
   final selectedColumns = columns.map((item) => EnumUtils.parse(item)).toList();
-  data.sort((rowA, rowB) =>
-      sortReportTableRows(rowA, rowB, taxRateReportSettings, selectedColumns));
+  data.sort(
+    (rowA, rowB) => sortReportTableRows(
+      rowA,
+      rowB,
+      taxRateReportSettings,
+      selectedColumns,
+    )!,
+  );
 
   return ReportResult(
-    allColumns:
-        TaxRateReportFields.values.map((e) => EnumUtils.parse(e)).toList(),
+    allColumns: TaxRateReportFields.values
+        .map((e) => EnumUtils.parse(e))
+        .toList(),
     columns: columns.map((item) => EnumUtils.parse(item)).toList(),
-    defaultColumns:
-        defaultColumns.map((item) => EnumUtils.parse(item)).toList(),
+    defaultColumns: defaultColumns
+        .map((item) => EnumUtils.parse(item))
+        .toList(),
     data: data,
   );
 }

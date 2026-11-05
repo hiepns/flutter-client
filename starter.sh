@@ -156,7 +156,7 @@ else
 
     # Create new module files
     declare -a files=(
-       #'./stubs/data/models/stub_model'
+       './stubs/data/models/stub_model'
        './stubs/data/repositories/stub_repository'
        './stubs/redux/stub/stub_actions'
        './stubs/redux/stub/stub_reducer'
@@ -187,7 +187,7 @@ else
     # Link in new module
     echo "app_state: import"
     comment="STARTER: import - do not remove comment"
-    code="import 'package:${package}\/redux\/${module_snake}\/${module_snake}_state.dart';import 'package:${package}\/ui\/${module_snake}\/edit\/${module_snake}_edit_vm.dart';import 'package:${package}\/redux\/${module_snake}\/${module_snake}_selectors.dart';${lineBreak}"
+    code="import 'package:${package}\/redux\/${module_snake}\/${module_snake}_state.dart';import 'package:${package}\/ui\/${module_snake}\/edit\/${module_snake}_edit_vm.dart';${lineBreak}"
     sed -i -e "s/$comment/$comment${lineBreak}$code/g" ./lib/redux/app/app_state.dart
 
     echo "app_state: list"
@@ -214,7 +214,7 @@ else
 
     echo "app_state: has changes"
     comment="STARTER: has changes - do not remove comment"
-    code="case ${Module}EditScreen.route: return has${Module}Changes(${module_camel}UIState.editing, ${module_camel}State.map);${lineBreak}"
+    code="case ${Module}EditScreen.route: return ${module_camel}UIState.editing.isChanged == true;${lineBreak}"
     sed -i -e "s/$comment/$comment${lineBreak}$code/g" ./lib/redux/app/app_state.dart
 
     for (( idx=${#fieldsArray[@]}-1 ; idx>=0 ; idx-- )) ; do
@@ -227,26 +227,26 @@ else
 
         comment="STARTER: fields - do not remove comment"
         code="static const String ${element} = '${element}';${lineBreak}"
-        #sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
+        sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
 
         comment="STARTER: properties - do not remove comment"
         code="String get ${element};${lineBreak}"
-        #sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
+        sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
 
         comment="STARTER: sort switch - do not remove comment"
         code="case ${Module}Fields.${element}:${lineBreak}"
         code="${code}response = ${module_snake}A.${element}.compareTo(${module_snake}B.${element});${lineBreak}break;${lineBreak}"
-        #sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
+        sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
 
         comment="STARTER: filter - do not remove comment"
         code="if (${element}.toLowerCase().contains(filter)){${lineBreak}"
         code="${code}return true;${lineBreak}"
         code="${code}}${lineBreak}"
-        #sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
+        sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
 
         comment="STARTER: constructor - do not remove comment"
         code="${element}: '',${lineBreak}"
-        #sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
+        sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
 
         echo "${module_snake}_edit"
         comment="STARTER: controllers - do not remove comment"
@@ -295,10 +295,6 @@ else
             comment="STARTER: sort default - do not remove comment"
             code="return ${module_camel}A.${element}.compareTo(${module_camel}B.${element});${lineBreak}"
             sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
-
-            comment="STARTER: display name - do not remove comment"
-            code="return ${element};${lineBreak}"
-            sed -i -e "s/$comment/$comment${lineBreak}$code/g" "./lib/data/models/${module_snake}_model.dart"
         fi
 
         if [ "$idx" -eq 1 ]; then
@@ -312,7 +308,7 @@ else
     echo "main: import"
     comment="STARTER: import - do not remove comment"
     code="import 'package:${package}\/redux\/${module_snake}\/${module_snake}_middleware.dart';${lineBreak}"
-    sed -i -e "s/$comment/$comment${lineBreak}$code/g" ./lib/main.dart
+    sed -i -e "s/$code/$comment${lineBreak}$code/g" ./lib/main.dart
 
     comment="STARTER: middleware - do not remove comment"
     code="..addAll(createStore${Modules}Middleware())${lineBreak}"
@@ -331,9 +327,12 @@ else
     code="${code}${Module}EditScreen.route: (context) => ${Module}EditScreen(),${lineBreak}"
     sed -i -e "s/$comment/$comment${lineBreak}$code/g" ./lib/main_app.dart
 
+    comment="STARTER: export - do not remove comment"
+    code="export 'package:invoiceninja_flutter\/data\/models\/${module_snake}_model.dart';"
+    sed -i -e "s/$comment/$comment${lineBreak}$code/g" ./lib/data/models/models.dart
+
     comment="STARTER: import - do not remove comment"
-    code="import 'package:${package}\/data\/models\/${module_snake}_model.dart';${lineBreak}"
-    code="${code}import 'package:${package}\/redux\/${module_snake}\/${module_snake}_state.dart';${lineBreak}"
+    code="import 'package:${package}\/redux\/${module_snake}\/${module_snake}_state.dart';${lineBreak}"
     sed -i -e "s/$comment/$comment${lineBreak}$code/g" ./lib/data/models/serializers.dart
 
     comment="STARTER: serializers - do not remove comment"
@@ -399,6 +398,7 @@ else
 
     comment="STARTER: history - do not remove comment"
     code="TypedReducer<BuiltList<HistoryRecord>, View${Module}>((historyList, action) => _addToHistory(historyList, HistoryRecord(id: action.${module_camel}Id, entityType: EntityType.${module_camel}))),TypedReducer<BuiltList<HistoryRecord>, Edit${Module}>((historyList, action) => _addToHistory(historyList, HistoryRecord(id: action.${module_camel}.id, entityType: EntityType.${module_camel}))),${lineBreak}"
+    code="${code}TypedReducer<BuiltList<HistoryRecord>, View${Module}List>((historyList, action) => _addToHistory(historyList, HistoryRecord(id: action.${module_camel}Id, entityType: EntityType.${module_camel}))),TypedReducer<BuiltList<HistoryRecord>, Edit${Module}>((historyList, action) => _addToHistory(historyList, HistoryRecord(entityType: EntityType.${module_camel}))),${lineBreak}"
     sed -i -e "s/$comment/$comment${lineBreak}$code/g" ./lib/redux/ui/pref_reducer.dart
 
     comment="STARTER: import - do not remove comment"
@@ -434,11 +434,11 @@ else
     sed -i -e "s/$comment/$comment${lineBreak}$code/g" ./lib/redux/app/app_actions.dart
 
     comment="STARTER: lang key - do not remove comment"
-    code="'${module_snake}': '${Module}', '${modules_snake}': '${Modules}', 'new_${module_snake}': 'New ${Module}', 'edit_${module_snake}': 'Edit ${Module}', 'created_${module_snake}': 'Successfully created ${module_snake}', 'updated_${module_snake}': 'Successfully updated ${module_snake}', 'archived_${module_snake}': 'Successfully archived ${module_snake}', 'deleted_${module_snake}': 'Successfully deleted ${module_snake}', 'removed_${module_snake}': 'Successfully removed ${module_snake}', 'restored_${module_snake}': 'Successfully restored ${module_snake}', 'search_${module_snake}': 'Search ${Module}',${lineBreak}"
+    code="'${module_snake}': '${Module}', '${modules_snake}': '${Modules}', 'new_${module_snake}': 'New ${Module}', 'edit_${module_snake}': 'Edit ${Module}', 'created_${module_snake}': 'Successfully created ${module_snake}', 'updated_${module_snake}': 'Successfully updated ${module_snake}', 'archived_${module_snake}': 'Successfully archived ${module_snake}', 'deleted_${module_snake}': 'Successfully deleted ${module_snake}', 'removed_${module_snake}': 'Successfully removed ${module_snake}', 'restored_${module_snake}': 'Successfully restored ${module_snake}', 'search_${module_snake}': 'Search ${Module}', 'search_${modules_snake}': 'Search ${Modules}',${lineBreak}"
     sed -i -e "s/$comment/$comment${lineBreak}$code/g" ./lib/utils/i18n.dart
 
     comment="STARTER: lang field - do not remove comment"
-    code="String get ${module_camel} => _localizedValues[localeCode]['${module_snake}'] ?? _localizedValues['en']['${module_snake}']; String get ${modules_camel} => _localizedValues[localeCode]['${modules_snake}'] ?? _localizedValues['en']['${modules_snake}']; String get new${Module} => _localizedValues[localeCode]['new_${module_snake}'] ?? _localizedValues['en']['new_${module_snake}']; String get created${Module} => _localizedValues[localeCode]['created_${module_snake}'] ?? _localizedValues['en']['created_${module_snake}']; String get updated${Module} => _localizedValues[localeCode]['updated_${module_snake}'] ?? _localizedValues['en']['updated_${module_snake}']; String get archived${Module} => _localizedValues[localeCode]['archived_${module_snake}'] ?? _localizedValues['en']['archived_${module_snake}']; String get deleted${Module} => _localizedValues[localeCode]['deleted_${module_snake}'] ?? _localizedValues['en']['deleted_${module_snake}']; String get restored${Module} => _localizedValues[localeCode]['restored_${module_snake}'] ?? _localizedValues['en']['restored_${module_snake}']; String get edit${Module} => _localizedValues[localeCode]['edit_${module_snake}'] ?? _localizedValues['en']['edit_${module_snake}'];${lineBreak} String get search${Module} => _localizedValues[localeCode]['search_${module_snake}'] ?? _localizedValues['en']['search_${module_snake}'];${lineBreak}"
+    code="String get ${module_camel} => _localizedValues[localeCode]['${module_snake}'] ?? _localizedValues['en']['${module_snake}']; String get ${modules_camel} => _localizedValues[localeCode]['${modules_snake}'] ?? _localizedValues['en']['${modules_snake}']; String get new${Module} => _localizedValues[localeCode]['new_${module_snake}'] ?? _localizedValues['en']['new_${module_snake}']; String get created${Module} => _localizedValues[localeCode]['created_${module_snake}'] ?? _localizedValues['en']['created_${module_snake}']; String get updated${Module} => _localizedValues[localeCode]['updated_${module_snake}'] ?? _localizedValues['en']['updated_${module_snake}']; String get archived${Module} => _localizedValues[localeCode]['archived_${module_snake}'] ?? _localizedValues['en']['archived_${module_snake}']; String get deleted${Module} => _localizedValues[localeCode]['deleted_${module_snake}'] ?? _localizedValues['en']['deleted_${module_snake}']; String get restored${Module} => _localizedValues[localeCode]['restored_${module_snake}'] ?? _localizedValues['en']['restored_${module_snake}']; String get edit${Module} => _localizedValues[localeCode]['edit_${module_snake}'] ?? _localizedValues['en']['edit_${module_snake}'];${lineBreak} String get search${Module} => _localizedValues[localeCode]['search_${module_snake}'] ?? _localizedValues['en']['search_${module_snake}'];${lineBreak} String get search${Module} => _localizedValues[localeCode]['search_${modules_snake}'] ?? _localizedValues['en']['search_${modules_snake}'];${lineBreak}"
     sed -i -e "s/$comment/$comment${lineBreak}$code/g" ./lib/utils/i18n.dart
 
     comment="STARTER: entity type - do not remove comment"
@@ -450,7 +450,7 @@ else
     flutter packages pub run build_runner build --delete-conflicting-outputs
 
     echo "Clean up"
-    flutter dartfmt lib
+    dart format lib
 fi
 
 echo "Successfully completed"

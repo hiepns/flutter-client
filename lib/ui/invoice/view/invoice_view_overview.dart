@@ -1,32 +1,33 @@
-import 'package:flutter_redux/flutter_redux.dart';
+// Flutter imports:
+import 'package:flutter/material.dart';
+
+// Project imports:
 import 'package:invoiceninja_flutter/colors.dart';
 import 'package:invoiceninja_flutter/constants.dart';
-import 'package:invoiceninja_flutter/data/models/company_gateway_model.dart';
-import 'package:invoiceninja_flutter/data/models/entities.dart';
 import 'package:invoiceninja_flutter/data/models/models.dart';
+import 'package:invoiceninja_flutter/data/models/purchase_order_model.dart';
 import 'package:invoiceninja_flutter/data/models/quote_model.dart';
 import 'package:invoiceninja_flutter/data/models/recurring_invoice_model.dart';
-import 'package:invoiceninja_flutter/redux/app/app_state.dart';
 import 'package:invoiceninja_flutter/redux/invoice/invoice_selectors.dart';
 import 'package:invoiceninja_flutter/redux/payment/payment_selectors.dart';
 import 'package:invoiceninja_flutter/redux/recurring_invoice/recurring_invoice_selectors.dart';
 import 'package:invoiceninja_flutter/ui/app/FieldGrid.dart';
 import 'package:invoiceninja_flutter/ui/app/entities/entity_list_tile.dart';
-import 'package:invoiceninja_flutter/ui/app/invoice/invoice_item_view.dart';
 import 'package:invoiceninja_flutter/ui/app/entity_header.dart';
+import 'package:invoiceninja_flutter/ui/app/icon_message.dart';
+import 'package:invoiceninja_flutter/ui/app/invoice/invoice_item_view.dart';
 import 'package:invoiceninja_flutter/ui/app/lists/list_divider.dart';
+import 'package:invoiceninja_flutter/ui/app/portal_links.dart';
 import 'package:invoiceninja_flutter/ui/app/scrollable_listview.dart';
 import 'package:invoiceninja_flutter/ui/invoice/view/invoice_view_vm.dart';
 import 'package:invoiceninja_flutter/utils/formatting.dart';
-import 'package:flutter/material.dart';
-import 'package:invoiceninja_flutter/ui/app/icon_message.dart';
 import 'package:invoiceninja_flutter/utils/localization.dart';
 
 class InvoiceOverview extends StatelessWidget {
   const InvoiceOverview({
-    Key key,
-    @required this.viewModel,
-    @required this.isFilter,
+    Key? key,
+    required this.viewModel,
+    required this.isFilter,
   }) : super(key: key);
 
   final AbstractInvoiceViewVM viewModel;
@@ -34,24 +35,31 @@ class InvoiceOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localization = AppLocalization.of(context);
-    final invoice = viewModel.invoice;
+    final localization = AppLocalization.of(context)!;
+    final state = viewModel.state!;
+    final invoice = viewModel.invoice!;
     final client = viewModel.client;
-    final company = viewModel.company;
+    final vendor = state.vendorState.get(invoice.vendorId);
+    final company = viewModel.company!;
 
-    final state = StoreProvider.of<AppState>(context).state;
-    final creditMap = <PaymentableEntity, PaymentEntity>{};
-    final paymentMap = <PaymentableEntity, PaymentEntity>{};
+    final creditMap = <PaymentableEntity, PaymentEntity?>{};
+    final paymentMap = <PaymentableEntity, PaymentEntity?>{};
     final payments = invoice.isInvoice
         ? memoizedPaymentsByInvoice(
-            invoice.id, state.paymentState.map, state.paymentState.list)
+            invoice.id,
+            state.paymentState.map,
+            state.paymentState.list,
+          )
         : invoice.isCredit
-            ? memoizedPaymentsByCredit(
-                invoice.id, state.paymentState.map, state.paymentState.list)
-            : <PaymentEntity>[];
+        ? memoizedPaymentsByCredit(
+            invoice.id,
+            state.paymentState.map,
+            state.paymentState.list,
+          )
+        : <PaymentEntity>[];
 
     payments.forEach((payment) {
-      payment.invoicePaymentables.forEach((paymentable) {
+      payment!.invoicePaymentables.forEach((paymentable) {
         if (paymentable.invoiceId == invoice.id) {
           paymentMap[paymentable] = payment;
         }
@@ -64,7 +72,7 @@ class InvoiceOverview extends StatelessWidget {
     });
 
     Map<String, String> statuses;
-    Map<String, Color> colors;
+    Map<String, Color?> colors;
     if (invoice.entityType == EntityType.quote) {
       statuses = kQuoteStatuses;
       colors = QuoteStatusColors(state.prefState.colorThemeModel).colors;
@@ -73,8 +81,14 @@ class InvoiceOverview extends StatelessWidget {
       colors = CreditStatusColors(state.prefState.colorThemeModel).colors;
     } else if (invoice.entityType == EntityType.recurringInvoice) {
       statuses = kRecurringInvoiceStatuses;
-      colors =
-          RecurringInvoiceStatusColors(state.prefState.colorThemeModel).colors;
+      colors = RecurringInvoiceStatusColors(
+        state.prefState.colorThemeModel,
+      ).colors;
+    } else if (invoice.entityType == EntityType.purchaseOrder) {
+      statuses = kPurchaseOrderStatuses;
+      colors = PurchaseOrderStatusColors(
+        state.prefState.colorThemeModel,
+      ).colors;
     } else {
       statuses = kInvoiceStatuses;
       colors = InvoiceStatusColors(state.prefState.colorThemeModel).colors;
@@ -88,174 +102,276 @@ class InvoiceOverview extends StatelessWidget {
         entity: invoice,
         statusColor: color,
         statusLabel: localization.lookup(statuses[invoice.calculatedStatusId]),
-        label: invoice.isCredit
+        label: invoice.isPurchaseOrder
+            ? localization.amount
+            : invoice.isCredit
             ? localization.creditAmount
             : invoice.isQuote
-                ? localization.quoteAmount
-                : localization.invoiceAmount,
-        value:
-            formatNumber(invoice.amount, context, clientId: invoice.clientId),
+            ? localization.quoteAmount
+            : localization.invoiceAmount,
+        value: formatNumber(
+          invoice.amount,
+          context,
+          clientId: invoice.isPurchaseOrder ? null : invoice.clientId,
+          vendorId: invoice.isPurchaseOrder ? invoice.vendorId : null,
+        ),
         secondLabel: invoice.isCredit
             ? localization.creditRemaining
             : (invoice.isQuote || invoice.isRecurringInvoice)
-                ? null
-                : localization.balanceDue,
+            ? null
+            : localization.balanceDue,
         secondValue:
             [EntityType.invoice, EntityType.credit].contains(invoice.entityType)
-                ? formatNumber(invoice.balanceOrAmount, context,
-                    clientId: invoice.clientId)
-                : null,
+            ? formatNumber(
+                invoice.balanceOrAmount,
+                context,
+                clientId: invoice.isPurchaseOrder ? null : invoice.clientId,
+                vendorId: invoice.isPurchaseOrder ? invoice.vendorId : null,
+              )
+            : null,
       ),
       ListDivider(),
     ];
 
-    if ((invoice.privateNotes ?? '').isNotEmpty) {
+    widgets.addAll([
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: PortalLinks(
+          viewLink: invoice.invitationSilentLink,
+          copyLink: invoice.invitationLink,
+          client: client,
+        ),
+      ),
+      ListDivider(),
+    ]);
+
+    if (invoice.privateNotes.isNotEmpty) {
       widgets.addAll([
         IconMessage(
           invoice.privateNotes,
           iconData: Icons.lock,
+          copyToClipboard: true,
         ),
         ListDivider(),
       ]);
     }
 
     String dueDateField = InvoiceFields.dueDate;
-    if (invoice.isQuote) {
+    if (invoice.isQuote || invoice.isCredit) {
       dueDateField = QuoteFields.validUntil;
     }
 
-    final Map<String, String> fields = {
+    final Map<String, String?> fields = {
       if (invoice.isQuote)
         QuoteFields.date: formatDate(invoice.date, context)
       else if (invoice.isCredit)
         CreditFields.date: formatDate(invoice.date, context)
+      else if (invoice.isPurchaseOrder)
+        PurchaseOrderFields.date: formatDate(invoice.date, context)
       else if (invoice.isInvoice)
         InvoiceFields.date: formatDate(invoice.date, context),
       dueDateField: formatDate(invoice.dueDate, context),
-      if (invoice.isInvoice)
+      if (invoice.isInvoice && !invoice.isPaid)
         InvoiceFields.nextSendDate: formatDate(invoice.nextSendDate, context),
-      InvoiceFields.partial: formatNumber(invoice.partial, context,
-          clientId: invoice.clientId, zeroIsNull: true),
+      InvoiceFields.partial: formatNumber(
+        invoice.partial,
+        context,
+        clientId: invoice.isPurchaseOrder ? null : invoice.clientId,
+        vendorId: invoice.isPurchaseOrder ? invoice.vendorId : null,
+        zeroIsNull: true,
+      ),
       InvoiceFields.partialDueDate: formatDate(invoice.partialDueDate, context),
       InvoiceFields.poNumber: invoice.poNumber,
-      InvoiceFields.discount: formatNumber(invoice.discount, context,
-          clientId: invoice.clientId,
-          zeroIsNull: true,
-          formatNumberType: invoice.isAmountDiscount
-              ? FormatNumberType.money
-              : FormatNumberType.percent),
+      InvoiceFields.discount: formatNumber(
+        invoice.discount,
+        context,
+        clientId: invoice.isPurchaseOrder ? null : invoice.clientId,
+        vendorId: invoice.isPurchaseOrder ? invoice.vendorId : null,
+        zeroIsNull: true,
+        formatNumberType: invoice.isAmountDiscount
+            ? FormatNumberType.money
+            : FormatNumberType.percent,
+      ),
       if (invoice.isRecurringInvoice) ...{
-        RecurringInvoiceFields.frequency:
-            localization.lookup(kFrequencies[invoice.frequencyId]),
-        RecurringInvoiceFields.lastSentDate:
-            formatDate(invoice.lastSentDate, context),
-        RecurringInvoiceFields.nextSendDate:
-            formatDate(invoice.nextSendDate, context),
+        RecurringInvoiceFields.frequency: localization.lookup(
+          kFrequencies[invoice.frequencyId],
+        ),
+        RecurringInvoiceFields.lastSentDate: formatDate(
+          invoice.lastSentDate,
+          context,
+        ),
+        RecurringInvoiceFields.nextSendDate: formatDate(
+          invoice.nextSendDate,
+          context,
+        ),
+        if (invoice.nextSendDatetime.isNotEmpty)
+          RecurringInvoiceFields.nextSendTime: formatDate(
+            invoice.nextSendDatetime,
+            context,
+            showDate: false,
+            showTime: true,
+            showSeconds: false,
+          ),
         RecurringInvoiceFields.remainingCycles: invoice.remainingCycles == -1
             ? localization.endless
             : '${invoice.remainingCycles}',
-        RecurringInvoiceFields.autoBill: localization.lookup(invoice.autoBill) +
+        RecurringInvoiceFields.autoBill:
+            localization.lookup(invoice.autoBill) +
             ([
-              CompanyGatewayEntity.TOKEN_BILLING_OPT_IN,
-              CompanyGatewayEntity.TOKEN_BILLING_OPT_OUT
-            ].contains(invoice.autoBill)
+                  SettingsEntity.AUTO_BILL_OPT_IN,
+                  SettingsEntity.AUTO_BILL_OPT_OUT,
+                ].contains(invoice.autoBill)
                 ? (' - ' +
-                    (invoice.autoBillEnabled
-                        ? localization.yes
-                        : localization.no))
+                      (invoice.autoBillEnabled
+                          ? localization.yes
+                          : localization.no))
                 : ''),
         InvoiceFields.dueDate: invoice.dueDateDays == 'terms'
             ? localization.paymentTerm
+            : invoice.dueDateDays == 'on_receipt'
+            ? localization.dueOnReceipt
             : invoice.dueDateDays == '1'
-                ? localization.firstDayOfTheMonth
-                : invoice.dueDateDays == '31'
-                    ? localization.lastDayOfTheMonth
-                    : localization.dayCount
-                        .replaceFirst(':count', '${invoice.dueDateDays}'),
-      }
+            ? localization.firstDayOfTheMonth
+            : invoice.dueDateDays == '31'
+            ? localization.lastDayOfTheMonth
+            : localization.dayCount.replaceFirst(
+                ':count',
+                '${invoice.dueDateDays}',
+              ),
+      },
     };
 
-    if (invoice.customValue1.isNotEmpty) {
+    if (company.hasCustomField(CustomFieldType.invoice1) &&
+        invoice.customValue1.isNotEmpty) {
       final label1 = company.getCustomFieldLabel(CustomFieldType.invoice1);
       fields[label1] = formatCustomValue(
-          context: context,
-          field: CustomFieldType.invoice1,
-          value: invoice.customValue1);
+        context: context,
+        field: CustomFieldType.invoice1,
+        value: invoice.customValue1,
+      );
     }
-    if (invoice.customValue2.isNotEmpty) {
+    if (company.hasCustomField(CustomFieldType.invoice2) &&
+        invoice.customValue2.isNotEmpty) {
       final label2 = company.getCustomFieldLabel(CustomFieldType.invoice2);
       fields[label2] = formatCustomValue(
-          context: context,
-          field: CustomFieldType.invoice2,
-          value: invoice.customValue2);
+        context: context,
+        field: CustomFieldType.invoice2,
+        value: invoice.customValue2,
+      );
     }
-    if (invoice.customValue3.isNotEmpty) {
+    if (company.hasCustomField(CustomFieldType.invoice3) &&
+        invoice.customValue3.isNotEmpty) {
       final label3 = company.getCustomFieldLabel(CustomFieldType.invoice3);
       fields[label3] = formatCustomValue(
-          context: context,
-          field: CustomFieldType.invoice3,
-          value: invoice.customValue3);
+        context: context,
+        field: CustomFieldType.invoice3,
+        value: invoice.customValue3,
+      );
     }
-    if (invoice.customValue4.isNotEmpty) {
+    if (company.hasCustomField(CustomFieldType.invoice4) &&
+        invoice.customValue4.isNotEmpty) {
       final label4 = company.getCustomFieldLabel(CustomFieldType.invoice4);
       fields[label4] = formatCustomValue(
-          context: context,
-          field: CustomFieldType.invoice4,
-          value: invoice.customValue4);
+        context: context,
+        field: CustomFieldType.invoice4,
+        value: invoice.customValue4,
+      );
     }
 
-    widgets.add(
-      EntityListTile(
-        isFilter: isFilter,
-        entity: client,
-      ),
-    );
+    if (invoice.isPurchaseOrder) {
+      widgets.add(
+        EntityListTile(
+          isFilter: isFilter,
+          entity: vendor,
+          subtitle: vendor
+              .getContact(invoice.invitations.first.vendorContactId)
+              .emailOrFullName,
+        ),
+      );
+    } else if (client != null) {
+      widgets.add(
+        EntityListTile(
+          isFilter: isFilter,
+          entity: client,
+          subtitle: client
+              .getContact(invoice.invitations.first.clientContactId)
+              .emailOrFullName,
+        ),
+      );
+    }
+
+    if (invoice.projectId.isNotEmpty) {
+      final project = state.projectState.get(invoice.projectId);
+      widgets.add(EntityListTile(entity: project, isFilter: isFilter));
+    }
+
+    if (invoice.expenseId.isNotEmpty) {
+      final expense = state.vendorState.get(invoice.expenseId);
+      widgets.add(EntityListTile(entity: expense, isFilter: isFilter));
+    }
 
     if ((invoice.assignedUserId ?? '').isNotEmpty) {
-      final assignedUser = state.userState.get(invoice.assignedUserId);
-      widgets.add(EntityListTile(
-        isFilter: isFilter,
-        entity: assignedUser,
-      ));
+      final assignedUser = state.userState.get(invoice.assignedUserId!);
+      widgets.add(EntityListTile(isFilter: isFilter, entity: assignedUser));
     }
 
     if ((invoice.recurringId ?? '').isNotEmpty) {
-      final recurringInvoice =
-          state.recurringInvoiceState.get(invoice.recurringId);
+      final recurringInvoice = state.recurringInvoiceState.get(
+        invoice.recurringId!,
+      );
       widgets.add(EntityListTile(entity: recurringInvoice, isFilter: isFilter));
     } else if (invoice.isRecurring) {
-      widgets.add(EntitiesListTile(
-        entity: invoice,
-        isFilter: isFilter,
-        hideNew: true,
-        entityType: EntityType.invoice,
-        title: localization.invoices,
-        subtitle: memoizedRecurringInvoiceStatsForInvoice(
-                invoice.id, state.invoiceState.map)
-            .present(localization.active, localization.archived),
-      ));
+      widgets.add(
+        EntitiesListTile(
+          entity: invoice,
+          isFilter: isFilter,
+          hideNew: true,
+          entityType: EntityType.invoice,
+          title: localization.invoices,
+          subtitle: memoizedRecurringInvoiceStatsForInvoice(
+            invoice.id,
+            state.invoiceState.map,
+          ).present(localization.active, localization.archived),
+        ),
+      );
     }
 
-    if (invoice.isQuote || invoice.isCredit) {
-      final relatedInvoice = state.invoiceState.map[invoice.invoiceId] ??
-          InvoiceEntity(id: invoice.invoiceId);
-      if ((invoice.invoiceId ?? '').isNotEmpty) {
-        widgets.add(EntityListTile(
-          isFilter: isFilter,
-          entity: relatedInvoice,
-        ));
+    final relatedInvoice =
+        state.invoiceState.map[invoice.invoiceId] ??
+        InvoiceEntity(id: invoice.invoiceId);
+    if ((invoice.invoiceId ?? '').isNotEmpty) {
+      widgets.add(EntityListTile(isFilter: isFilter, entity: relatedInvoice));
+    }
+
+    if (invoice.isInvoice) {
+      final relatedQuote = memoizedInvoiceQuoteSelector(
+        invoice,
+        state.quoteState.map,
+      );
+      if (relatedQuote != null) {
+        widgets.add(EntityListTile(isFilter: isFilter, entity: relatedQuote));
       }
     }
 
     if (paymentMap.isNotEmpty) {
       paymentMap.entries.forEach((entry) {
-        final payment = entry.value;
+        final payment = entry.value!;
         final paymentable = entry.key;
-        String amount =
-            formatNumber(paymentable.amount, context, clientId: client.id);
+        String amount = formatNumber(
+          paymentable.amount,
+          context,
+          clientId: invoice.isPurchaseOrder ? null : client!.id,
+          vendorId: invoice.isPurchaseOrder ? invoice.vendorId : null,
+        )!;
         if (paymentable.amount != payment.amount) {
           amount +=
-              '/' + formatNumber(payment.amount, context, clientId: client.id);
+              '/' +
+              formatNumber(
+                payment.amount,
+                context,
+                clientId: invoice.isPurchaseOrder ? null : client!.id,
+                vendorId: invoice.isPurchaseOrder ? invoice.vendorId : null,
+              )!;
         }
 
         widgets.add(
@@ -270,13 +386,23 @@ class InvoiceOverview extends StatelessWidget {
 
     if (creditMap.isNotEmpty) {
       creditMap.entries.forEach((entry) {
-        final credit = entry.value;
+        final credit = entry.value!;
         final paymentable = entry.key;
-        String amount =
-            formatNumber(paymentable.amount, context, clientId: client.id);
+        String amount = formatNumber(
+          paymentable.amount,
+          context,
+          clientId: invoice.isPurchaseOrder ? null : client!.id,
+          vendorId: invoice.isPurchaseOrder ? invoice.vendorId : null,
+        )!;
         if (paymentable.amount != credit.amount) {
           amount +=
-              '/' + formatNumber(credit.amount, context, clientId: client.id);
+              '/' +
+              formatNumber(
+                credit.amount,
+                context,
+                clientId: invoice.isPurchaseOrder ? null : client!.id,
+                vendorId: invoice.isPurchaseOrder ? invoice.vendorId : null,
+              )!;
         }
 
         widgets.add(
@@ -288,14 +414,10 @@ class InvoiceOverview extends StatelessWidget {
         );
       });
 
-      widgets.addAll([
-        ListDivider(),
-      ]);
+      widgets.addAll([ListDivider()]);
     }
 
-    widgets.addAll([
-      FieldGrid(fields),
-    ]);
+    widgets.addAll([FieldGrid(fields)]);
 
     if (invoice.lineItems.isNotEmpty) {
       invoice.lineItems.forEach((invoiceItem) {
@@ -306,8 +428,10 @@ class InvoiceOverview extends StatelessWidget {
                 invoice: invoice,
                 invoiceItem: invoiceItem,
                 onTap: () => userCompany.canEditEntity(invoice)
-                    ? viewModel.onEditPressed(
-                        context, invoice.lineItems.indexOf(invoiceItem))
+                    ? viewModel.onEditPressed!(
+                        context,
+                        invoice.lineItems.indexOf(invoiceItem),
+                      )
                     : null,
               );
             },
@@ -320,22 +444,32 @@ class InvoiceOverview extends StatelessWidget {
       return Container(
         color: Theme.of(context).cardColor,
         child: Padding(
-          padding:
-              const EdgeInsets.only(left: 20, top: 10, right: 56, bottom: 8),
+          padding: const EdgeInsets.only(
+            left: 20,
+            top: 10,
+            right: 56,
+            bottom: 8,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-              Text(
-                label,
-                style: Theme.of(context).textTheme.subtitle1,
-              ),
+              Text(label, style: Theme.of(context).textTheme.titleMedium),
               SizedBox(
                 width: 100.0,
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    formatNumber(amount, context, clientId: invoice.clientId),
-                    style: Theme.of(context).textTheme.subtitle1,
+                    formatNumber(
+                      amount,
+                      context,
+                      clientId: invoice.isPurchaseOrder
+                          ? null
+                          : invoice.clientId,
+                      vendorId: invoice.isPurchaseOrder
+                          ? invoice.vendorId
+                          : null,
+                    )!,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
               ),
@@ -348,63 +482,90 @@ class InvoiceOverview extends StatelessWidget {
     widgets.addAll([
       SizedBox(height: 8),
       surchargeRow(
-          localization.subtotal,
-          invoice.calculateSubtotal(
-              precision: precisionForInvoice(state, invoice))),
+        localization.subtotal,
+        invoice.calculateSubtotal(
+          precision: precisionForInvoice(state, invoice),
+        ),
+      ),
     ]);
 
     if (invoice.customSurcharge1 != 0 && company.enableCustomSurchargeTaxes1) {
-      widgets.add(surchargeRow(
+      widgets.add(
+        surchargeRow(
           company.getCustomFieldLabel(CustomFieldType.surcharge1),
-          invoice.customSurcharge1));
+          invoice.customSurcharge1,
+        ),
+      );
     }
 
     if (invoice.customSurcharge2 != 0 && company.enableCustomSurchargeTaxes2) {
-      widgets.add(surchargeRow(
+      widgets.add(
+        surchargeRow(
           company.getCustomFieldLabel(CustomFieldType.surcharge2),
-          invoice.customSurcharge2));
+          invoice.customSurcharge2,
+        ),
+      );
     }
     if (invoice.customSurcharge3 != 0 && company.enableCustomSurchargeTaxes3) {
-      widgets.add(surchargeRow(
+      widgets.add(
+        surchargeRow(
           company.getCustomFieldLabel(CustomFieldType.surcharge3),
-          invoice.customSurcharge3));
+          invoice.customSurcharge3,
+        ),
+      );
     }
     if (invoice.customSurcharge4 != 0 && company.enableCustomSurchargeTaxes4) {
-      widgets.add(surchargeRow(
+      widgets.add(
+        surchargeRow(
           company.getCustomFieldLabel(CustomFieldType.surcharge4),
-          invoice.customSurcharge4));
+          invoice.customSurcharge4,
+        ),
+      );
     }
 
     invoice
         .calculateTaxes(
-            useInclusiveTaxes: invoice.usesInclusiveTaxes,
-            precision: precisionForInvoice(state, invoice))
+          useInclusiveTaxes: invoice.usesInclusiveTaxes,
+          precision: precisionForInvoice(state, invoice),
+        )
         .forEach((taxName, taxAmount) {
-      widgets.add(surchargeRow(taxName, taxAmount));
-    });
+          widgets.add(surchargeRow(taxName, taxAmount));
+        });
 
     if (invoice.customSurcharge1 != 0 && !company.enableCustomSurchargeTaxes1) {
-      widgets.add(surchargeRow(
+      widgets.add(
+        surchargeRow(
           company.getCustomFieldLabel(CustomFieldType.surcharge1),
-          invoice.customSurcharge1));
+          invoice.customSurcharge1,
+        ),
+      );
     }
 
     if (invoice.customSurcharge2 != 0 && !company.enableCustomSurchargeTaxes2) {
-      widgets.add(surchargeRow(
+      widgets.add(
+        surchargeRow(
           company.getCustomFieldLabel(CustomFieldType.surcharge2),
-          invoice.customSurcharge2));
+          invoice.customSurcharge2,
+        ),
+      );
     }
 
     if (invoice.customSurcharge3 != 0 && !company.enableCustomSurchargeTaxes3) {
-      widgets.add(surchargeRow(
+      widgets.add(
+        surchargeRow(
           company.getCustomFieldLabel(CustomFieldType.surcharge3),
-          invoice.customSurcharge3));
+          invoice.customSurcharge3,
+        ),
+      );
     }
 
     if (invoice.customSurcharge4 != 0 && !company.enableCustomSurchargeTaxes4) {
-      widgets.add(surchargeRow(
+      widgets.add(
+        surchargeRow(
           company.getCustomFieldLabel(CustomFieldType.surcharge4),
-          invoice.customSurcharge4));
+          invoice.customSurcharge4,
+        ),
+      );
     }
 
     if (!invoice.isQuote)
@@ -419,15 +580,13 @@ class InvoiceOverview extends StatelessWidget {
       widgets.add(surchargeRow(localization.partialDue, invoice.partial));
     }
 
-    if ((invoice.publicNotes ?? '').isNotEmpty) {
+    if (invoice.publicNotes.isNotEmpty) {
       widgets.addAll([
         ListDivider(),
-        IconMessage(invoice.publicNotes),
+        IconMessage(invoice.publicNotes, copyToClipboard: true),
       ]);
     }
 
-    return ScrollableListView(
-      children: widgets,
-    );
+    return ScrollableListView(children: widgets);
   }
 }
